@@ -1,0 +1,112 @@
+<?xml version="1.0" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2010 ESRI
+//
+// All rights reserved under the copyright laws of the United States.
+// You may freely redistribute and use this software, with or
+// without modification, provided you include the original copyright
+// and use restrictions.  See use restrictions in the file:
+// <install location>/License.txt
+//
+// Read more about ArcGIS API for JavaScript //developers.arcgis.com/javascript/index.html
+////////////////////////////////////////////////////////////////////////////////
+-->
+<configuration xmlns:xsi="//www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/config.xsd">
+    <title>Colorado Hunting Atlas</title>
+    <subtitle>Colorado Parks and Wildlife</subtitle>
+    <app>huntingatlas</app>
+    <!-- logo in header bar-->
+    <logo>assets/images/cpwlogo_48x48.png</logo>
+    <logourl>https://cpw.state.co.us</logourl>
+	<httpproxy>/proxy/DotNet/proxy.ashx</httpproxy>
+	<!-- Do not show the disclaimer when the following tag is set to true. This tag is not required -->
+    <noDisclaimer>false</noDisclaimer>
+    <style>
+		<font name="Helvetica" size="11"/>    	
+    </style>
+    
+    <!-- REST endpoint to a GeometryService. This should be a service published by CPW and not pointing at an ESRI service.  Use to convert points to new projections. -->
+    <geometryservice url="//ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+    
+	<printservicegeo>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting</printservicegeo>
+	<printservice>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printservice>
+	
+	<!-- Find a Place Service **NEW** -->
+	<findplaceservice url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer"/>
+	
+	<!-- Address Service **NEW** -->
+	<addressservice url="https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"/>
+	
+    <!-- Key to allow Bing Map background layers to work.  Do not change. -->
+	<!--bing key="Ak1eor2ZBWpGcsTkRL8PjLwDpPda-_tK9v-PS-5IbeiOpKm0Eq6n4Xdf26hFbAN6"/-->
+
+    <!-- wkid is required.  This is the spatial reference number.-->
+    <map wkid="102100"
+    	 initialextent="-12350000 4250000 -11150000 5250000">
+         <!-- operationallayers:  Note: Displays in reverse order. -->
+         <!-- Set open=true if you want this mapservice layer expanded at the start. -->
+         <!-- Set opensublayer=comma delimited list of layer names under the mapservice checkbox to expand at the start. open must be true. -->
+         <!--     example: open="true" opensublayer="Places of Interest,Township Range Sections" --> 
+        <operationallayers>
+			<!--layer label="MVUM not complete" open="true" type="dynamic" visible="true" alpha="1"
+					url="https://apps.fs.fed.us/arcx/rest/services/EDW/EDW_MVUM_01/MapServer"/-->
+			<layer label="Motor Vehicle Use Map" open="false" type="dynamic" visible="false" alpha="0.85"
+					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/mvum/MapServer"/>
+			<!--url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/-->
+			<!-- Layer must be named "Hunter Reference".  It is used in widgets/Legend/toc/tocClasses/TocMapLayerItem.as -->
+			<layer label="Hunter Reference" open="true" type="dynamic" visible="true" alpha="0.8"
+					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer"/>
+			<!-- Layer must be named "Game Species".  It is used in widgets/Legend/toc/tocClasses/TocMapLayerItem.as -->
+			<layer label="Game Species" open="false" type="dynamic" visible="false" alpha="0.7"
+					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_BigGameSpecies_Map/MapServer"/>					
+        </operationallayers>
+		
+		<hideGroupSublayers>Emergency,Field Office,Chamber of Commerce or Welcome Center,License Agent,Campgrounds and SWA Facilities,GMU boundary (Hunting Units)</hideGroupSublayers>
+		<radiolayers>Game Species</radiolayers>
+    </map>	 
+    
+    <widgetcontainer>
+         <!-- preload can be set to "open" or "minimized" -->
+		 <!-- video is a link to a help video. This link will be in the help modal window -->
+         <widget label="Map Layers &amp; Legend"
+         	preload="open"
+			height="420"
+            video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+         <widget label="Hunter Resource Report"
+            preload="minimized"
+			video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+         <widget label="Feature Search"
+            preload="minimized"
+			video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+         <widget label="Address"
+            preload="minimized"
+			video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+         <widget label="Draw, Label, &amp; Measure"
+            preload="minimized"
+            video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+         <widget label="Bookmark"
+            preload="minimized"
+            video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+          <widget label="Settings"
+            preload="minimized"
+            video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+    </widgetcontainer>
+
+    <links>
+    <!-- Note the icons and labels must all be different.  This is how it looks up the url. -->
+    	<link label="Go Mobile"
+    		url="https://ndismaps.nrel.colostate.edu/GoMobile.aspx%3Fsubtitle=Colorado%20Hunting%20Atlas%26app=huntingatlas"
+			icon="assets/images/i_mobile.png"/>
+		<link label="Big Game Brochure"
+    		url="https://cpw.state.co.us/aboutus/Pages/RegulationsBrochures.aspx"
+    		icon="assets/images/i_documentadd.png"/>
+		<link label="Buy License!"
+    		url="https://cpw.state.co.us/BuyApply/pages/hunting.aspx"
+    		icon="assets/images/i_buylicense.png"/>
+		<!--link label="What's New"
+    		<url="https://ndismaps.nrel.colostate.edu/huntingatlas/videos/whatsnew/whatsnew.html">
+    		icon="assets/images/i_solar.png"/--> 
+    </links>     
+</configuration>

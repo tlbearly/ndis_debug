@@ -1,0 +1,614 @@
+	//**********************
+	// Number Format 
+	//**********************
+	Number.prototype.numberFormat = function(decimals, dec_point, thousands_sep) {
+		// format a number with decimals and thousand separators
+		// var fooStr = foo.numberFormat(2); // 5,000.00
+		dec_point = typeof dec_point !== 'undefined' ? dec_point : '.';
+		thousands_sep = typeof thousands_sep !== 'undefined' ? thousands_sep : ',';
+
+		var parts = this.toFixed(decimals).toString().split(dec_point);
+		parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousands_sep);
+
+		return parts.join(dec_point);
+	}
+	
+	  //************
+	  // Map Scale
+	  //************
+/*	  function showMapScale(obj) {
+		if (obj.lod.level == 10) document.getElementById("mapscaleList").selectedIndex = 9;
+		else if (obj.lod.level == 11) document.getElementById("mapscaleList").selectedIndex = 10;
+		else if (obj.lod.level == 12) document.getElementById("mapscaleList").selectedIndex = 10;
+		else if (obj.lod.level == 13) document.getElementById("mapscaleList").selectedIndex = 11;
+		else document.getElementById("mapscaleList").selectedIndex = obj.lod.level;
+		// adjust last three map scales indexes since we skipped some in index.html
+		//if (obj.lod.level == 15) document.getElementById("mapscaleList").selectedIndex = 9;
+		//else if (obj.lod.level == 16) document.getElementById("mapscaleList").selectedIndex = 9;
+		//else if (obj.lod.level == 17) document.getElementById("mapscaleList").selectedIndex = 10;
+		//else if (obj.lod.level == 18) document.getElementById("mapscaleList").selectedIndex = 10;
+		//else if (obj.lod.level == 19) document.getElementById("mapscaleList").selectedIndex = 11;
+		//else document.getElementById("mapscaleList").selectedIndex = obj.lod.level-6;
+	  }
+	  function setMapScale(list) {
+	    map.setScale(list[list.selectedIndex].value);
+	  }
+*/	  
+	  
+	  //**************
+	  // Coordinates 
+	  //**************
+/*      function showCoordinates(evt) {
+			//get mapPoint from event
+			require(["dojo/dom"],function(dom){	
+				var mp, xy;
+				//The map is in web mercator - modify the map point to display the results in geographic
+				if (dom.byId("xycoords_combo")[dom.byId("xycoords_combo").selectedIndex].value == "geo"){
+					mp = esri.geometry.webMercatorToGeographic(evt.mapPoint);
+					dom.byId("xycoords").innerHTML = "Latitude: "+mp.y.toFixed(5) + " N &nbsp;&nbsp;&nbsp;Longitude: " + mp.x.toFixed(5) + " W &nbsp;&nbsp;&nbsp;Decimal Degrees";
+				}
+				else if (dom.byId("xycoords_combo")[dom.byId("xycoords_combo").selectedIndex].value == "dms"){
+					xy = mappoint_to_dms(evt.mapPoint,true);
+					dom.byId("xycoords").innerHTML = "Latitude: "+xy[0] + " N &nbsp;&nbsp;&nbsp;Longitude: " + xy[1] + " W &nbsp;&nbsp;&nbsp;Degrees, Minutes, Seconds";
+					xy = null;
+				}
+				else if (dom.byId("xycoords_combo")[dom.byId("xycoords_combo").selectedIndex].value == "dm"){
+					xy = mappoint_to_dm(evt.mapPoint,true);
+					dom.byId("xycoords").innerHTML = "Latitude: "+xy[0] + " N &nbsp;&nbsp;&nbsp;Longitude: " + xy[1] + " W &nbsp;&nbsp;&nbsp;Degrees, Decimal Minutes";
+					xy = null;
+				}
+				else{
+					mp = evt.mapPoint;
+					dom.byId("xycoords").innerHTML = mp.x.toFixed(0) + ", " + mp.y.toFixed(0) + " Web Mercator";
+				}
+			});
+		}
+*/	  
+	  function mappoint_to_dms(point, leadingZero) {
+		// Convert a map point to degrees, minutes, seconds. 
+		// Return an array of latitude = arr[0] = 40° 30' 2.12345", longitude = arr[1]= 103° 25' 33.1122"
+		// if leadingZero is true add 0 to left of min and sec
+		var ddPoint = esri.geometry.webMercatorToGeographic(point); // convert to lat long decimal degrees
+		var pointArr = dd_to_dms(ddPoint, leadingZero);
+		return pointArr;
+	}
+	
+	function dd_to_dms(ddPoint, leadingZero) {
+		// Convert a decimal degree point to degrees, minutes, seconds. 
+		// Return an array of latitude = arr[0] = 40° 30' 2.12345", longitude = arr[1]= 103° 25' 33.1122"
+		// if leadingZero is true add 0 to left of min and sec
+		var lonAbs = Math.abs(Math.round(ddPoint.x * 1000000.));
+		var latAbs = Math.abs(Math.round(ddPoint.y * 1000000.));
+		var degY = Math.floor(latAbs / 1000000) + '° ';
+		var minY = Math.floor(  ((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60)  + '\' ';
+		var secY = Math.floor( Math.floor(((((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60) - Math.floor(((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60)) * 100000) *60/100000 ) + '"'; // latitude
+		if (leadingZero && minY.length == 3) minY = "0" + minY; // add leading zero so it does not shake
+		if (leadingZero && secY.length == 2) secY = "0" + secY; // add leading zero so it does not shake
+		var y = degY + minY + secY;
+		var	degX = Math.floor(lonAbs / 1000000) + '° ';
+		var minX = Math.floor(  ((lonAbs/1000000) - Math.floor(lonAbs/1000000)) * 60)  + '\' ';
+		var secX = Math.floor( Math.floor(((((lonAbs/1000000) - Math.floor(lonAbs/1000000)) * 60) - Math.floor(((lonAbs/1000000) - Math.floor(lonAbs/1000000)) * 60)) * 100000) *60/100000 ) + '"'; // longitude
+		if (leadingZero && minX.length == 3) minX = "0" + minX; // add leading zero so it does not shake
+		if (leadingZero && secX.length == 2) secX = "0" + secX; // add leading zero so it does not shake
+		var x = degX + minX + secX;
+		var pointArr=[];
+		pointArr.push(y);
+		pointArr.push(x);
+		return pointArr;
+	}
+
+	function mappoint_to_dm(point, leadingZero) {
+		// Convert a map point to degrees, decimal minutes.
+		// Return an array of latitude = arr[0] = 40° 30.12345', longitude = arr[1]= 103° 25.24567'
+		// if leadingZero is true add 0 to left of min and sec
+		ddPoint = esri.geometry.webMercatorToGeographic(point);
+		var pointArr = dd_to_dm(ddPoint, leadingZero);
+		return pointArr;
+	}
+	
+	function dd_to_dm(ddPoint, leadingZero) {
+		// Convert a decimal degree point to degrees, decimal minutes.
+		// Return an array of latitude = arr[0] = 40° 30.12345', longitude = arr[1]= 103° 25.24567'
+		// if leadingZero is true add 0 to left of min and sec
+		var lonAbs = Math.abs(Math.round(ddPoint.x * 1000000.));
+		var latAbs = Math.abs(Math.round(ddPoint.y * 1000000.));
+		var degY = Math.floor(latAbs / 1000000) + '° ';
+		//var minY = Math.floor(  ((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60)  + '\' '; // truncate minutes
+		var minY = (((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60).toFixed(5)  + '\' '; // decimal minutes
+		if (leadingZero && minY.indexOf(".") == 1) minY = "0" + minY; // add leading zero so it does not shake
+		var y = degY + minY;
+		var	degX = Math.floor(lonAbs / 1000000) + '° ';
+		//var minX = Math.floor(  ((lonAbs/1000000) - Math.floor(lonAbs/1000000)) * 60)  + '\' '; // truncate minutes
+		var minX = (((lonAbs/1000000) - Math.floor(lonAbs/1000000)) * 60).toFixed(5)  + '\' '; // decimal minutes
+		if (leadingZero && minX.indexOf(".") == 1) minX = "0" + minX; // add leading zero so it does not shake
+		var x = degX + minX;
+		var pointArr=[];
+		pointArr.push(y);
+		pointArr.push(x);
+		return pointArr;
+	}
+
+	function dms_or_dm_to_dd(str) {
+		// takes a degree, minute, second point as "40:30:20.44,104:20:5"
+		// or a degree, decimal minute as "40:30.1,104:20.01"
+		// and returns and array. 
+		// array[0] is lat in decimal degrees
+		// array[1] is long in decimal degrees
+		// array[2] is label in deg, min, sec as: 40° 30' 20.44" N, 104° 20' 5" W 
+		// or in degrees, decimal minutes as: 40° 30.1' N, 104° 20.01' W
+		var pos,pos2,pointX,pointY;
+		var arr = new Array();
+		pointY = str.substring(0,str.indexOf(","));
+		pointX = str.substring(str.indexOf(",")+1,str.length);
+		pos = pointX.indexOf(":");
+		if (pos == -1) {
+			alert("Missing ':'. Must be in the formate 40:0:0,103:0:0 or 40:0,103:0","Warning");
+			return null;
+		}
+		var degX = Number(pointX.substring(0,pos));
+		// switch from long, lat to lat, long
+		if (!((degX >= -110 && degX <= -100) || (degX >= 100 && degX <= 110))) {
+			var tmp;
+			tmp = pointY;
+			pointY = pointX;
+			pointX = tmp;
+			pos = pointX.indexOf(":");
+			degX = Number(pointX.substring(0,pos));
+		}
+		var secX = 0;
+		var minX;
+
+		// if Seconds. Check if dms or degrees decimal minutes
+		pos2 = pointX.substring(pos+1).indexOf(":")
+		if (pos2 > -1) {
+			minX = Number(pointX.substr(pos+1, pos2));
+			secX = Number(pointX.substring(pos+pos2+2));
+		}
+		else minX = Number(pointX.substring(pos+1));
+		pointX = Number(degX) + Number(minX)/60 + Number(secX)/3600;
+		if (pointX >= 100 && pointX <= 110) pointX = pointX*-1;
+		
+		pos = pointY.indexOf(":");
+		if (pos == -1) {
+			alert("Missing ':'. Must be in the formate 40:0:0,103:0:0 or 40:0,103:0","Warning");
+			return null;
+		}
+		var degY = Number(pointY.substring(0,pos));
+		var secY = 0;
+		var minY;
+
+		// if Seconds. Check if dms or degrees decimal minutes
+		pos2 = pointY.substring(pos+1).indexOf(":")
+		if (pos2 > -1) {
+			minY = Number(pointY.substr(pos+1, pos2));
+			secY = Number(pointY.substring(pos+pos2+2));
+		}
+		else minY = Number(pointY.substring(pos+1));
+		pointY = Number(degY) + Number(minY)/60 + Number(secY)/3600;
+		label = degY+'° ' +minY+ '\' ';
+		if (secY > 0) label += secY + '" N, ';
+		else label += " N, ";
+		if (pointY >= 100 && pointY <= 110) pointY = pointY*-1;
+		label += degX+'° ' +minX+ '\' ';
+		if (secX > 0) label += secX + '" W';
+		else label += " W";
+		
+		if (!((pointX >= -110 && pointX <= -100) && (pointY >= 35 && pointY <= 42))) {
+			alert("This point is not in Colorado. Latitude of 35 - 42. Longitude of 100 - 110.","Warning");
+			return null;
+		}
+		arr.push(pointY,pointX,label);
+		return arr;
+	}
+	
+	
+	  //**************************
+	  // Show/Hide loading image
+	  //**************************
+	  function showLoading() {
+		esri.show(loading);
+		map.disableMapNavigation();
+		map.hideZoomSlider();
+      }
+	  function hideLoading() {
+		esri.hide(loading);
+		map.enableMapNavigation();
+		map.showZoomSlider();        
+	  }
+	  // end show loading image functions
+
+
+      //*************************************************************
+	  // Show/Hide Menu button toggle to show or hide the left pane
+	  //*************************************************************
+/*	  function toggleLeftPane() {
+		require(["dojo/dom","dijit/registry"], function(dom,registry){
+			var menu = dom.byId('leftPane');
+			var menuBtn = dom.byId("menuBtn");
+			var mapWin = dom.byId('mapDiv');
+			// Show Menu
+			if (menu.style.display == 'none')
+			{
+				dom.byId("ovMap").style.zIndex = -1;
+				registry.byId("ovMap").show();
+				menu.style.display = 'block';
+				dom.byId("menuBtn_label").innerHTML="<";
+				menuBtn.title = "Close Menu";
+				registry.byId('mainWindow').resize();
+				//clear any existing resize timer
+				var resizeTimer;
+				clearTimeout(resizeTimer);
+				//create new resize timer with delay of 500 milliseconds
+				resizeTimer = setTimeout(function () {
+					registry.byId("ovMap").resize();
+					var ovResizeTimer;
+					clearTimeout(ovResizeTimer);
+					ovResizeTimer = setTimeout(function(){
+						registry.byId("ovMap").hide();
+						dom.byId("ovMap").style.zIndex = 99;
+					}, 500);
+				}, 500);
+			}
+			// Hide Menu
+			else
+			{
+				dom.byId("ovMap").style.zIndex = -1;
+				registry.byId("ovMap").show();
+				menu.style.display = 'none';		
+				dom.byId("menuBtn_label").innerHTML=">";
+				menuBtn.title = "Open Menu";
+				registry.byId('mainWindow').resize();
+				//clear any existing resize timer
+				var resizeTimer;
+				clearTimeout(resizeTimer);
+				//create new resize timer with delay of 500 milliseconds
+				resizeTimer = setTimeout(function () {
+					registry.byId("ovMap").resize();
+					var ovResizeTimer;
+					clearTimeout(ovResizeTimer);
+					ovResizeTimer = setTimeout(function(){
+						registry.byId("ovMap").hide();
+						dom.byId("ovMap").style.zIndex = 99;
+					}, 500);
+				}, 500);
+			}
+		});
+	  }
+*/	  
+	// Find a Place clear graphics
+	function removeSearchItem(){
+		if (searchGraphicsCount.length == 0) return;
+		//map.getLayer(searchGraphicsCount.pop()).clear();
+		//Fade graphic out
+		var gl = searchGraphicsCount.pop();
+		map.getLayer(gl).setOpacity(0.3);
+		var t = window.setTimeout(function(){
+			map.getLayer(gl).clear();
+			window.clearTimeout(t);
+			gl=null;
+		},2000);
+		// gray out clear button
+		if (searchGraphicsCount.length == 0) {
+			document.getElementById("findClear").style.opacity = .2;
+			document.getElementById("findClear").style.filter = "alpha(opacity=20)";
+		}
+	}
+
+	function showSearchHelp(){
+		document.getElementById('search_help').style.display='block';
+	}
+	function hideSearchHelp(){
+		document.getElementById('search_help').style.display='none';
+	}
+	  
+	function loadPage(url) {
+		window.location.assign(url);
+	}
+	
+	//**************************
+	// Cookies and localStorage
+	//**************************
+	// localStorage works in HTML5 and does not have the limit of 4k of data per domain. It can hold 5MB.
+	function getCookie(cname) {
+		// returns null if not found. Make it return "" like it used to.
+		if (typeof(Storage) == "undefined") 
+			getCookie2(cname);
+		else {
+			var localStorage;
+			try {
+				localStorage = window.localStorage;
+			} catch (e) {
+				alert("Your browser doesn't accept cookies. Failed to read user preferences and bookmarks. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
+				return "";
+			}
+			try {
+				var result = localStorage.getItem(cname);
+				if (!result) return "";
+				else return result;
+			}
+			catch(e){
+				alert("Your browser doesn't accept cookies. Failed to read user preferences and bookmarks. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
+				return "";
+			}
+		}
+	}
+	  
+	function setCookie(cname, cvalue) {
+		if (typeof(Storage) == "undefined") 
+			setCookie2(cname);
+		else {
+			var localStorage;
+			try {
+				localStorage = window.localStorage;
+			} catch (e) {
+				alert("Your browser doesn't accept cookies. Failed to set user preferences or bookmarks. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
+				return "";
+			}
+			try{
+			localStorage.setItem(cname,cvalue);
+			}
+			catch(e){
+			if (e.name === 'QuotaExceededError' ||
+				e.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+				e.code === 22) {
+				alert("Browser storage full. Try removing some "+app+" bookmarks.","Warning");
+			}
+			else
+				alert("Saving user preferences and bookmarks requires non-private browser mode. Please set this mode and try again. Also, this may be caused by your browser not accepting cookies. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
+			}
+		}
+	}
+	  
+	function deleteCookie(cname) {
+		if (typeof(Storage) == "undefined") 
+			deleteCookie2(cname);
+		else {
+			var localStorage;
+			try {
+				localStorage = window.localStorage;
+			} catch (e) {
+				alert("Your browser doesn't accept cookies. Failed to remove user preferences or bookmarks. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
+				return "";
+			}
+			localStorage.removeItem(cname);
+		}
+	}
+	  
+	  // Use the old html cookie
+	  function getCookie2(cname)
+	  {
+		try{
+			var name = cname + "=";
+			var ca = document.cookie.split(';');
+			for(var i=0; i<ca.length; i++)
+			{
+			  var c = ca[i].trim();
+			  if (c.indexOf(name)==0) return c.substring(name.length,c.length);
+			}
+			return "";
+		}
+		catch(e){
+			alert("Your browser doesn't accept cookies. Failed to read user preferences and bookmarks. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
+			return "";
+		}
+	  }
+	  
+	  function deleteCookie2( name ) {
+		document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+	  }
+	  
+	  function setCookie2(cname, cvalue) {
+		try{
+			// Delete if already exists
+			if (getCookie2(cname) != "") deleteCookie2(cname);
+			// Add or replace cookie
+			var exdate=new Date();
+			// Set expire date to 20 years from now
+			exdate.setDate(exdate.getDate() + 20*365);
+			cvalue = cvalue+"; expires="+exdate.toUTCString();
+			document.cookie = cname + "=" + cvalue;
+		}
+		catch(e){
+			alert("Saving user preferences and bookmarks requires non-private browser mode. Please set this mode and try again. Also, this may be caused by your browser not accepting cookies. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
+		}
+	  }
+	  
+	  // Drawing
+	  function addLabel(point, label, graphicsLayer, fontsize) {
+		  // Adds a label to the map at the given point, fontsize = "11pt"
+		  // graphicsName is the name for this graphics layer. For example: searchgraphics or drawgraphics
+		  // graphicsCounter is the searchGraphicsCounter or drawGraphicsCounter so it can erase the last added layer
+		  // graphicsArr is an array of graphics names
+		  require(["esri/graphic", "esri/symbols/Font", "esri/symbols/TextSymbol",
+				"dojo/_base/array", "dojo/_base/Color"], function (
+				Graphic, Font, TextSymbol, arrayUtils, Color) {
+			label = label.replace("/n"," "); // replace carriage returns with space for flex bookmarks
+			var yellow = new Color([255,255,153,1.0]);
+			var font = new Font(
+				fontsize,
+				Font.STYLE_NORMAL, 
+				Font.VARIANT_NORMAL,
+				Font.WEIGHT_BOLDER,
+				"Helvetica"
+			);
+			
+			var text = new TextSymbol(label,font,new Color("black"));
+			text.setOffset(0,-23);
+			var highlight1 = new TextSymbol(label,font,yellow);
+			highlight1.setOffset(1,-25);
+			var highlight2 = new TextSymbol(label,font,yellow);
+			highlight2.setOffset(0,-24);
+			var highlight3 = new TextSymbol(label,font,yellow);
+			highlight3.setOffset(0,-22);
+			var highlight4 = new TextSymbol(label,font,yellow);
+			highlight4.setOffset(-1,-21);
+			var highlight5 = new TextSymbol(label,font,yellow);
+			highlight5.setOffset(2,-23);
+			var highlight6 = new TextSymbol(label,font,yellow);
+			highlight6.setOffset(-2,-23);
+			
+			graphicsLayer.add(new Graphic(point.geometry, highlight1));
+			graphicsLayer.add(new Graphic(point.geometry, highlight2));
+			graphicsLayer.add(new Graphic(point.geometry, highlight3));
+			graphicsLayer.add(new Graphic(point.geometry, highlight4));
+			graphicsLayer.add(new Graphic(point.geometry, highlight5));
+			graphicsLayer.add(new Graphic(point.geometry, highlight6));
+			graphicsLayer.add(new Graphic(point.geometry, text));
+			map.addLayer(graphicsLayer);
+			graphicsLayer.refresh();
+		});
+	}
+	
+	
+//************************
+//     Array Functions
+//************************
+function sortArrayOfObj(item) {
+// Sort an array of objects by field
+// Example: 
+// arr = [{city: 'Fort Collins', county: 'Larimer'},
+//        {city: 'Boulder', county: 'Boulder'}]
+// To sort by city use: arr.sort(sortArrayOfObj('city'));
+	return function (a,b) {
+		// if GMU### sort numerically
+		if (isNaN(a[item]) && a[item] && a[item].substr(0,4) == "GMU ")
+			return parseInt(a[item].substring(4)) - parseInt(b[item].substring(4));
+		else if (!isNaN(a[item]))
+			return a[item] - b[item];
+		return (a[item] < b[item]) ? -1 : (a[item] > b[item]) ? 1: 0;
+	}
+}
+function sortMultipleArryOfObj() {
+// Sort an array of objects by multiple fields
+// Example:
+// // arr = [{city: 'Fort Collins', county: 'Larimer'},
+//        {city: 'Boulder', county: 'Boulder'}]
+// arr.sort(sortMultipleArryOfObj("county","city",...));
+    /*
+     * save the arguments object as it will be overwritten
+     * note that arguments object is an array-like object
+     * consisting of the names of the properties to sort by
+     */
+    var props = arguments;
+	if (arguments[0].constructor === Array) props = arguments[0];
+    return function (obj1, obj2) {
+        var i = 0, result = 0, numberOfProperties = props.length;
+        /* try getting a different result from 0 (equal)
+         * as long as we have extra properties to compare
+         */
+        while(result === 0 && i < numberOfProperties) {
+            result = sortArrayOfObj(props[i])(obj1, obj2);
+            i++;
+        }
+        return result;
+    }
+}
+
+Array.prototype.moveUp = function(value, by) {
+	// Rearrange items in an array. Move up so many positions (by).
+	// For example:
+	//   var street = items[1];
+	//   items.moveUp(street,1); // move up by 1
+    var index = this.indexOf(value),     
+        newPos = index - (by || 1);
+    
+    if(index === -1) 
+        throw new Error("Element not found in array");
+    
+    if(newPos < 0) 
+        newPos = 0;
+        
+    this.splice(index,1);
+    this.splice(newPos,0,value);
+};	
+Array.prototype.moveTo = function(value, newPos) {
+	// Rearrange items in an array. Move to new position.
+	// For example:
+	//   var street = items[1];
+	//   items.moveTo(street,0); // move to position 0
+    var index = this.indexOf(value);    
+    
+    if(index === -1) 
+        throw new Error("Element not found in array");
+    
+    if(newPos < 0) 
+        newPos = 0;
+        
+    this.splice(index,1);
+    this.splice(newPos,0,value);
+};
+
+// detect mobile
+function detectmob() { 
+//  || navigator.userAgent.match(/iPad/i)
+ if( navigator.userAgent.match(/Android/i)
+ || navigator.userAgent.match(/webOS/i)
+ || navigator.userAgent.match(/iPhone/i)
+ || navigator.userAgent.match(/iPod/i)
+ || navigator.userAgent.match(/BlackBerry/i)
+ || navigator.userAgent.match(/Windows Phone/i)
+ ){
+    return true;
+  }
+ else {
+    return false;
+  }
+}
+
+// convert touchend event into a map point
+function getScreenClick(evtObj){
+	var clickX=40, clickY=45;
+	// for measuring and desktop
+	if (evtObj.geometry) return evtObj.geometry;
+	else if (evtObj.pageX || evtObj.pageY) {
+		clickX = evtObj.pageX;
+		clickY = evtObj.pageY;	
+	}
+	// ie compatibility mode
+	else if ((evtObj.clientX || evtObj.clientY) &&
+	 document.body &&
+	 document.body.scrollLeft!=null) {
+		clickX = evtObj.clientX + document.body.scrollLeft;
+		clickY = evtObj.clientY + document.body.scrollTop;
+	}
+	// ie standards mode
+	else if ((evtObj.clientX || evtObj.clientY) &&
+	 document.compatMode=='CSS1Compat' && 
+	 document.documentElement && 
+	 document.documentElement.scrollLeft!=null) {
+		clickX = evtObj.clientX + document.documentElement.scrollLeft;
+		clickY = evtObj.clientY + document.documentElement.scrollTop;
+	}
+	// error return point at top-left
+	else {
+		alert("Did not register tap.","");
+	}
+//alert("("+clickX+", "+clickY+")  ","");	
+	var geometry;
+	require(["esri/geometry/screenUtils","esri/geometry/ScreenPoint"], function(screenUtils,ScreenPoint){
+		var scrGeom = new ScreenPoint(clickX,clickY-44); // subtract header height
+		geometry = new screenUtils.toMapPoint(map.extent,document.getElementById("mapDiv").clientWidth,document.getElementById("mapDiv").clientHeight,scrGeom);
+		scrGeom=null;
+	});
+	return geometry;
+}
+
+// Dynamically load a javascript or css file
+// loadjscssfile("myscript.js", "js") //dynamically load and add this .js file
+// loadjscssfile("javascript.php", "js") //dynamically load "javascript.php" as a JavaScript file
+// loadjscssfile("mystyle.css", "css") //dynamically load and add this .css file
+/*function loadjscssfile(filename, filetype){
+    if (filetype=="js"){ //if filename is a external JavaScript file
+        var fileref=document.createElement('script')
+        fileref.setAttribute("type","text/javascript")
+        fileref.setAttribute("src", filename)
+    }
+    else if (filetype=="css"){ //if filename is an external CSS file
+        var fileref=document.createElement("link")
+        fileref.setAttribute("rel", "stylesheet")
+        fileref.setAttribute("type", "text/css")
+        fileref.setAttribute("href", filename)
+    }
+    if (typeof fileref!="undefined")
+        document.getElementsByTagName("head")[0].appendChild(fileref)
+}*/

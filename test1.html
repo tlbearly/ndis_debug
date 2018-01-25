@@ -1,0 +1,31 @@
+<html>
+<script>
+navigator.sayswho= (function(){
+    var ua= navigator.userAgent, tem,
+    M= ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+    if(/Trident/i.test(M[1])){
+        tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
+        return 'IE '+(tem[1] || '');
+    }
+    if(M[1]=== 'Chrome'){
+        tem= ua.match(/\bOPR\/(\d+)/);
+        if(tem!= null) return 'Opera '+tem[1];
+    }
+    M= M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+    if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
+    if (M[0] == "MSIE" && !document.all) return "IE 11";
+	return M.join(' ');
+})();
+document.write(navigator.userAgent+"<br/><br/>");
+	var ua= navigator.userAgent, tem;
+    var M= ua.match(/(Opera|Chrome|Safari|Firefox|MSIE|Trident(?=\/))\/?\s*(\d+)/i) || [];
+	document.write(M[0]+"<br/><br/>"+M[1]);
+	tem= /\brv[ :]+(\d+)/g.exec(ua) || [];
+	document.write("<br/><br/>"+tem[1]);
+	document.write("<br/><br/>"+navigator.sayswho);
+	
+
+	</script>
+<body>
+</body>
+</html>

@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////
+//
+// HB1298
+//
+// Copyright © 2008 - 2009 ESRI
+//
+// All rights reserved under the copyright laws of the United States.
+// You may freely redistribute and use this software, with or
+// without modification, provided you include the original copyright
+// and use restrictions.  See use restrictions in the file:
+// <install location>/FlexViewer/License.txt
+//
+// zoomscale:  The map scale to zoom to and center on the well.
+// helpvideo: The url to the help video for this widget.  A link will be displayed when the
+//     user clicks the ? button.
+// filename:  The name of the vb.net file which reads the HB1298_data database file
+//     and returns species name, activity name, description, factor, and bmp for each activity code.
+// report:  Contains mapservice layers to identify for township, section, range, RSO, SWH, and CPW activities.
+// bmpdir:  The URL for the BMP documents
+// report:
+//   layer: layer name, case sensitive
+//		id: layer id
+//		url: url to the map service
+//		fields: field names to use
+//		displaynames: are used internally. DO NOT CHANGE. These are the names to use:
+//		 	Town, TownDir, Range, RangeDir, Section, rso, swh, cdow, E_LIAISON,E_PHONE,SR_TERR,TERR_BIO,SR_AQ,AQ_BIO,SR_WLCON,WLCON_BIO,AWM,DWM
+//
+// wellid: Contains info for looking up a well by it's id
+// url: The url of the mapservice and layer containing wells
+// expression: The where expression to use to look up a well id and find the x,y location
+//		<wellid>
+//	    	<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HB1298/Base_HB1298_Map/MapServer/0</url>
+//			<expression>UPPER(link_fld) = UPPER('[value]')</expression>
+//		</wellid>
+////////////////////////////////////////////////////////////////////////////////
+-->
+<configuration>
+	<zoomscale>144448</zoomscale>
+	<filename>http://ndis-flex-2.nrel.colostate.edu/hb1298/readDB.aspx</filename>
+	<bmpdir>http://ndis-flex-2.nrel.colostate.edu/hb1298/BMPs/</bmpdir>
+	
+	<report>
+	   	<layer label="Section boundary">
+	    	<id>94</id>
+	    	<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+		   	<fields>TWP,TDIR,RNG,RDIR,SECTION</fields>
+	      	<displaynames>Town,TownDir,Range,RangeDir,Section</displaynames>
+	   	</layer>
+	   	<layer label="RSO Occurrences">
+	    	<id>0</id>
+	    	<url>http://ndis-flex-2.nrel.colostate.edu/ArcGIS/rest/services/HB1298/HB1298_Data/MapServer/</url>
+		   	<fields>ActivityCode</fields>
+	      	<displaynames>rso</displaynames>
+	   	</layer>
+	   	<layer label="SWH Occurrences">
+	    	<id>1</id>
+	    	<url>http://ndis-flex-2.nrel.colostate.edu/ArcGIS/rest/services/HB1298/HB1298_Data/MapServer/</url>
+		   	<fields>ActivityCode</fields>
+	      	<displaynames>swh</displaynames>
+	   	</layer>
+	   	<layer label="HPH Data">
+	    	<id>2</id>
+	    	<url>http://ndis-flex-2.nrel.colostate.edu/ArcGIS/rest/services/HB1298/HB1298_Data/MapServer/</url>
+		   	<fields>ActivityCode</fields>
+	      	<displaynames>cdow</displaynames>
+	   	</layer>
+	   	<layer label="Biologists">
+	    	<id>4</id>
+	    	<url>http://ndis-flex-2.nrel.colostate.edu/ArcGIS/rest/services/HB1298/HB1298_Data/MapServer/</url>
+		   	<!--fields>ENERGYLIAISON,ENERGYLIAISONPhone,TERR_SR,TERR_BIO,AQ_SR,WLCON_SR,WLCON_BIO</fields-->
+			<fields>Energy Liaison,Energy Liaison Phone,Terrestrial Senior Biologist,Terrestrial Biologist,Aquatic Senior Biologist,Wildlife Conservation Senior Biologist,Wildlife Conservation Biologist</fields>
+	      	<displaynames>Energy Liaison,Energy Liaison Phone,Terrestrial Sr. Biologist,Terrestrial Biologist,Aquatic Sr. Biologist,Wildlife Con. Sr. Biologist,Wildlife Con. Biologist</displaynames>
+	   	</layer>
+	</report>
+	<wellid>
+	    <url>http://ndis-flex-2.nrel.colostate.edu/ArcGIS/rest/services/HB1298/Base_HB1298_Map/MapServer/0</url>
+		<expression>UPPER(link_fld) = UPPER('[value]')</expression>
+	</wellid>
+</configuration>

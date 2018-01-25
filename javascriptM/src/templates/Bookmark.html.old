@@ -1,0 +1,10 @@
+<div data-dojo-type="javascript/Bookmark">
+	<span>Bookmarks are stored in a cookie in your browser history.</span>
+	<br/><br/>
+	<div>
+		<input data-dojo-attach-point="bookmarkName" type="text" style="width:75%;float:left;margin-right:10px;"/>
+		<button data-dojo-type="dojox/mobile/Button" type="button" class="mblButton" data-dojo-attach-event="click: _addBookmark" style="margin-top:3px;float:left">Add</button>
+	</div><br/><br/><br/><br/>
+	<span data-dojo-attach-point="bookmarkTab"></span>
+	<br/>
+</div>

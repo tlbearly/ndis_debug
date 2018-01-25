@@ -1,0 +1,50 @@
+<div data-dojo-type="javascript/Bookmark">
+	<div id="addBookmark" style="display:none;margin-bottom:10px;padding:5px;height:calc(100vh - 140px);-moz-calc(100vh - 140px);-webkit-calc(100vh - 140px);overflow:auto;">
+		<input id="bookmarkName" data-dojo-attach-point="bookmarkName" type="text" required=true placeholder="Label" style="width:75%;float:left;margin-right:10px;"/>
+		<button data-dojo-type="dojox/mobile/Button" type="button" class="mblButton" data-dojo-attach-event="click: _addBookmark" style="margin-top:3px;float:left">Add</button>
+		<br/><br/><br/>
+		<p align="center" style="font-weight:bold;text-decoration:underline;">My Bookmarks List</p>
+		<div data-dojo-attach-point="bookmarkTab" style="margin-bottom:5px"></div>
+	</div>
+	<div id="addBrowserBookmark" style="margin-bottom:10px;padding:5px;height:calc(100vh - 140px);-moz-calc(100vh - 140px);-webkit-calc(100vh - 140px);overflow:auto;">
+		Save your current map view, way points, and map layers in your <b>browser's bookmarks</b>.
+		<ol>
+		<li> Press 'Create Bookmark' button below.</li>
+		<li> Wait for the page to reload.</li>
+		<li> Use your browser's settings to add the bookmark.</li>
+		</ol>
+		<p align="center"><button  data-dojo-type="dojox/mobile/Button" role="presentation" type="button" data-dojo-attach-event="click: _loadBrowserBookmark" title="bookmark page">Create Bookmark</button></p>
+		<span style="font-style:italic">Note: If you started this app from an icon on the home screen, it will run in fullscreen mode and the settings icon will be hidden.</span>
+	</div>
+	<!--div id="uploadKml" style="display:none;margin-bottom:10px;padding:5px;height:calc(100vh - 140px);-moz-calc(100vh - 140px);-webkit-calc(100vh - 140px);overflow:auto;">
+		<span style="margin:auto;display:table;font-weight:bold">Load a KML or KMZ File</span><br/>
+		<label for="kmlFile">Enter URL to KML or KMZ file:</label><br/>
+		<input id="kmlFile" type='url' style="width:95%;float:left;margin-right:10px;"></input><br/><br/>
+		<p align="center">
+			<button  data-dojo-type="dojox/mobile/Button" type="button" data-dojo-attach-event="click: _loadKml" class="mblButton">Load</button>
+			<button  data-dojo-type="dojox/mobile/Button" type="button" onclick="document.getElementById('kmlFile').value='';" class="mblButton">Reset</button>
+		</p-->
+		<!--br/><br/><br/><br/>Example: https://dl.dropboxusercontent.com/u/2142726/esrijs-samples/Wyoming.kml
+		<br/><br/>Example: http://ndis-flex-2.nrel.colostate.edu/test/rmnp.kmz
+		<br/><br/>Example: http://www.wpc.ncep.noaa.gov/kml/qpf/QPF24hr_Day1_main.kml
+		<-->
+		<!--br/><br/><br/><br/>
+	</div-->
+	<div align="center" class="footerBar">
+	  <!--div style="position:relative;overflow:visible;width:255px;"-->
+	  <div style="position:relative;overflow:visible;width:170px;">
+		<button  id="brBtn" data-dojo-type="dojox/mobile/Button" class="buttonBarSelected" style="font-size:x-small;" type="button" 
+			data-dojo-attach-event="click: _showBrowserBookmark">
+			<img src="assets/images/star.png" style="width:20px;height:20px;vertical-align:top;"/><br/>Browser Bookmark
+		</button>
+		<button id="bmBtn" data-dojo-type="dojox/mobile/Button" class="buttonBar"
+			data-dojo-attach-event="click: _showAddBookmark">
+			<img src="assets/images/i_bookmark.png" style="width:20px;height:20px;vertical-align:top;"/><br/>Bookmarks
+		</button>
+		<!--button  id="kmlBtn" data-dojo-type="dojox/mobile/Button" class="buttonBar" type="button" 
+			data-dojo-attach-event="click: _showKml">
+			<img src="assets/images/i_extent.png" style="width:20px;height:20px;vertical-align:top;"/><br/>KML
+		</button-->
+	  </div>
+	</div>
+</div>

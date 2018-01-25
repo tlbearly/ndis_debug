@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////
+//
+// Splash Widget
+//
+// disable - Set to "yes" to disable the disclaimer window.
+// content - Contains the disclaimer
+////////////////////////////////////////////////////////////////////////////////
+-->
+<configuration>
+	<disable>no</disable>
+    <content>
+		<![CDATA[<p align='center'>
+			<img src='assets/images/cpwlogo_48x48.png' width='48' height='48' />
+		</p>
+		<p align='center' style="font-size:large;font-weight:bold;">
+			Welcome to the Colorado Fishing Atlas</p>
+		<p style="font-size:small;">You must AGREE to the disclaimer below to enter the site.<br/><br/>
+		This mapping application is provided to fishermen as a virtual 
+		scouting tool.  For
+		more detailed or missing information, please contact the Colorado Parks and Wildlife
+		at <b>(303)297-1192</b> (M-F 8am-5pm MST).  Information depicted is for reference
+		purposes only and is compiled from the best available sources. Reasonable efforts have
+		been made to ensure accuracy. The Colorado Parks and Wildlife is not responsible for
+		damages that may arise from the use of this mapping application.  Mapped property
+		boundaries may or may not reflect actual legal holdings.  Please observe and respect
+		all marked boundaries and signs on properties.  CPW suggests that you err on the side
+		of caution and avoid entering areas of question.  It is the fishermen's responsibility to
+		know where private property exists.  Colorado law does NOT require landowners to fence
+		or mark property boundaries. US Forest Service roads are actively managed and are not 
+		always accurately depicted on the static base maps used in this application.  For the 
+		most accurate USFS road access information, please refer to local forest Motor Vehicle
+		Use Maps (MVUM). 
+		</p>
+	   ]]>
+	    </content>
+</configuration>

@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////
+//
+// Splash Widget
+//
+// disable - Set to "yes" to disable the disclaimer window.
+// content - Contains the disclaimer
+////////////////////////////////////////////////////////////////////////////////
+-->
+<configuration>
+	<disable>yes</disable>
+	<content>
+		 <![CDATA[
+			<p align='center'><img src='assets/images/cpwlogo_48x48.png' width='48' height='48' /></p>
+			<p align='center' style="font-weight:bold;font-size:large">Welcome to the HB1298 Habitat Impact Assessment Tool</p>
+	            
+			<div>You must AGREE to the disclaimer below to enter the site.</div>
+			<p>
+				Information depicted is for reference
+				purposes only and is compiled from the best available sources. Reasonable efforts have
+				been made to ensure accuracy. The Colorado Parks and Wildlife is not responsible for
+				damages that may arise from the use of this mapping application. For
+				more detailed or missing information, please contact the Colorado Parks and Wildlife
+				at <b>(303)297-1192</b> (M-F 8am-5pm MST). 
+			</p>
+	       ]]>
+	</content>
+</configuration>

@@ -1,0 +1,22 @@
+var wpid=false,z,prev_lat,prev_long;var locGraphicsLayer=null,lastPoint=null;var symbol,min_accuracy=4000;function geo_success(position)
+{if(position.coords.accuracy<=min_accuracy)
+{if(prev_lat.toFixed(5)!=position.coords.latitude.toFixed(5)||prev_long!=position.coords.longitude.toFixed(5))
+{prev_lat=position.coords.latitude;prev_long=position.coords.longitude;displayLocation(position);}}
+else{require(["dijit/registry"],function(registry){var sl=registry.byId("showLocation");sl.set("rightText","Off");wpid=false;if(document.getElementById("menuView").style.left=="0px"){alert("Accuracy not sufficient (+/-"+Math.round(position.coords.accuracy,1).numberFormat(0)+"m) for current location.","");closeMenu();}});}}
+function displayLocation(position){require(["esri/layers/GraphicsLayer","esri/geometry/Point","esri/symbols/PictureMarkerSymbol","esri/graphic","esri/geometry/webMercatorUtils"],function(GraphicsLayer,Point,PictureMarkerSymbol,Graphic,webMercatorUtils){try{if(!locGraphicsLayer){locGraphicsLayer=new GraphicsLayer();map.addLayer(locGraphicsLayer);symbol=new PictureMarkerSymbol("assets/images/bluedot.png",20,20);}
+locGraphicsLayer.clear();var pt=webMercatorUtils.geographicToWebMercator(new Point(position.coords.longitude,position.coords.latitude));if(!lastPoint)map.centerAndZoom(pt,7);locGraphicsLayer.add(new Graphic(pt,symbol));lastPoint=pt;require(["dijit/registry"],function(registry){var sl=registry.byId("showLocation");sl.set("rightText","On");});}
+catch(e){require(["dijit/registry"],function(registry){var sl=registry.byId("showLocation");sl.set("rightText","Off");});alert(e.message,"Error",e);}});}
+function geo_error(error)
+{switch(error.code)
+{case error.PERMISSION_DENIED:require(["dijit/registry"],function(registry){var sl=registry.byId("showLocation");sl.set("rightText","Off");if(wpid>0){alert("You have blocked this site from accessing your location. <button data-dojo-type='dojox/mobile/Button' class='mblButton' onclick=\"slideRight(document.getElementById('locationHelp'));closeAlert();document.getElementById('errorMsg').innerHTML=''\">Help</button>","");}
+navigator.geolocation.clearWatch(wpid);wpid=false;if(document.getElementById("menuView").style.left=="0px")closeMenu();});break;case error.POSITION_UNAVAILABLE:require(["dijit/registry"],function(registry){if(wpid>0)alert("Could not determine your location. <button data-dojo-type='dojox/mobile/Button' class='mblButton' onclick=\"slideRight(document.getElementById('locationHelp'));closeAlert();document.getElementById('errorMsg').innerHTML=''\">Help</button>","");if(document.getElementById("menuView").style.left=="0px")closeMenu();var sl=registry.byId("showLocation");sl.set("rightText","Off");navigator.geolocation.clearWatch(wpid);wpid=false;});break;case error.TIMEOUT:require(["dijit/registry"],function(registry){if(document.getElementById("menuView").style.left=="0px")closeMenu();if(wpid>0)alert("Could not determine your location. <button data-dojo-type='dojox/mobile/Button' class='mblButton' onclick=\"slideRight(document.getElementById('locationHelp'));closeAlert();document.getElementById('errorMsg').innerHTML=''\">Help</button>","");var sl=registry.byId("showLocation");sl.set("rightText","Off");navigator.geolocation.clearWatch(wpid);wpid=false;});break;};}
+function get_pos()
+{if(!!navigator.geolocation){wpid=navigator.geolocation.watchPosition(geo_success,geo_error,{enableHighAccuracy:true,maximumAge:30000,timeout:27000});if(document.getElementById("menuView").style.left=="0px")closeMenu();}
+else{require(["dijit/registry"],function(registry){var sl=registry.byId("showLocation");sl.set("rightText","Off");});alert("Your Browser doesn't support the Geo Location API.<br/><input type='checkbox' class='checkBoxButton' onClick='setCookie(\"noGeo\",\"1\");closeAlert();' />"+" Do not show this again.","");if(document.getElementById("menuView").style.left=="0px")closeMenu();}}
+function init_geo()
+{require(["dijit/registry"],function(registry){var sl=registry.byId("showLocation");if(sl.rightText!="On"){prev_lat=0;prev_long=0;lastPoint=null;if(wpid)
+{navigator.geolocation.clearWatch(wpid);wpid=false;sl.set("rightText","On");closeMenu();}
+else
+{sl.set("rightText","Aquiring...");get_pos();}}
+else{navigator.geolocation.clearWatch(wpid);wpid=false;sl.set("rightText","Off");closeMenu();if(locGraphicsLayer)
+locGraphicsLayer.clear();}});}

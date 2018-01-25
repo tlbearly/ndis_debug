@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<body>
+
+Way Point<br/><br/>
+<div id="largePic" style="z-index:30;width:100%;height:80vh;border:2px red solid;"></div>
+<div id="viewWin" style="z-index:0;width:100%;overflow:auto;height:80vh">
+	<div style="float:right;width:150px;min-height:300px;margin-left:10px;border:2px dashed #00f;">
+		<div id="picDiv" style="position:relative;float:left;display:none;float:left;margin-right:10px;">
+			<img id="pic" src="" style="width:150px;border:1px solid black"/>
+			<input id="delPicBtn" type="button" style="position:absolute;top:0px;right:0px;" onclick="JavaScript:deletePic()" value="X"/>
+			<input id="closePicBtn" type="button" style="position:absolute;top:0px;right:0px;display:none;" onclick="JavaScript:closePic()" value="Close"/>
+		</div>
+	</div>
+	<div style="overflow:hidden;min-height:300px;border:2px dashed #f0f;">
+		<input type="textarea" style="position:relative;width:100%;padding:0 5px 200px;" value="My Title description of my way point..."/>
+	</div>
+</div>
+<div style="height:30px">
+	<label for="upload" style="background-color:buttonface;box-sizing:border-box;border-width:2px;border-style:outset;border-color:buttonface;position:absolute;right:40px;" >Upload Picture</label>
+	<input id="upload" type="file" onchange="readURL(this);" style="visibility:hidden;" accept="image/*" />
+</div>
+<script type="text/javascript">
+var img = document.getElementById('pic');
+var viewWin = document.getElementById("viewWin");
+var winStyle = window.getComputedStyle(viewWin);
+var winWidth = parseInt(winStyle.width);
+var winHeight = parseInt(winStyle.height);
+var canvas = document.createElement("canvas");
+winStyle=null;
+viewWin=null;
+// Show large image
+img.onclick = function(){
+	if (img.width < img.height){
+		img.style.width = parseInt(winHeight / img.height * img.width)+"px";
+		img.style.height = winHeight+"px";	
+	}
+	else {
+		img.style.height = parseInt(winWidth / img.width * img.height)+"px";
+		img.style.width = winWidth+"px";
+	}
+	resizeImg(winWidth,winHeight);
+	document.getElementById("delPicBtn").style.display="none";
+	document.getElementById("closePicBtn").style.display="block";
+}
+function closePic(){
+	//var factor = float(img.width)/float(img.height);
+	//img.style.width=150+"px";
+	resizeImg(150,300);
+	document.getElementById("delPicBtn").style.display="block";
+	document.getElementById("closePicBtn").style.display="none";
+}
+function resizeImg(MAX_WIDTH, MAX_HEIGHT){
+	// Resize image
+	//var factor = float(img.width)/float(img.height);
+	var ctx = canvas.getContext("2d");
+	ctx.drawImage(img, 0, 0);
+
+	//var MAX_WIDTH = 800;
+	//var MAX_HEIGHT = 600;
+	var width = img.width;
+	var height = img.height;
+
+	if (width > height) {
+	  if (width > MAX_WIDTH) {
+		height *= MAX_WIDTH / width;
+		width = MAX_WIDTH;
+	  }
+	} else {
+	  if (height > MAX_HEIGHT) {
+		width *= MAX_HEIGHT / height;
+		height = MAX_HEIGHT;
+	  }
+	}
+	canvas.width = width;
+	canvas.height = height;
+	var ctx = canvas.getContext("2d");
+	ctx.drawImage(img, 0, 0, width, height);
+}
+function readURL(input)
+{
+    if (input.files && input.files[0]) {       
+		var reader = new FileReader();
+        reader.onload = function (e) {
+			img.src = e.target.result;
+			document.getElementById("picDiv").style.display="block";
+			img.style.width = 150+"px";
+			resizeImg(150,300);
+
+			var dataurl = canvas.toDataURL("image/png");
+			try {
+				localStorage.setItem("imgData", dataurl);
+			} catch (e) {
+				alert("That image is too big. Must be smaller than 5MB. Try resizing.");
+			}
+        }
+		reader.readAsDataURL(input.files[0]); // get base64 encoded image. Calls function above after loading.
+    }
+}
+function readImgFromLocalStorage(){
+	var dataImage = localStorage.getItem('imgData');
+	if (dataImage){
+		document.getElementById('pic').src = dataImage;
+		document.getElementById("picDiv").style.display="block";
+	}
+}
+function deletePic(){
+	localStorage.removeItem("imgData");
+	document.getElementById('pic').src="";
+	document.getElementById("picDiv").style.display="none";
+}
+readImgFromLocalStorage();
+</script>
+</body>
+</html>

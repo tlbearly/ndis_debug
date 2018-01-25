@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html >
+<head>
+
+	<link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.20/dijit/themes/claro/claro.css">
+	
+	<script>dojoConfig = {parseOnLoad: true}</script>
+	<script type="text/javascript" src="https://js.arcgis.com/3.20"></script>
+	
+	<script>
+require([
+    "dojo/store/Memory", "dijit/form/ComboBox", "dojo/domReady!"
+], function(Memory, ComboBox){
+    var stateStore = new Memory({
+        data: [
+            {text:"Alabama", id:"AL"},
+            {text:"Alaska", id:"AK"},
+            {text:"American Samoa", id:"AS"},
+            {text:"Arizona", id:"AZ"},
+            {text:"Arkansas", id:"AR"},
+            {text:"Armed Forces Europe", id:"AE"},
+            {text:"Armed Forces Pacific", id:"AP"},
+            {text:"Armed Forces the Americas", id:"AA"},
+            {text:"California", id:"CA"},
+            {text:"Colorado", id:"CO"},
+            {text:"Connecticut", id:"CT"},
+            {text:"Delaware", id:"DE"}
+        ]
+    });
+
+    var comboBox = new ComboBox({
+        id: "stateSelect",
+        name: "state",
+        value: "California",
+        store: stateStore,
+        searchAttr: "name"
+    }, "stateSelect").startup();
+});
+	</script>
+</head>
+<body class="claro">
+    <input id="stateSelect">
+<p><button onClick="alert(dijit.byId('stateSelect').get('value'))">Get value</button></p>
+</body>
+</html>

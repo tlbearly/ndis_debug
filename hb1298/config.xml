@@ -1,0 +1,114 @@
+<?xml version="1.0" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2010 ESRI
+//
+// All rights reserved under the copyright laws of the United States.
+// You may freely redistribute and use this software, with or
+// without modification, provided you include the original copyright
+// and use restrictions.  See use restrictions in the file:
+// <install location>/License.txt
+//
+// Read more about ArcGIS API for JavaScript developers.arcgis.com/javascript/index.html
+////////////////////////////////////////////////////////////////////////////////
+-->
+<configuration xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/config.xsd">
+    <title>Colorado HB1298 Habitat Impact Assessment Tool</title>
+	<mobile_title>Habitat Impact</mobile_title>
+    <subtitle>Colorado Parks and Wildlife</subtitle>
+    <app>hb1298</app>
+    <!-- logo in header bar-->
+    <logo>assets/images/cpwlogo_48x48.png</logo>
+    <logourl>//cpw.state.co.us</logourl>
+	<httpproxy>/proxy/DotNet/proxy.ashx</httpproxy>
+	<!-- Do not show the disclaimer when the following tag is set to true. This tag is not required -->
+    <noDisclaimer>false</noDisclaimer>
+    <style>
+		<font name="Helvetica" size="11"/>    	
+    </style>
+    
+    <!-- REST endpoint to a GeometryService. This should be a service published by CPW and not pointing at an ESRI service.  Use to convert points to new projections. -->
+    <geometryservice url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+    
+	<printservicegeo>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting</printservicegeo>
+	<printservice>http://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printservice>
+	
+	<!-- Find a Place Service **NEW** -->
+	<findplaceservice url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer"/>
+	
+	<!-- Address Service **NEW** -->
+	<addressservice url="https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"/>
+	
+    <!-- Key to allow Bing Map background layers to work.  Do not change. -->
+	<!--bing key="Ak1eor2ZBWpGcsTkRL8PjLwDpPda-_tK9v-PS-5IbeiOpKm0Eq6n4Xdf26hFbAN6"/-->
+
+    <!-- wkid is required.  This is the spatial reference number.-->
+    <map wkid="102100"
+    	 initialextent="-12350000 4250000 -11150000 5250000">
+         <!-- operationallayers:  Note: Displays in reverse order. -->
+         <!-- Set open=true if you want this mapservice layer expanded at the start. -->
+         <!-- NOT IMMPLEMENTED:Set opensublayer=comma delimited list of layer names under the mapservice checkbox to expand at the start. open must be true. -->
+         <!--     example: open="true" opensublayer="Places of Interest,Township Range Sections" --> 
+        <operationallayers>
+			<!-- Note HB1298 Base Data must be first or the combined data lays on top covering RSO and SWH -->
+			<layer label="HB1298 Base Data" open="true" type="dynamic" visible="true" alpha="0.8"
+            		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HB1298/Base_HB1298_Map/MapServer"/>
+			 <layer label="Sensitive Wildlife Habitat" open="false" type="dynamic" visible="true" alpha="0.8"
+            		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HB1298/SWH_HB1298_Map/MapServer"/>
+			<layer label="Restricted Surface Occupancy" open="false" type="dynamic" visible="true" alpha="0.8"
+            		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HB1298/RSO_HB1298_Map/MapServer"/>
+        </operationallayers>
+    </map>	 
+    
+    <widgetcontainer>
+         <!-- label: the label to use in the menu -->
+         <!-- preload: can be set to "open" or "minimized" -->
+		 <!-- video: a link to a help video. This link will be in the help modal window -->
+		 <!-- icon: the icon to use in the menu title. For example: assets/images/x.png -->
+         <widget label="Map Layers &amp; Legend"
+         	preload="minimized"
+			height="420"
+			icon="assets/images/i_layers.png"
+            video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+         <widget label="HB1298 Report"
+            preload="open"
+			config="HB1298Widget.xml"
+			icon="assets/images/i_bookmark3.png"
+			video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+         <widget label="Feature Search"
+            preload="minimized"
+			icon="assets/images/i_search.png"
+			video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+         <widget label="Address"
+            preload="minimized"
+			icon="assets/images/i_address.png"
+			video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+         <widget label="Draw, Label, &amp; Measure"
+            preload="minimized"
+			icon="assets/images/i_measure.png"
+            video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+         <widget label="Bookmark"
+            preload="minimized"
+			icon="assets/images/i_bookmark.png"
+            video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+          <widget label="Settings"
+            preload="minimized"
+			icon="assets/images/i_resources.png"
+            video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+		  <widget label="Print"
+			icon="assets/images/i_print.png"/>
+		  <!-- Turn on the Get Extent or Map Link buttons in SettingsWidget.xml -->
+		  <widget label="GetExtent"
+			icon="assets/images/i_extent.png"/>
+		  <widget label="MapLink"
+			icon="assets/images/i_link.png"/>
+    </widgetcontainer>
+
+    <links>
+    <!-- Note the icons and labels must all be different.  This is how it looks up the url. -->
+		<!--link label="What's New"
+    		<url="https://ndismaps.nrel.colostate.edu/huntingatlas/videos/whatsnew/whatsnew.html">
+    		icon="assets/images/i_solar.png"/--> 
+    </links>     
+</configuration>

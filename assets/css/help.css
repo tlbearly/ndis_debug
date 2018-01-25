@@ -1,0 +1,197 @@
+body{
+background-color:#000000;
+/*#7991A8;*/
+}
+
+p{
+font-family: Helvetica, Arial, sans-serif;
+font-size:16px;
+}  
+
+img{
+vertical-align:middle;
+padding:5px;
+margin: 0 auto;   
+}
+
+p.heading {
+font-size:30px;
+font-weight:bold;
+text-align:left;
+color:#000000;
+}
+
+p.headcontent{
+font-family: Helvetica, Arial, sans-serif;
+font-weight:bold;
+font-size:16px;
+text-align:center;
+}
+
+p.content{
+font-size:14px;
+text-align:left;
+}
+
+p.contenthead{
+font-size:14px;
+text-align:left;
+color:#9d9d9d;
+margin-top: 0px;
+}
+
+p.contentdent{
+font-size:14px;
+text-align:left;
+padding-left:20px;
+}
+
+table.content {
+width:700px;
+margin: auto;
+border: #FFFFFF;
+background-color:#FFFFFF;
+padding:0px;
+}
+
+h2{
+font-family: Helvetica, Arial, sans-serif;
+font-size:20px;
+font-weight:bold;
+text-align:left;
+color:#0B3359;
+}
+
+hr.bold{
+height:2px;
+border:0;
+color:#000000;
+background-color:#000000;
+margin:left;
+}
+
+hr.heading{
+height:2px;
+border:0;
+color:#0B3359;
+background-color:#0B3359;
+width:700px;
+margin:auto;
+}
+
+h3{
+font-family: Helvetica, Arial, sans-serif;
+font-size:18px;
+font-weight:bold;
+text-align:left;
+color:#0B3359;
+}
+
+h4 {
+font-family: Helvetica, Arial, sans-serif;
+font-size:12px;
+text-align:right;
+color:#A3A3A3
+}
+
+p.bold{
+font-weight:bold;
+font-size:24px;
+text-align:center;
+}
+
+table.header {
+table-layout: 900px;
+margin: auto;
+border-collapse: collapse; 
+border: 0px;
+border-color: #BCD8F4;
+background-color:#FFFFFF;
+padding:5px;
+}
+
+tr.banner {
+background-color:#BCD8F4;
+border: 1px;
+border-color: #BCD8F4;
+padding:0px;
+} 
+
+td.banner {
+background-color:#BCD8F4;
+padding:5px;
+} 
+
+table,tr {
+width:900px;
+margin: auto;
+border: 0px; 
+border-color: #7991A8;
+background-color:#FFFFFF;
+padding:5px;
+}
+
+tr, th, td {
+padding:10px;
+}
+
+td.tan {
+background-color:#e7e7cf;
+} 
+
+#headerheight {
+height:110px;
+text-align:center;
+}
+
+#rightbox {
+width:40%;
+height:375px;
+vertical-align:top;
+}
+
+#leftbox {
+width:60%;
+height:375px;
+vertical-align:top;
+
+}
+#mainbody {
+height:650px;
+vertical-align:top;
+text-align:center;
+}
+
+#footerheight {
+height:50px;
+}
+
+ul {
+text-align:left;
+}
+
+li {
+font-family: Helvetica, Arial, sans-serif;
+font-size:16px;
+text-align:left;
+}
+
+#media  {
+margin-top: 20px;
+vertical-align:top; 
+}
+
+.playItem   {
+	font-family: Helvetica, Arial, sans-serif;
+	font-size:16px;	
+	display: inline;
+	font-weight:bold;
+}
+#playerArea .playLink {
+	font-family: Helvetica, Arial, sans-serif;
+	font-size:18px;	
+    text-align: center;
+	font-weight:bold;
+}
+        
+

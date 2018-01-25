@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html xmlns= "http://www.w3.org/1999/xhtml"><!-- set default language to English -->
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <!--meta http-equiv="X-UA-Compatible" content="IE=7,IE=9,IE=10" /-->
+    <title>Colorado Parks and Wildlife Atlas</title>
+	
+	<!-- *** Keep ArcGIS API version up to date here *** -->
+	<link rel="stylesheet" type="text/css" href="http://js.arcgis.com/3.13/esri/css/esri.css" />
+	<!-- Import CSS stylesheet required for ResizeHandle module -->
+    <link rel="stylesheet" href="http://js.arcgis.com/3.13/dojox/layout/resources/ResizeHandle.css">
+	<link rel="stylesheet" type="text/css" href="assets/css/layout.css" />
+	<!-- Available themes: claro, tundra, soria, and nihilo.-->
+	<link rel="stylesheet" type="text/css" href="http://js.arcgis.com/3.13/dijit/themes/claro/claro.css">
+	<!--link rel="stylesheet" type="text/css" href="http://js.arcgis.com/3.13/dijit/themes/tundra/tundra.css" /-->
+	<!--link rel="stylesheet" type="text/css" href="http://js.arcgis.com/3.13/dijit/themes/soria/soria.css" /-->
+	<!--link rel="stylesheet" type="text/css" href="http://js.arcgis.com/3.13/dijit/themes/nihilo/nihilo.css" /-->
+	
+	<!-- icon in browser tab -->
+	<link rel="shortcut icon" href="assets/images/favicon.png"/>
+	<link rel="icon" type="image/png" href="assets/images/favicon.png"/>
+
+    <script type="text/javascript">
+	  <!-- parseOnLoad replaces parser.parse ??? is parser.parse better????
+	  // agsjs is for legend/layerlist
+	  // dojo-firebug and dojo-debug-messages = true is for debugging-->
+      var dojoConfig = {
+	    parseOnLoad: true,
+        packages: [
+			{ name: "agsjs", location: location.pathname.replace(/\/[^/]+$/, "")+"/toc/build/agsjs" },
+			{ name: "jsPDF", location: "/jsPDF" }
+		],
+		has: {
+            "dojo-debug-messages": false
+        }
+      };
+	</script>
+	<style>
+      /* Adjust the position of map resize handle a little bit */
+     .dojoxResizeHandle {
+        right: 0px;
+        bottom: 0px;
+      }
+    </style>
+	<!-- Load external javascript files here. Failed when I moved it up -->
+	<script type="text/javascript" src="http://js.arcgis.com/3.13"></script> <!-- Contains dojo.js and must be loaded after dojoConfig -->
+	<!--script type="text/javascript" src="/jsPDF/jsPDF.js"></script--> <!-- pdf library from https://github.com/MrRio/jsPDF in js.arcgis.com 3.13 -->
+	<script type="text/javascript" src="/jsPDF/dist/jspdf.debug.js"></script> <!-- for saveAs funciton to save to disk -->
+	<!--script type="text/javascript" src="/jsPDF/libs/blob.js/blob.js"></script>
+	<script type="text/javascript" src="/jsPDF/libs/filesaver.js/filesaver.js"></script> <!-- gets error multidefined jsaspi_en-us.js-->
+	<!--script type="text/javascript" src="/jsPDF/libs/png_support/png.js"></script>
+	<script type="text/javascript" src="/jsPDF/libs/png_support/zlib.js"></script>
+    <script type="text/javascript" src="/jsPDF/jspdf.plugin.addimage.js"></script>
+    <script type="text/javascript" src="/jsPDF/jspdf.plugin.png_support.js"></script>
+	<script type="text/javascript" src="/jsPDF/jspdf.plugin.standard_fonts_metrics.js"></script>
+	<script type="text/javascript" src="/jsPDF/jspdf.plugin.split_text_to_size.js"></script-->
+	<script type="text/javascript" src="javascript/src/xmlUtils.js"></script>
+	<script type="text/javascript" src="javascript/src/utilFuncs.js"></script>
+	<script type="text/javascript" src="javascript/src/bookmark.js"></script>
+	<script type="text/javascript" src="javascript/src/disclaimer.js"></script>
+	<script type="text/javascript" src="javascript/src/draw.js"></script>
+	<script type="text/javascript" src="javascript/src/errorBox.js"></script>
+	<script type="text/javascript" src="javascript/src/findPlace.js"></script>
+	<script type="text/javascript" src="javascript/src/gmu.js"></script>
+	<script type="text/javascript" src="javascript/src/identify.js"></script>	
+	<script type="text/javascript" src="javascript/src/maplink.js"></script>
+	<script type="text/javascript" src="javascript/src/print.js"></script>
+	<script type="text/javascript" src="javascript/src/readConfig.js"></script>
+	<script type="text/javascript" src="javascript/src/resourceReport.js"></script>
+	<script type="text/javascript" src="javascript/src/search.js"></script>
+	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script> <!-- for google maps elevation data. Used by Identify -->
+	<script type="text/javascript">
+	try {
+	  // Global Variables
+	  var geometryService; // set in readConfig.js from geometryservice tag in config.xml
+	  var printServiceUrl; // set in readConfig.js from printservice tag in config.xml
+      var map, geocoder, legendLayers=[];
+	  var initExtent, wkid;
+	  var mapBasemap = "streets";
+	  var basemapGallery;
+	  var drawing = false; // flag to turn off identify if drawing
+	 // var veTileLayer; // for Bing and USA topo
+	  var loading;
+	  var visible = [];
+	  var settings; // hold user defined settings {XYProjection: 26913, ...} Set in readSettingsWidget in identify.js
+	  var use_map_link, use_get_extent; // Read from SettingsWidget.xml in readSettingsWidget in identify.js.
+	  var searchGraphicsCount = []; // store names of graphics layers used to display one point or polygon for Find a Place.
+	  var searchGraphicsCounter = 0;
+	  var drawGraphicsCount = []; // store names of graphics layers used to display one point,line, label, or polygon for Draw, Label, Measure.
+	  var drawGraphicsCounter = 0;
+	  var drawGraphicsLayer;
+	  var drawTextGraphicsLayer;
+	  var drawTextGraphicsCount = []; // store names of graphics layers used to display one point,line, label, or polygon for Draw, Label, Measure.
+	  var drawTextGraphicsCounter = 0;
+	  var app;
+	  var addressVideo = null;
+	  var tocVideo = null;
+	  var searchVideo = null;
+	  var reportVideo = null;
+	  var mapLayers=[];
+	  var previewMap; // print preview map
+	  var hideGroupSublayers;
+	  var myFindService;
+	  
+	  // for multiple httprequests. Used in identify.js and resourceReport.js
+	  var index;
+	  var XMLHttpRequestObjects= []; // holds database call object
+	  
+	  var gmu = "Elk GMU";
+	  var openedFeatureSearch = false; // call feature search initiation routine when panel is opened, not at startup
+	  //dojo.requireLocalization("esriTemplate","template"); 
+	  /*require(["dijit/form/CheckBox","dojo/parser", "dojo/domReady!"], function(CheckBox,parser) {
+		parser.parse();
+	  });*/
+	  // Import ResizeHandle module 
+      dojo.require("dojox.layout.ResizeHandle");
+      function init() {
+	    // report warning if old browser
+	    if (oldversion())
+			alert(" ","Warning");
+		// create a map and add layers
+		loading = dojo.byId("loadingImg");  //loading image. id
+		// set up cross domain permissions
+		require(["esri/config"],function(esriConfig){
+			esriConfig.defaults.io.proxyUrl = "/proxy/DotNet/proxy.ashx";
+			esriConfig.defaults.io.alwaysUseProxy = false;
+			esri.config.defaults.io.timeout = 180000; // increase timeout for printing from 60 seconds (60,000) to 3 minutes
+		});
+		// SettingsWidget.xml is read in Identify.js/readSettingsWidget
+		// Read config.xml and set up map and layers, read url in javascript/readConfig.js
+		readConfig(mapLayers,legendLayers,false);	
+      }	// end init function
+
+	   function orientationChanged() {
+          if(map){
+            map.reposition();
+            map.resize();
+          }
+        }
+
+	  // Show map on load
+	  dojo.addOnLoad(init);
+	}
+	catch (e) {
+		alert(e.message,"Code Error",e);
+	}
+	</script>
+  </head>
+  
+  <body class="claro" style="overflow: hidden" onorientationchange="orientationChanged();">
+  <div style="top:80px; position:absolute;"><noscript>JavaScript must be enabled to run this site.  Here are the<a href="http://www.enable-javascript.com/" target="_blank">
+			instructions for how to enable JavaScript in your web browser</a></noscript></div>
+  <div id="mainWindow" data-dojo-type="dijit/layout/BorderContainer"  data-dojo-props="design:'headline', gutters:true" style="width:100%; height:100%;">
+		
+   <!-- Header Section-->
+   <div id="header" data-dojo-type="dijit/layout/ContentPane" data-dojo-props='region:"top"'>
+	<!-- Disclaimer -->
+	<div data-dojo-type="dijit/Dialog" id="disclaimerDialog" title="Disclaimer" style="width:710px; max-width:100%;display:none">
+		<div style="width: 700px; height: 610px; max-height:100%; max-width:100%; overflow: auto;">
+			<div id="disclaimerContent" style="padding:5px;"></div>
+			<input id="showDisclaimer" type="checkbox" onClick="setCookie('noDisclaimer','1')"/> Do not show again. (This is stored in a cookie in your browser history.)<br/><br/>
+			<p style="text-align: center;">
+			<button data-dojo-type="dijit/form/Button" type="button" onClick="dijit.byId('disclaimerDialog').hide()">Agree</button>
+			<button data-dojo-type="dijit/form/Button" type="button" onClick="loadPage('http://cpw.state.co.us/')">Disagree</button>
+			<button data-dojo-type="dijit/form/Button" type="button" onClick="loadPage('http://cpw.state.co.us/')">Home</button>
+			</p>
+			<!--Import Bookmarks-->
+			<div style="padding:5px;font-size:small;"><hr style="margin:0 30px"/><p align="center" style="font-size:large;font-weight:bold;">Notice: Import Your Bookmarks</p>
+			We have recently updated the atlas. If you had set up bookmarks or a preferred 
+			coordinate projection you will need to import them into the new atlas. This must be done for each atlas that you use.
+			A link to Import Bookmarks is also found in help.
+			<p style="text-align: center;"><button data-dojo-type="dijit/form/Button" role="presentation" type="button" 
+			onClick="loadPage('/widgets/Bookmark/getFlashCookies.html?app='+app)" 
+			alt="Import Now" title="This will import bookmarks and preferred coordinate projection.">
+			Import Now</button></p></div>
+		</div>
+	</div>
+	  
+	  <!-- Logo -->
+	  <div class="logo" >
+		<a id="logourl" target="_blank">
+			<img id="logo" title="Link to Colorado Parks and Wildlife home page" alt="Link to Colorado Parks and Wildlife home page" src="" style="border:0px; position:absolute; left:5px; top:10px; z-index:100;"/>
+		</a>
+	  </div>
+	  <span id="title" style="font-weight:bold; position:absolute;font-size:large;top:15px;left:60px;"></span>
+	  <span id="subtitle" style="font-weight:bold; position:absolute;font-size:small;top:37px;left:60px;"></span>
+
+	  <!-- Find a Place -->
+	  <div id="findDiv" style="position:absolute; right:10px;">
+		<span class="findBtnHelp" title="Search Help" onClick="require(['dojo/window'], function(win){var vs = win.getBox();searchHelpDialog.show();var w=vs.w-460;searchHelpDialog._setStyleAttr('left:'+w+'px !important;');searchHelpDialog._setStyleAttr('top:55px !important;');});"><img alt="help icon" title="help icon" src="assets/images/w_help.png"/></span>
+		<!-- removeSearchItem is in javascript/utilFuncs.js -->
+		<span class="findBtnClear" title="Remove last highlight/push pin from map" onClick="removeSearchItem()"><img alt="button to remove last highlight or push pin from the map" src="assets/images/w_delete.png"/></span>
+		<span id="findBtnSpan"></span>
+		<input id="findCombo" type="combo" style="height:25px; width: 350px;border-radius:5px;"/>
+	  </div>
+	  
+	  <!-- Button Bar Toolbar -->
+	  <div id="toolbar" style="position:relative;width:100%;top:35px;margin:3px 5px 3px 5px;">
+		<script>function showMapExtent(){alert(map.extent.xmin+", "+map.extent.ymin+", "+map.extent.xmax+", "+map.extent.ymax,"Current Map Extent");}</script>
+		<span id="links"></span>
+		<span id="showExtentBtn" class="link" style="position:relative;float:right;display:none;"><a href="javascript:showMapExtent()"><img alt="show current map extent" src="assets/images/i_extent.png"/> Display Extent</a></span>
+		<span id="mapLinkBtn" class="link" style="position:relative;float:right;display:block;"><a href="javascript:setMapLink();"><img alt="button to get the link to the current map" src="assets/images/i_link.png"/> Map Link</a></span>
+		<span id="printBtn" class="link" style="position:relative;float:right;display:block;"><a href="javascript:printShow();"><img alt="button to print the current map" src="assets/images/i_print.png"/> Print</a></span>
+		<!-- Code for gmuCombo is in Identify.js and gmu.js -->
+		<span id="gmuDiv" style="position:relative;float:right;display:none;"><label for="gmuCombo">Goto GMU: </label><span id="gmuCombo"></span></span>
+	  </div>
+	  
+	  <!-- Print Troubleshooting -->
+	  <div id="printTroubleshootingDiv" data-dojo-type="dijit/Dialog" data-dojo-id="printTroubleDialog" title="Print Help" style="width: 500px; display:none;">
+		<span id="printVideo"></span>
+		<h2>Having Trouble Saving with Chrome?</h2>
+		If you are using Chrome for your browser it has a built in pdf reader which fails to save the file the first time you try to download. The second time it works.
+		But if you have Adobe Reader or Foxit Reader installed it will work. You can make this the default pdf reader by doing the following: 
+		<ol>
+			<li>In the address bar, type <i>about:plugins</i></li>
+			<li>The Plug-ins Tab will open</li>
+			<li>Click disable Chrome PDF Viewer.</li>
+			<li>Click Enable Adobe Reader or Foxit Reader.</li>
+			<li>Check Always allowed</li>
+		</ol>
+		<h2>Disable Your Pop-up Blocker</h2>
+		Print will open PDF file(s) in a new tab. If you have pop-ups disabled you will not see your printout.
+		<h2>Requires a PDF Reader</h2>
+		Since the printout is a PDF file, you must have a PDF Reader installed in your browser. Download either <a href="http://get.adobe.com/reader/" target="_blank">Adobe Reader</a> or <a href="http://www.foxitsoftware.com/Secure_PDF_Reader/" target="_blank">Foxit Reader</a>.
+	  </div>
+	  <!-- Print Dialog -->
+	  <div id="printDiv" data-dojo-type="dijit/Dialog" data-dojo-id="printDialog" title="Print Current Map" style="background:white;display:none;position:absolute;top:70px;overflow:auto;">
+		<span title="Print Help" onClick="printTroubleDialog.show();"><img alt='help button' class="help_icon" style="top:-33px;right:20px;width:15px;height:15px;" src="assets/images/i_help.png"></span>
+		<table>
+			<tr><td style="width:230px;vertical-align:top">
+			<form>
+				<label for="printTitle" style="width:30px">Title:</label> <input id="printTitle" value="Colorado Parks and Wildlife Custom Map" type="text" size="21"/><br/><br/>
+				<label for="printSubTitle" style="width:30px">Subtitle:</label> <input id="printSubTitle" type="text" size="18"/><br/><br/>
+				<!--label for="format">Format:</label> <select id="format">
+					<option value="PDF">PDF</option> 
+					<option value="PNG32">PNG32</option> 
+					<option value="PNG8">PNG8</option> 
+					<option value="JPG">JPG</option> 
+					<option value="GIF">GIF</option> 
+					<option value="EPS">EPS</option> 
+					<option value="SVG">SVG</option> 
+					<option value="SVGZ">SVGZ</option> 				
+				</select><br/><br/-->
+				<label for="size">Paper size:</label> <select id="size" onChange="changePrintSize()">
+					<option value="Letter ANSI A ">8.5 x 11</option> 
+					<!--option value="Legal ">8.5 x 14</option--> 
+					<option value="Tabloid ANSI B ">11 x 17</option>     
+					<!--option value="ANSI C ">17 x 22</option-->
+					<!--option value="ANSI D ">22 x 34</option-->
+				</select><br/><br/>
+				<label for="orient">Orientation:</label> <select id="orient" onChange="changePrintSize()">
+					<option value="Landscape">Landscape</option> 
+					<option value="Portrait">Portrait</option>     
+				</select><br/><br/>
+				<!--label for="dpi">Dots per inch:</label> <select id="dpi">
+					<option value="300 ">300</option> 
+					<option value="96 ">96</option>     
+				</select><br/><br/-->
+				<!--label for="scalebar">Scalebar units:</label> <select id="scalebar">
+					<option value="Miles">Miles</option> 
+					<option value="Kilometers">Kilometers</option>     
+					<option value="Feet">Feet</option>
+					<option value="Meters">Meters</option>
+				</select><br/><br/-->
+				<label for="printLegend">Include legend:</label> <input id="printLegend" type="checkbox" checked="checked"/><br/><br/>
+				<div align="center"> 
+					<button id="print_button" data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="printMap()">Print</button> <img id="printLoading" style="vertical-align:bottom; display:none" src="assets/images/loading.gif"/><br/>
+					 Disable pop-up blocker. Printout will open in a new tab.<br/>
+					<span id="printMapLink" style="font-weight:bold;font-style:italic;"></span><br/>
+					<span id="printLegendLink" style="font-weight:bold;font-style:italic;"></span>
+				</div>
+				<!--div align="center" id="print_button"></div-->
+				<br/><br/>
+				<p align="center">Requires a PDF reader. Get:<br/><a href="http://get.adobe.com/reader/" target="_blank">Adobe Reader</a>&nbsp;&nbsp;or&nbsp;&nbsp;<a href="http://www.foxitsoftware.com/Secure_PDF_Reader/" target="_blank">Foxit Reader</a></p>
+			</form>
+		<!--/div-->
+		</td>
+		<td>
+		<div id="printPreviewMap" class="map" data-dojo-type="dijit/layout/ContentPane"  data-dojo-props='region:"center"' dir="ltr" style="width:490px;height:348px;margin-bottom:8px;border:1px solid black;position:relative;overflow:hidden;"></div>
+		</td></tr></table>
+	  </div>
+
+	  <!-- Map Link Dialog -->
+	  <div data-dojo-type="dijit/Dialog" data-dojo-id="mapLinkDialog" title="Link to Current Map" style="display:none;position:absolute;top:70px;width:450px;">
+		<span>Can be used to copy and paste into an email message.</span><br/>
+		<form>
+		<!--input id="mapLinkTxt" onFocus="this.select()" style="margin:5px 0 5px 0;padding:5px;width:100%;height:100px;" value="http://ndis-staging.nrel.colostate.edu/debug/map/index.html?app=huntingatlas&extent=-11737620.518905455,4949231.674973162,-11641386.300294546,4988290.996426834"/><br/-->
+		<textarea id="mapLinkTxt" onFocus="this.select()" onClick="this.select()" style="width:430px;height:100px;"></textarea><br/>
+		<div>
+			Map Link length: <input id="mapLinkLen" type="text" style="width:40px;border:0;" value="0"/><br/>
+			<span id="mapLinkWarning" style="color: red">Warning: Map Link length exceeds the limit of 2048 characters. Some browsers may have trouble
+			with it. To shorten it uncheck some boxes below:</span><br/>
+			<input id="extMLckb" type="checkbox" onChange="mlCheckbox(this,'extent')"/> include extent, length: <input id="extMapLinkLen" type="text" style="width:30px;border:0;" value="0"/>
+			<span id="polyMLtxt" style="position:absolute;left:200px;"><input id="polyMLckb" type="checkbox" onChange="mlCheckbox(this,'poly')"/> include polygons, length: <input id="polyMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span><br/>
+			<span id="ptMLtxt"><input id="ptMLckb" type="checkbox" onChange="mlCheckbox(this,'point')"/> include points, length: <input id="ptMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span>
+			<span id="txtMLtxt" style="position:absolute;left:200px;"><input id="txtMLckb" type="checkbox" onChange="mlCheckbox(this,'text')"/> include text labels, length: <input id="txtMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span><br/>
+			<span id="lineMLtxt"><input id="lineMLckb" type="checkbox" onChange="mlCheckbox(this,'line')"/> include lines, length: <input id="lineMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span>
+			<span id="layMLtxt" style="position:absolute;left:200px;"><input id="layMLckb" type="checkbox" onChange="mlCheckbox(this,'layer')"/> include map layers, length: <input id="layMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span><br/>
+			<span id="rectMLtxt"><input id="rectMLckb" type="checkbox" onChange="mlCheckbox(this,'rect')"/> include rectangles, length: <input id="rectMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span>
+		</div>
+		</form>
+	</div>
+  </div>	
+    
+	<!-- Error Message -->
+	<div data-dojo-type="dijit/Dialog" data-dojo-id="errorDialog" style="width:350px;margin:10px;display:none;overflow:scroll;" title="Error Message" onCancel="dojo.byId('errMsg').innerHTML='';">
+		<div id="errMsg" class="dijitDialogPaneContentArea"></div>
+		<div align="center"><button onClick="errorDialog.hide();dojo.byId('errMsg').innerHTML='';" data-dojo-type="dijit/form/Button" role="presentation" type="button">Close</button></div>
+	</div>
+	
+	<!-- Help Popups -->
+	<div data-dojo-type="dijit/Dialog" data-dojo-id="searchHelpDialog" style="width:450px;display:none;" title="Search Help"> 
+		<div  class="dijitDialogPaneContentArea" >Enter any of the following in the search box: 
+		  <ul><li>A Place Name (for example: Denver)</li>
+			<li>GMU ## (for Game Management Unit)</li>
+			<li>GMU (for list of Game Management Units)</li>
+			<li>STL (for list of State Trust Lands)</li>
+			<li>SWA (for list of State Wildlife Areas)</li>
+			<li>SFU (for list of State Fishing Units)</li>
+			<li>WWA (for list of Watch-able Wildlife Areas)</li>
+			<li>Wilderness (for list of Wilderness Areas)</li>
+			<li>National Forest (for list of forests)</li>
+			<li>National Grassland (for list of grasslands)</li>
+			<li>County (for a list of counties)</li>
+			<li>A Point in the following format: <select id="help_xy_proj" data-dojo-type="dijit/form/Select" 
+				onChange="if (dijit.byId('pointUnits'))dijit.byId('pointUnits').set('value',this.value);dijit.byId('settings_xy_proj').set('value',this.value);settings.XYProjection=this.value;setCookie('prj', this.value)">
+			  <option value="dd">Lat/Long decimal degrees as 40.1722,103.8336</option>
+			  <option value="dms">Lat/Long degrees, minutes, seconds as 40:10:20,103:50:1</option>
+			  <option value="dm">Lat/Long degrees, decimal minutes as 40:10.333,103:60.0167</option>
+			  <option value="32612">WGS84 UTM Zone 12N</option>
+			  <option value="32613">WGS84 UTM Zone 13N</option>
+			  <option value="26912">NAD83 UTM Zone 12N</option>
+			  <option value="26913">NAD83 UTM Zone 13N</option>
+			  <option value="26712">NAD27 UTM Zone 12N</option>
+			  <option value="26713">NAD27 UTM Zone 13N</option>
+			</select></li></ul>
+			<p>To remove the last search location from the map: click on the <img alt="delete icon" title="delete icon" src="assets/images/w_delete.png"> icon.<br/>
+			To clear the search box text: click in the search box.<br/>ESC will hide the drop down list of suggestions.</p>
+		</div>
+	</div>
+	
+	<div data-dojo-type="dijit/Dialog" data-dojo-id="tocHelpDialog" style="width:350px;display:none;" title="Map Layers &amp; Legend Help">
+		<div  class="dijitDialogPaneContentArea" >
+			<a id="tocHelp" target="help">Click here to view help video.</a><br/><br/>
+			Set what maps are visible. Click on the right arrow icon to open a group of maps or to show it's legend.  Click on the down arrow icon to close this group.
+			Place a check mark in the box beside the maps you would like to make visible.  Note that if the group's checkbox is unchecked then no layers in
+			this group will be visible.  If the map name is greyed out, then it is not visible at this map scale.  To see a greyed out map zoom in or out 
+			on the main map. To view the legend check the Show Legend checkbox.<br/><br/>
+			<a id="mapDescFile" target="descriptions">Click here for map descriptions.</a>
+		</div>
+	</div>
+	
+	<div data-dojo-type="dijit/Dialog" data-dojo-id="reportHelpDialog" style="width:350px;display:none;" title="Resource Report Help">
+		<div  class="dijitDialogPaneContentArea" >
+			<a id="reportHelp" target="help">Click here to view help video.</a><br/><br/>
+			Generate a PDF report of planning resources at a specific point.  Click the Select location button, then click on the map.  The report will contain addresses, phone numbers, & web addresses for field offices, welcome centers, campgrounds, and more.
+			<br/><br/>
+		</div>
+	</div>
+	
+	<div data-dojo-type="dijit/Dialog" data-dojo-id="featureSearchHelpDialog" style="width:350px;display:none;" title="Feature Search Help">
+		<div  class="dijitDialogPaneContentArea" >
+			<a id="searchHelp" target="help">Click here to view help video.</a><br/><br/>
+			<b>Text Search Tab</b><br/>Select feature type and enter search text.  As you type matches will be suggested.
+			You may show all features (limited to 1000) by typing *. A table will be displayed with results, and the selected
+			features will be highlighted on the map.
+			To remove the highlighted features from the map, press the Remove button.
+			<br/><br/>
+			<b>Graphical Search Tab</b><br/>Select the feature type to display.  You may define an area on the map, in which to
+			search for features, by using either: point, line, rectangle, or polygon.
+			<ul><li>For points: click a point on the map.</li>
+				<li>For lines &amp; polygons: click on the map, move the mouse, click again, double click to end.</li>
+				<li>For rectangles: click &amp; drag a box.</li>
+			</ul>
+			A table will be displayed with results, and the selected features will be highlighted on the map.
+			To remove the highlighted features from the map, press the trash can button.
+			<br/><br/>
+		</div>
+	</div>
+	<div data-dojo-type="dijit/Dialog" data-dojo-id="featureSearchGridHelpDialog" style="width:350px;display:none;" title="Feature Search Results Table Help">
+		<div  class="dijitDialogPaneContentArea" >
+			Click on a row to zoom to the feature.  Click on header to sort. If there is a link in the table, clicking on it
+			will open it in a new browser tab. Mousing over table row or the feature on the map will highlight it and display
+			it's name.
+			<br/><br/>
+		</div>
+	</div>
+	
+	<div data-dojo-type="dijit/Dialog" data-dojo-id="addressHelpDialog" style="width:350px;display:none;" title="Address Help">
+		<div  class="dijitDialogPaneContentArea" >
+			<a id="addressHelp" target="help">Click here to view help video.</a><br/><br/>
+			Enter the address and press Find.  The map will zoom to the location.  Press the Remove button to remove the last address image from the map.  Press the Reset button to reset the Street, City, and Zip address form.
+			<br/><br/>
+		</div>
+	</div>
+	
+	<div data-dojo-type="dijit/Dialog" data-dojo-id="drawHelpDialog" style="width:350px;display:none;" title="Draw, Label, &amp; Measure Help">
+		<div  class="dijitDialogPaneContentArea" >
+			<a id="drawHelp" target="help">Click here to view help video.</a><br/><br/>
+			This tool adds shapes or text to the map and can display point coordinates, distance, and area. Select the Draw tab to add: points, lines, rectangles, and polygons. Select the Label tab to add text.<br/><br/>
+			<strong>On the Draw tab</strong> select the desired graphic button: 
+			points, lines, freehand lines, rectangles, or polygons.  NOTE: because the map resets to Identify (i.e. show info at the map click), you will need to
+			reselect the graphic button each time you want to add a new graphic. Choose the style (color, size) for the graphic.<br/><u>For points:</u> set how you would like to enter the point: either by
+			map click, type in the point, or type in multiple points. Set the XY units to display/enter the point(s).  Check the Label XY checkbox if you would like
+			the XY point to be labeled on the map. Finally, click the location on the map to place the point.<br/>
+			<u>For lines & polygons:</u> check the Label measurements checkbox if you would like to display the length/area of the graphic below the graphic on the map.
+			<br/><u>To draw a line or polygon:</u> click on the map at the start of the line/polygon, move the mouse, click again, double click to end.<br/>
+			<u>To draw freehand lines or rectangles:</u> click and drag the mouse on the map.<br/>
+			<u>To erase a graphic from the map:</u> click on the trash can button. The last graphic added to the map will be removed.<br/><br/>
+			<strong>On the Label tab</strong>, click on the A button. NOTE: because the map resets to Identify (i.e. show info at the map click), you will need to
+			reselect the A button each time you want to add a new label. Enter the text, select the font style, and click on the map at the location to insert the label. 
+			To erase a label from the map click on the trash can button. The last label added to the map will be removed.
+			<br/><br/>
+		</div>
+	</div>
+	
+	<div data-dojo-type="dijit/Dialog" data-dojo-id="bookmarkHelpDialog" style="width:350px;display:none;" title="Bookmark Help">
+		<div  class="dijitDialogPaneContentArea" >
+			<a id="bookmarkHelp" target="help">Click here to view help video.</a><br/><br/>
+			This tool allows you to save or bookmark maps you have created. Note: If you would like to email a map to a friend use "Map Link"
+			located above the map. "Map Link" may also be used to bookmark a map. Simply click "Map Link", load the displayed URL in your browser (copy and paste), and
+			then use the browser bookmark to save the map.<br/><br/>The two tabs on the Bookmark tool allow you to access bookmarks you have created and to store new bookmarks. These are stored in
+			your browser's cookies so if you switch browsers (say from IE to Firefox) they will not show up in the other browser. Clicking on the red X will
+			delete a bookmark. Stored bookmarks will preserve: the map extent, any graphics or text added with the Way Points, Draw, &amp; Measure tool, the 
+			currently selected map layers, and base map layer.
+			<br/><br/>
+		</div>
+	</div>
+	
+	<div data-dojo-type="dijit/Dialog" data-dojo-id="settingsHelpDialog" style="width:350px;display:none;" title="Settings Help">
+		<div  class="dijitDialogPaneContentArea" >
+			<a id="settingsHelp" target="help">Click here to view help video.</a><br/><br/>
+			This tool allows you to change the default settings. If you delete your browser cookies these settings will be lost. "Set Coordinate Format"
+			allows you to choose the default format that points will be entered and displayed in. This will change the default option for entering points
+			in Draw, Label, & Measure, and for entering points in the "Search for a Colorado Place" search box. It will also change the default format
+			for how points are displayed in the identify pop-up (which displays information at a map click).
+			<br/><br/>
+		</div>
+	</div>
+	
+    <!--Sidebar Section-->
+    <div data-dojo-type="dijit/layout/ContentPane" id="leftPane" data-dojo-props='region:"left"' splitter="true" style="overflow:auto;overflow-x:hidden;">
+		<!-- TOC WIDGET -->
+		<!-- legend must be in a separate div or it doesn't work-->
+		<div id="tocPane" style="visibility:hidden;position:relative;overflow:hidden;" data-dojo-type="dijit/TitlePane" tooltip="Click to open/close Map Layers panel" title="<img alt='map layers and legend icon' src='assets/images/i_layers.png'/> Map Layers &amp; Legend" open="false">
+			<div id="tocContent" style="position:relative;min-height:0px;width:100%;min-width:100%;max-width:100%;">
+				<span title="Search Help" onClick="tocHelpDialog.show();"><img alt='help button' class="help_icon" src="assets/images/i_help.png"></span>
+				<span style="float:left">Set map layer visibility and transparency</span>
+				<span id="showLegendSpan" style="position:absolute;right:5px;background-color:white;"><input id="showLegendChkBox" type="checkBox"/><label for="showLegendChkBox"> Show legend</label></span><br/><br/>
+				<p id="tocLoading" align="center" style="display:none;visibility:hidden;"><img src="assets/images/loading.gif"/></p>
+				<div id="tocDiv" style="overflow:auto;overflow-x:hidden;height:100%;"></div>
+			</div>
+			<div><br/><br/></div>
+			<div data-dojo-type="dojox.layout.ResizeHandle" 
+				data-dojo-props="targetId:'tocContent',activeResize:true,intermediateChanges:true"></div>
+		</div>
+
+		<!-- REPORT WIDGET -->
+		<!-- position relative for resizeHandle to work-->
+		<div id="reportDiv" style="visibility:hidden;position:relative;" data-dojo-type="dijit/TitlePane" tooltip="Click to open/close Report panel" title="<img alt='resource report icon' src='assets/images/i_table.png'/> <span id='reportTitle'/>" open="false">
+			<div id="reportContent" style="position:relative;min-height:0px;width:100%;min-width:100%;max-width:100%;">
+				<span title="Resource Report Help" onClick="reportHelpDialog.show();"><img alt='help button' class="help_icon" src="assets/images/i_help.png"></span><br/>
+				<p>Locate a point of interest on the map and print a list of resources within a distance of that point.</p>
+				<p>Step 1:  Select button below then click on location of interest.</p>
+				<p style="padding-left:35px;"><img id="reportLocBtn" alt="select buffer button"
+					class="graphBtn"
+					src="assets/images/i_draw_point.png"
+					title="Select location button"/></p>
+				<p>Step 2:  Adjust report area, set margins, & map quality.</p>
+				<p style="padding-left:35px;"><input id="reportDistCbo"/><span id="reportDistLabel"></span><br/>
+				<!--label for="reportMarginsCbo">Margin size:</label> <input id="reportMarginsCbo"/><br/>
+				<label for="reportDPICbo">Map quality:</label> <input id="reportDPICbo"/--></p>
+				<p>Step 3:  Show print preview.</p>
+				<p style="padding-left:35px;"><button id="reportPrintBtn" data-dojo-type="dijit/form/Button" role="presentation" type="button">Print Preview</button> <button id="reportCancelBtn" data-dojo-type="dijit/form/Button" role="presentation" type="button">Cancel</button></p>
+				<p align="center"><a href="http://get.adobe.com/reader/" target="pdf_reader">Get Adobe Reader</a> &nbsp;&nbsp;&nbsp;<a href="http://www.foxitsoftware.com/Secure_PDF_Reader/" target="pdf_reader">Get Foxit Reader</a></p>
+			</div>
+		</div>
+		
+		<!-- FEATURE SEARCH WIDGET -->
+		<div id="searchDiv" style="visibility:hidden;position:relative;" data-dojo-type="dijit/TitlePane" tooltip="Click to open/close Feature Search panel" title="<img alt='feature search icon' src='assets/images/i_search.png'/> Feature Search" open="false" onClick="if (!openedFeatureSearch) {openedFeatureSearch=true;searchInit();}">
+			<div id="searchContent" style="height:270px;position:relative;min-height:0px;width:100%;min-width:100%;max-width:100%;">
+				<img id="searchLoadingImg" alt="loading icon" src="assets/images/loading.gif" style="position:absolute; right:50%; top:50%; z-index:100;display:none;" />
+				<span title="Feature Search Help" onClick="featureSearchHelpDialog.show();"><img class="help_icon" src="assets/images/i_help.png"></span><br/>
+				<div id="searchTabText" style="width:100%;height:100%;">
+					<div id="FeatureSearchTabs" data-dojo-type="dijit/layout/TabContainer" style="width:100%;" doLayout="false">
+						<div id="text_Pane" data-dojo-type="dijit/layout/ContentPane" title="Text Search" data-dojo-props="selected:true">
+							<span>Search for a feature type by name. Highlights the features found and displays a table with more info.</span><br/><br/>
+							<label for="featureType">Feature type: </label><input id="featureType"/><br/><br/>
+							<div id="searchInput1" style="float:left">
+								<label id="searchLabel" for="searchText">Search for: </label><br/><input id="searchText"/>
+							</div>
+							<div id="searchInput2" style="display:none;float:left">
+								<form id="nsRadioForm" data-dojo-type="dijit/form/Form">
+									<label id="townshipLabel" for="searchTwn">Township: </label><input id="searchTwn" size="4" style="position:absolute;left:77px"/>
+									<input type="radio" data-dojo-type="dijit/form/RadioButton" name="nsBtn" id="nBtn" checked="true" value="N" style="position:absolute;left:140px"/>
+									<span style="position:absolute;left:160px">N</span>
+									<input type="radio" data-dojo-type="dijit/form/RadioButton" name="nsBtn" id="sBtn" checked="false" value="S" style="position:absolute;left:180px"/>
+									<span style="position:absolute;left:200px">S</span><br/><br/>
+								</form>
+								<form id="ewRadioForm" data-dojo-type="dijit/form/Form">
+									<label id="rangeLabel" for="searchRng">Range: </label><input id="searchRng" size="4" style="position:absolute;left:77px"/>
+									<input type="radio" data-dojo-type="dijit/form/RadioButton" name="ewBtn" id="eBtn" checked="false" value="E" style="position:absolute;left:140px"/>
+									<span style="position:absolute;left:160px">E</span>
+									<input type="radio" data-dojo-type="dijit/form/RadioButton" name="ewBtn" id="wBtn" checked="true" value="W" style="position:absolute;left:180px"/>
+									<span style="position:absolute;left:200px">W</span><br/><br/>
+								</form>
+								<label id="sectionLabel" for="searchSec">Section: </label><input id="searchSec"/><br/><br/>
+							</div>
+							<div style="float:right">
+								<button id="searchBtn" data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="" title="search for features">Search</button>
+								<br/><button id="searchRemoveBtn" data-dojo-type="dijit/form/Button" role="presentation" type="button" title="remove highlighted features">Remove</button>
+							</div>
+						</div>
+						<div id="graphic_Pane" data-dojo-type="dijit/layout/ContentPane" title="Graphical Search">
+							<span>Graphically search for a feature type. Highlights the features found and displays a table with more info.</span><br/><br/>
+							<label for="featureTypeGraphic">Feature type: </label><input id="featureTypeGraphic"/><br/><br/>
+							<p id="searchImageGroup" style="text-align: center;">Select a shape button, click/drag on map to select <span id="graphicfeatures"></span> found within.<br/><br/>
+							<img id="searchpoint" alt="select features by point button"
+								class="graphBtn"
+								src="assets/images/i_draw_point.png"
+								title="select features by point"/>
+							<img id="searchpolyline" alt="select features by polyline button"
+								class="graphBtn"
+								src="assets/images/i_draw_line.png"
+								title="select features by line"/>
+							<img id="searchrectangle" alt="select features by rectangle button"
+								class="graphBtn"
+								src="assets/images/i_draw_rect.png"
+								title="select features by rectangle"/>
+							<img id="searchpolygon" alt="select features by polygon button"
+								class="graphBtn"
+								src="assets/images/i_draw_poly.png"
+								title="select features by polygon"/>
+							<img id="clearSearchGraphics" alt="remove highlighted features button"
+								style="margin-left:20px;"
+								class="graphBtn"
+								src="assets/images/i_clear.png"
+								title="remove highlighted features"/>
+							</p>
+						</div>
+						<div id="searchMsg" style="display:none;margin-left:10px;">Loading all features, please wait...</div>
+						<div id="searchTools" style="display:none;margin-left:10px;">Features found: <span id="searchFound"></span>							
+							<img id="searchCloseBtn" title='close table' style="position:absolute;right:20px" src="assets/images/w_collapse_vertical.png" onClick="document.getElementById('searchContent').style.height='300px';document.getElementById('searchGrid').style.display='none';document.getElementById('searchCloseBtn').style.display='none';document.getElementById('searchOpenBtn').style.display='inline-block'"/>
+							<img id="searchOpenBtn" title='open table' style="position:absolute;right:20px" src="assets/images/w_expand_vertical.png" onClick="document.getElementById('searchContent').style.height='510px';document.getElementById('searchGrid').style.display='block';document.getElementById('searchCloseBtn').style.display='inline-block';document.getElementById('searchOpenBtn').style.display='none'" style="display:none"/>
+							<img id="searchGridHelp" title='table help' style="position:absolute;right:3px;" src="assets/images/w_help.png" onClick="featureSearchGridHelpDialog.show()"/>
+							<br/><br/></div>
+						<div id="searchGrid" title="Click on a feature to zoom to it."></div>
+					</div>
+				</div>
+			</div>
+			
+		</div>
+		
+		<!-- ADDRESS WIDGET -->
+		<div id="addressPane" style="visibility:hidden;position:relative;" data-dojo-type="dijit/TitlePane" tooltip="Click to open/close Address panel" title="<img alt='address icon' src='assets/images/i_address.png'/> Address" open="false">
+			<div id="addressDiv" style="position:relative;min-height:0px;width:100%;min-width:100%;max-width:100%;"> 
+				<label for="streetTxt">Street<span style="color:red">*</span>: </label>
+				<input type="text" required="true" id="streetTxt" name="streetTxt" size="40"/><span title="Address Help" onClick="addressHelpDialog.show();"><img alt='help button' class="help_icon" src="assets/images/i_help.png"></span><br/><br/>
+				<label for="cityTxt">City<span style="color:red">*</span>: </label>
+				<input type="text" required="true" id="cityTxt" name="cityTxt"/>
+				<label for="zipTxt"> Zip: </label>
+				<input id="zipTxt" name="zipTxt" size="10"/><br/><br/>
+				<p style="text-align: center;">
+				<button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="lookupAddress()">Find</button> 
+				<button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="dojo.byId('streetTxt').value='';dojo.byId('cityTxt').value='';dojo.byId('zipTxt').value='';" title="Clear address form">Reset</button> 
+				<button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="clearAddress()" title="Remove last address image from the map.">Remove</button>
+				<span id="addressLoading" style="display:none;">Loading...</span></p>
+			</div>
+			<div data-dojo-type="dojox.layout.ResizeHandle" 
+				data-dojo-props="targetId:'addressDiv',activeResize:true,intermediateChanges:true"></div>
+		</div>
+		
+		<!-- DRAW WIDGET -->
+		<div id="drawDiv" style="visibility:hidden;" data-dojo-type="dijit/TitlePane" tooltip="Click to open/close Draw-Label panel" title="<img alt='Way points, draw, label, measure icon' src='assets/images/i_measure.png'/> Way Points, Draw, &amp; Measure" open="false">
+			<span title="Draw, Label, Measure Help" onClick="drawHelpDialog.show();"><img alt='help button' class="help_icon" src="assets/images/i_help.png"></span><br/>
+			<div id="drawContent" style="width:100%;height:100%;">
+				<div id="drawTabs" data-dojo-type="dijit/layout/TabContainer" style="width:95%;height:240px;">
+					<div id="draw_Pane" data-dojo-type="dijit/layout/ContentPane" doLayout="false" title="Draw & Measure" data-dojo-props="selected:true">
+						<span>Add way points, lines, and shapes to the map. Show the lat, long or UTM coordinate of the point, or the distance and/or area of the line or shape.</span><br/><br/>
+						<p id="drawImageGroup" style="text-align:center">
+							<img id="mappoint" alt="add way point button"
+								class="graphBtn"
+								onClick="activateDrawTool(event);document.getElementById('drawContent').style.height='520px';dijit.byId('drawTabs').resize({h:520, w:'100%'})"
+								src="assets/images/i_draw_point.png"
+								title="add way point"/>
+							<img id="polyline" alt="draw polyline button"
+								class="graphBtn"
+								onClick="activateDrawTool(event);document.getElementById('drawContent').style.height='370px';dijit.byId('drawTabs').resize({h:370, w:'100%'})"
+								src="assets/images/i_draw_line.png"
+								title="draw line"/>
+							<img id="freehandpolyline" alt="draw free hand polyline button"
+								class="graphBtn"
+								onClick="activateDrawTool(event);document.getElementById('drawContent').style.height='370px';dijit.byId('drawTabs').resize({h:370, w:'100%'})"
+								src="assets/images/i_draw_freeline.png"
+								title="draw freehand line"/>
+							<img id="extent" alt="draw rectangle button"
+								class="graphBtn"
+								onClick="activateDrawTool(event);document.getElementById('drawContent').style.height='400px';dijit.byId('drawTabs').resize({h:400, w:'100%'})"
+								src="assets/images/i_draw_rect.png"
+								title="draw rectangle"/>
+							<img id="polygon" alt="draw polygon button"
+								class="graphBtn"
+								onClick="activateDrawTool(event);document.getElementById('drawContent').style.height='400px';dijit.byId('drawTabs').resize({h:400, w:'100%'})"
+								src="assets/images/i_draw_poly.png"
+								title="draw polygon"/>
+							<img id="clearGraphics" alt="remove last graphic drawn button"
+								style="margin-left:20px;visibility:hidden;"
+								class="graphBtn"
+								onClick="removeDrawItem();"
+								src="assets/images/i_clear.png"
+								title="remove last graphic drawn"/>
+						</p>
+						<div id="measurements" style="visibility:hidden;display:none;float:left;width:100%;">
+							<span class="title">Measurement Results:</span><br/>
+							<div style="border:2px solid gray;padding:10px;">
+								<div id="area"></div>
+								<div id="length"></div>
+							</div>
+						</div>
+						<div id="pointOptions" style="visibility:hidden;display:none;float:left;width:100%;">
+							<span class="title">Way Point Options:</span><br/>
+							<div style="border:2px solid gray;padding:10px;">
+								<form id="xyForm">
+									<input type="checkbox" data-dojo-type="dijit/form/CheckBox" name="labelXY" onClick="if (this.checked) document.getElementById('labelOptions').style.display='block'; else  document.getElementById('labelOptions').style.display='none';"  id="labelXY"/> Label way point?<br/>
+									<div id="labelOptions" style="display:none">
+										<div style="left: 20px;position:relative;">
+											<input type="radio" data-dojo-type="dijit/form/RadioButton" name="xyLabelRadios" id="radioLabelXY"
+											onClick="document.getElementById('customXYlabel').style.display='none';"
+											value="map" checked/> <label for="radioLabelXY">Label with XY coordinate</label></div>
+										<div style="left: 20px;position:relative;">
+											<input type="radio" data-dojo-type="dijit/form/RadioButton" name="xyLabelRadios" id="radioLabelCustom" 
+											onClick="document.getElementById('customXYlabel').style.display='inline-block';document.getElementById('customXYlabel').focus();"
+											value="map"/> <label for="radioLabelCustom">Custom label</label>&nbsp;&nbsp;<input id="customXYlabel" style="display:none"/></div>
+									</div><br/>	
+									<label for="pointStyleDiv">Way point style: </label><div id="pointStyleDiv"></div><br/><br/>				
+									<label for="ptMethod">Enter way point by: </label><input id="ptMethod"/><br/>
+								</form><br/>
+								XY units:<div id="pointXYUnits"></div><br/><br/>
+								<div id="xyDiv" style="display:none;">
+									<span style="color:gray;font-size:small;">For example: <span id="xyInstruct">Lat N: 40.24567 Long W: 103.24501</span></span>
+									<div id="ddDiv">
+										<table><tbody><tr><td></td><td></td><td></td></tr>
+											<tr><td>Lat N: </td><td><input id="pointYdd" type="text"/></td></tr>
+											<tr><td>Long W:</td><td><input id="pointXdd" type="text"/></td>
+											<td rowspan="2"><button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="drawPoint()">Draw</button></td></tr>
+										</tbody></table>
+										
+									</div>
+									<div id="dmsDiv" style="display:none">
+										<table><tbody><tr  style="font-size: x-small; text-align:center;"><td></td><td>degrees</td><td>minutes</td><td>seconds</td><td></td></tr>
+											<tr><td>Lat N: </td><td><input id="pointYdeg" size="3" type="text"/></td><td><input id="pointYmin" size="3" type="text"/></td><td><input id="pointYsec" size="5" type="text"/></td></tr>
+											<tr><td>Long W:</td><td><input id="pointXdeg" size="3" type="text"/></td><td><input id="pointXmin" size="3" type="text"/></td><td><input id="pointXsec" size="5" type="text"/></td>
+											<td rowspan="2"><button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="drawPoint()">Draw</button></td></tr>
+										</tbody></table>
+										
+									</div>
+									<div id="dmDiv" style="display:none">
+										<table><tbody><tr style="font-size: x-small; text-align:center;"><td></td><td>degrees</td><td>minutes</td><td></td></tr>
+											<tr><td>Lat N: </td><td><input id="pointYddm" size="3" type="text"/></td><td><input id="pointYmindm" size="5" type="text"/></td></tr>
+											<tr><td>Long W:</td><td><input id="pointXddm" size="3" type="text"/></td><td><input id="pointXmindm" size="5" type="text"/></td>
+											<td rowspan="2"><button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="drawPoint()">Draw</button></td></tr>
+										</tbody></table>
+										
+									</div>
+									<div id="utmDiv" style="display:none">
+										<table><tbody><tr><td></td><td></td><td></td></tr>
+											<tr><td>Easting: </td><td><input id="pointX" type="text"/></td></tr>
+											<tr><td>Northing:</td><td><input id="pointY" type="text"/></td>
+											<td rowspan="2"><button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="drawPoint()">Draw</button></td></tr>
+										</tbody></table>
+									</div>
+								</div>
+								<div id="multixyDiv" style="display:none;vertical-align:middle;">
+									<span style="color:gray">For example: <span id="multixyInstruct">40.24,103,39.3456,104.4</span></span>
+									<textarea id="pointsXY" style="vertical-align:middle;" rows="4" cols="30"></textarea><button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="drawMultiPoint()" style="vertical-align:middle;">Draw</button>
+								</div>
+								<div id="locationDiv"  style="display:none;text-align:center;">
+									<button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="drawCurrentLocation()" style="vertical-align:middle;">Draw</button>
+								</div>
+							</div>
+						</div>
+						<div id="lineOptions" style="visibility:hidden;display:none;float:left;width:100%;">
+							<span class="title">Line Options:</span><br/>
+							<div style="border:2px solid gray;padding:10px;">
+								<form id="lineForm">
+									<input type="checkbox" data-dojo-type="dijit/form/CheckBox" name="labelLine" onClick="if (this.checked) document.getElementById('labelLineOptions').style.display='block'; else  document.getElementById('labelLineOptions').style.display='none';" id="labelLine"/> Label the line?<br/>
+									<div id="labelLineOptions" style="display:none">
+										<div style="left: 20px;position:relative;">
+											<input type="radio" data-dojo-type="dijit/form/RadioButton" name="lineLabelRadios" id="radioLabelLineXY"
+											onClick="document.getElementById('customLineLabel').style.display='none';"
+											value="map" checked/> <label for="radioLabelLineXY">Label with distance</label></div>
+										<div style="left: 20px;position:relative;">
+											<input type="radio" data-dojo-type="dijit/form/RadioButton" name="lineLabelRadios" id="radioLabelLineCustom" 
+											onClick="document.getElementById('customLineLabel').style.display='inline-block';document.getElementById('customLineLabel').focus();"
+											value="map"/> <label for="radioLabelLineCustom">Custom label</label>&nbsp;&nbsp;<input id="customLineLabel" style="display:none"/></div>
+									</div><br/>
+									<label for="lineStyleDiv">Line color: </label><div id="lineStyleDiv"></div><br/><br/>			
+									<label for="lineLengthDiv">Distance units: </label><div id="lineLengthDiv"></div>
+								</form>
+							</div>
+						</div>
+						<div id="fillOptions" style="visibility:hidden;display:none;float:left;width:100%;">
+							<span class="title">Solid Shape Options:</span><br/>
+							<div style="border:2px solid gray;padding:10px;">
+								<form id="fillForm">
+									<input type="checkbox" data-dojo-type="dijit/form/CheckBox" name="labelPoly" onClick="if (this.checked) document.getElementById('labelPolyOptions').style.display='block'; else document.getElementById('labelPolyOptions').style.display='none';" id="labelPoly"/> Label the shape?<br/>
+									<div id="labelPolyOptions" style="display:none">
+										<div style="left: 20px;position:relative;">
+											<input type="radio" data-dojo-type="dijit/form/RadioButton" name="polyLabelRadios" id="radioLabelPolyXY"
+											onClick="document.getElementById('customPolyLabel').style.display='none';"
+											value="map" checked/> <label for="radioLabelPolyXY">Label with area &amp; distance</label></div>
+										<div style="left: 20px;position:relative;">
+											<input type="radio" data-dojo-type="dijit/form/RadioButton" name="polyLabelRadios" id="radioLabelPolyCustom" 
+											onClick="document.getElementById('customPolyLabel').style.display='inline-block';document.getElementById('customPolyLabel').focus();"
+											value="map"/> <label for="radioLabelPolyCustom">Custom label</label>&nbsp;&nbsp;<input id="customPolyLabel" style="display:none"/></div>
+									</div><br/>
+									<label for="fillStyleDiv">Fill style: </label><div id="fillStyleDiv"></div><br/><br/>
+								</form>
+								<label for="areaDiv">Area units: </label><div id="areaDiv" style="padding-right:20px"></div><br/><br/>
+								<label for="lengthDiv">Distance units: </label><div id="lengthDiv"></div>
+							</div>
+						</div>
+					</div>
+					<div id="label_Pane" data-dojo-type="dijit/layout/ContentPane" title="Label">
+						Add text labels to the map. Select the A button, enter a label, click on a location on the map.<br/><br/>
+						<p style="text-align: center;">
+							<img id="label" style="vertical-align:top;"
+								class="graphBtn" alt="add text button"
+								onClick="activateDrawTool(event)"
+								src="assets/images/i_draw_text.png"
+								title="add text"/>
+							<img id="clearText"
+								style="margin-left:20px;visibility:hidden;"
+								class="graphBtn" alt="remove last text added button"
+								onClick="removeDrawTextItem()"
+								src="assets/images/i_clear.png"
+								title="remove last text added"/>
+						</p>
+						<div>
+							<label for="textStyleDiv">Text style: </label><div id="textStyleDiv"></div><br/><br/>
+							<form>
+								<label for="drawlabel">Label: </label><input id="drawlabel" type="text"/>
+								<button data-dojo-type="dijit/form/Button" role="presentation" type="reset" title="clear label form">Clear</button>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- BOOKMARK WIDGET -->
+		<div id="bookmarkDiv" style="visibility:hidden;" data-dojo-type="dijit/TitlePane" tooltip="Click to open/close Bookmark panel" title="<img alt='bookmark icon' src='assets/images/i_bookmark.png'/> Bookmark" open="false">
+			<span title="Bookmark Help" onClick="bookmarkHelpDialog.show();"><img alt="help button" class="help_icon" src="assets/images/i_help.png"/></span><br/>
+			<div style="height:200px;width:100%;overflow:hidden;">
+				<div id="bmTabs" data-dojo-type="dijit/layout/TabContainer" style="width:95%;height:100%;">
+					<div id="bmListPane" style="overflow:auto;" data-dojo-type="dijit/layout/ContentPane" title="Bookmarks" data-dojo-props="selected:true">
+						<span>Bookmarks are stored in a cookie in your browser history.</span><br/><br/>
+						<span id="bookmarkTab"></span>
+					</div>
+					<div id="bmAddPane" data-dojo-type="dijit/layout/ContentPane" title="Add Bookmark">
+						<span>Add current map as a bookmark named:</span><br/><br/>
+						<input id="bookmarkName" type="text" style="width:100%"/><br/><br/>
+						<p style="text-align: center;"><button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="addBookmark()">Add Bookmark</button></p>
+					</div>
+				</div><br/>
+			</div>
+		</div>
+		
+		<!-- SETTINGS WIDGET -->
+		<div id="settingsDiv" style="visibility:hidden;" data-dojo-type="dijit/TitlePane" tooltip="Click to open/close Settings panel" title="<img alt='settings icon' src='assets/images/i_resources.png'/> Settings" open="false">
+			<span title="Settings Help" onClick="settingsHelpDialog.show();"><img alt="help button" class="help_icon" src="assets/images/i_help.png"></span><br/>
+			Settings are stored in a cookie in your browser history.<br/><br/>
+			<!-- default value is set in identify.js/readSettingsWidget -->
+			<label for="settings_xy_proj" title="Set the coordinate format to use to display points.">Set coordinate format: </label>
+			<select id="settings_xy_proj" name="settings_xy_proj" data-dojo-type="dijit/form/Select" 
+			onChange="if (dijit.byId('pointUnits'))dijit.byId('pointUnits').set('value',this.value);dijit.byId('help_xy_proj').set('value',this.value);settings.XYProjection=this.value;setCookie('prj', this.value)">
+			  <option value="dd">Lat/Long Decimal Degrees</option>
+			  <option value="dms">Lat/Long Degrees, Min, Sec</option>
+			  <option value="dm">Lat/Long Degrees, Decimal Min</option>
+			  <option value="32612">WGS84 UTM Zone 12N</option>
+			  <option value="32613">WGS84 UTM Zone 13N</option>
+			  <option value="26912">NAD83 UTM Zone 12N</option>
+			  <option value="26913">NAD83 UTM Zone 13N</option>
+			  <option value="26712">NAD27 UTM Zone 12N</option>
+			  <option value="26713">NAD27 UTM Zone 13N</option>
+			</select>
+		</div>
+    </div>
+    
+
+	<!-- Map -->
+	<div id="mapDiv" class="map" data-dojo-type="dijit/layout/ContentPane"  data-dojo-props='region:"center"' dir="ltr" >
+		 
+		<!-- Show left panel menu-->
+		<button id="menuBtn" label="<" title="Close Menu" data-dojo-type="dijit/form/Button" style="display:block; position: absolute; z-index: 2; left: -10px; top: 35px;" onClick="javascript:toggleLeftPane()">Close Menu</button>
+
+		<!-- Basemaps Button Bar -->
+		<div id="basemapDiv" style="position:absolute; right:20px; top:10px; z-Index:999;overflow:hidden;margin-bottom:10px;">
+			<div id="basemapTitlePane" data-dojo-type="dijit/TitlePane" tooltip="Click to open/close Switch Basemaps panel"
+				 data-dojo-props="title:'Switch Basemap', closable:false, open:false" style="visibility:hidden;display:none;">
+			  <div data-dojo-type="dijit/layout/ContentPane" style="width:330px; ">
+				<div id="basemapGallery"></div>
+			  </div>
+			</div>
+        </div>
+		
+		<!-- Full Extent Button -->
+		<div style="position: absolute; left: 32px; padding-top:3px; z-index: 2; padding-right: 0; padding-left: 0;">
+			<img id="fullExtent" alt="full extent button" style="width: 20px; height:20px;" onclick="map.setLevel(1)" title="Full Extent" src="assets/images/i_zoomfull.png" />
+		</div>
+	    
+		<!-- Loading National Forest Grassland Message -->
+		<!--div id="waitmessage" style="display:none; position:absolute; right:20%; top:55%; padding: 30px; z-index:100; border: 5px double grey; background-color: #fff">Loading forest, wilderness, or grassland boundary... If a popup appears click CONTINUE to give the script more time finish.
+			<p style="text-align: center;"><img alt="loading icon" src="assets/images/loading.gif"/><button data-dojo-type="dijit/form/Button" onclick="dojo.byId('waitmessage').style.display='none';" style="position:absolute; right: 30px;">OK</button></p></div-->
+		<!-- Map Loading image -->
+		<img id="loadingImg" alt="loading icon" src="assets/images/loading.gif" style="position:absolute; right:50%; top:50%; z-index:100;" />
+		
+		<!-- XY Coordinate Format Dialog -->
+		<div data-dojo-type="dijit/Dialog" data-dojo-id="xycoordsDialog" title="Change Display Format" style="display:none;width:210px;">			
+			<select id="xycoords_combo" size="4" onChange="xycoordsDialog.hide();setCookie('xycoords',document.getElementById('xycoords_combo').value);" >
+				<option value="mercator">WGS84 Web Mercator</option>
+				<option value="geo">Decimal Degrees</option>
+				<option value="dms" selected>Degrees, Minutes, Seconds</option>
+				<option value="dm">Degrees, Decimal Minutes</option>
+			</select>
+		</div>
+	</div>
+	
+	<!-- Footer Section-->
+    <div id="footer" data-dojo-type="dijit/layout/ContentPane" data-dojo-props='region:"bottom"'>
+      <span id='mapscale' style="display:block; z-index: 3; position:relative; float:left; width: 200px; color:#FFF; text-shadow: 0 0 .1em #000; text-shadow: -.1em -.1em .2em #000; text-shadow: .1em .1em .1em #000;">Map Scale 1: 
+	  <select id="mapscaleList" onchange="setMapScale(this)" style="color: black">
+			<option style="text-align:right" value="9244649">9M</option>
+			<option style="text-align:right" value="4622324">4M</option>
+			<option style="text-align:right" value="2311162">2M</option>
+			<option style="text-align:right" value="1155581">1M</option>
+			<option style="text-align:right" value="577791">500k</option>
+			<option style="text-align:right" value="288895">250k</option>
+			<option style="text-align:right" value="144448">100k</option>
+			<option style="text-align:right" value="72224">50k</option>
+			<option style="text-align:right" value="36112">24k</option>
+			<option style="text-align:right" value="9028">10k</option>
+			<option style="text-align:right" value="2257">2k</option>
+			<option style="text-align:right" value="1128">1k</option>
+			<!--option style="text-align:right" value="9244649">9,244,649</option>
+			<option style="text-align:right" value="4622324">4,622,324</option>
+			<option style="text-align:right" value="2311162">2,311,162</option>
+			<option style="text-align:right" value="1155581">1,155,581</option>
+			<option style="text-align:right" value="577791">577,791</option>
+			<option style="text-align:right" value="288895">288,895</option>
+			<option style="text-align:right" value="144448">144,448</option>
+			<option style="text-align:right" value="72224">72,224</option>
+			<option style="text-align:right" value="36112">36,112</option>
+			<option style="text-align:right" value="18056">18,056</option>
+			<option style="text-align:right" value="9028">9,028</option>
+			<option style="text-align:right" value="4514">4,514</option>
+			<option style="text-align:right" value="2257">2,257</option>
+			<option style="text-align:right" value="1128">1,128</option-->
+		</select></span>
+		<!-- Display mouse coordinates -->
+		<span id="xycoords" onClick=
+		"require(['dojo/window'], function(win){var vs = win.getBox();xycoordsDialog.show();var left=vs.w-260;var top=vs.h-180;xycoordsDialog._setStyleAttr('left:'+left+'px !important;');xycoordsDialog._setStyleAttr('top:'+top+'px !important;');});"
+		onmouseover="" style="cursor: pointer; float: right;  padding:10px; display: block; position:relative; color:#FFF; text-shadow: 0 0 .1em #000; text-shadow: -.1em -.1em .2em #000; text-shadow: .1em .1em .1em #000;">Latitude, Longitude</span>
+		<span id="owner" style="position: relative; display: block; text-align:center;font-size:x-small;"><a href="http://cpw.state.co.us" style="color: black; text-decoration: none;" title="Colorado Parks and Wildlife home page" target="_blank">&copy; Colorado Parks and Wildlife</a></span>
+	</div>    
+  </div>
+  </body>
+</html>

@@ -1,0 +1,525 @@
+﻿/* CSS file # used for id=<name> . used for class=<name> :hover must not have a space */
+	html,body,#mapDiv,.map.container{			
+		padding:1px;
+		margin:0;
+		height:100%;
+		width: 100%;
+		font-family:Helvetica, Arial, sans-serif;
+		font-size: small;
+	}
+	
+	#mapDiv {
+		overflow:hidden;
+	}
+	#header {
+		height: 60px;
+		overflow: visible;
+		z-index: 3;
+		font-size: 1em;
+		background-color: #BCD8F4;
+		background-image: linear-gradient(#FFFFFF 0px, rgba(255, 255, 255, 0) 3px, rgba(255, 255, 255, 0.75) 100%);
+		background-repeat: repeat-x;
+
+	}
+	#footer {
+		background-color: #BCD8F4;
+	}
+	.title {
+		font-weight: bold;
+	}
+	
+	/* wrap long text in dialog panes. For long url */
+	.dijitDialogPaneContentArea {
+		word-wrap:break-word;
+	}
+	/* Identify Popup width */
+	.esriPopup .esriPopupWrapper .sizer{
+		width:400px!important;
+	}
+	.esriPopup .esriPopupWrapper .sizer content{
+		width:400px!important;
+	}
+	/* Identify Header Color */
+	.esriPopup .esriPopupWrapper .titlePane {
+		background-color: #759DC0;
+	}
+	/* Identify title add ellipsis if too long */
+	.esriPopup .esriPopupWrapper .titlePane .title{
+		width: 320px;
+		overflow:hidden;
+		text-overflow:ellipsis;
+		white-space:nowrap;
+	}
+	.esriPopupItemTitle {
+		position: relative; 
+		left: -5px; 
+		font-weight: bold; 
+		overflow: hidden; 
+		background-color: #ddd; 
+		width: 100%; 
+		border-bottom: 2px ridge black;
+		margin-top: -6px;
+		padding: 6px 2px 5px 5px;
+	}
+	/* We are not use setFeatures to set content so actionsPane is hidden. The actionsPane contains Zoom to, 
+	Get Directions, elevation, and map click XY. Make it visible */
+	.esriPopup .sizer .actionsPane .hidden {
+		display: block;
+		background-color: #BCD8F4;
+		background-image: linear-gradient(#FFFFFF 0px, rgba(255, 255, 255, 0) 3px, rgba(255, 255, 255, 0.75) 100%);
+		padding: 5px;
+		margin: -10px -5px 0 -5px;
+		border-radius: 0 0 5px 5px;
+		-webkit-border-radius: 0 0 5px 5px;
+		border: 1px solid #ccc;
+	}
+	/* Make identify popup in front of Set Basemaps panel */
+	.esriPopup {
+		z-index: 1000;
+	}
+	
+	/* Basemap Gallery  adjust height for 2 line title*/
+	.esriMobileGallery .thumbnailcontainer.small {
+		height: 115px;
+	}
+	
+	#leftPane {
+		width: 400px;
+		overflow: auto;
+		padding: 0;
+	}
+
+	#leftPaneHeader {
+	  margin:0;
+	}
+
+	#leftPaneBody {
+	  margin:0;
+	}
+
+	#leftPaneBody .panel_content {
+	  padding:10px;
+	}
+	
+	#search {
+		position: absolute;
+		z-index: 3;
+		top: 10px;
+		right: 10px;
+		background: transparent;
+		overflow:visible;
+	}
+
+	.container {
+		width: 435px;
+		clear: both;
+	}
+	.container label {
+		display: inline-block;
+		width:100px;
+		text-align: right;
+	}
+	.container input {
+		clear: both;
+	}
+	.container select {
+		/*width: 50%;*/
+		clear: both;
+	}
+	
+	.findBtnHelp img {
+		position:absolute;
+		top: 6px;
+		right: 2px; /* 36px*/
+		opacity: 0.6 !important;
+		filter: alpha(opacity=60) !important;
+		cursor: pointer;
+	}
+	.findBtnHelp img:hover {
+		opacity: 0.4 !important;
+		filter: alpha(opacity=40) !important;
+	}
+	.findBtnClear {
+		right: 10px;
+		border: #B1AAAA inset 1px;
+		position: fixed;
+		width: 37px;
+		line-height: 29px;
+		background-color: white;
+		text-align: center;
+		vertical-align: middle;
+		border-top-right-radius: 5px;
+		border-bottom-right-radius: 5px;
+		opacity: 0.2;
+		filter: alpha(opacity=20);
+		cursor: pointer;
+	}
+	.findBtnX img {
+		position:absolute;
+		top: 6px;
+		right: 19px;
+		opacity: 0.6 !important;
+		filter: alpha(opacity=100) !important;
+		cursor: pointer;
+	}
+	.findBtnX img:hover {
+		opacity: 0.4 !important;
+		filter: alpha(opacity=60) !important;
+	}
+	.glowBtn {
+		width: 20px;
+		height: 20px;
+		border: 0;
+		opacity: 1.0 !important;
+		filter: alpha(opacity=100) !important;
+	}
+	.glowBtn:hover {
+		opacity: 0.6 !important;
+		filter: alpha(opacity=60) !important;
+	}
+	.graphBtn {
+		width: 40px;
+		height: 40px;
+		border: 1px solid #ddd;
+		-moz-border-radius: 5px;
+		border-radius: 5px;
+		opacity: 1.0 !important;
+		filter: alpha(opacity=100) !important;
+		-moz-box-shadow: -2px -2px 3px #eee;
+		-webkit-box-shadow: -2px -2px 3px #eee;
+		box-shadow: -2px -2px 3px #eee;
+		-moz-box-shadow: inset -2px -2px 3px #333;
+		-webkit-box-shadow: inset -2px -2px 3px #333;
+		box-shadow: inset -2px -2px 3px #333;
+		margin-left:2px;
+	}
+	.graphBtn:hover {
+		opacity: 0.8 !important;
+		filter: alpha(opacity=80) !important;
+	}
+	.graphBtn:active {
+		opacity: 1 !important;
+		filter: alpha(opacity=100) !important;
+		-moz-box-shadow: inset -2px -2px 3px #eee;
+		-webkit-box-shadow: inset -2px -2px 3px #eee;
+		box-shadow: inset -2px -2px 3px #eee;
+		-moz-box-shadow: -2px -2px 3px #333;
+		-webkit-box-shadow: -2px -2px 3px #333;
+		box-shadow: -2px -2px 3px #333;
+	}
+	.graphBtnSelected {
+		width: 40px;
+		height: 40px;
+		border: 1px solid #ddd;
+		-moz-border-radius: 5px;
+		border-radius: 5px;
+		opacity: 1 !important;
+		filter: alpha(opacity=100) !important;
+		-moz-box-shadow: inset -2px -2px 3px #eee;
+		-webkit-box-shadow: inset -2px -2px 3px #eee;
+		box-shadow: inset -2px -2px 3px #eee;
+		-moz-box-shadow: -2px -2px 3px #333;
+		-webkit-box-shadow: -2px -2px 3px #333;
+		box-shadow: -2px -2px 3px #333;
+		margin-left:2px;
+	}
+	.graphBtnSelected:hover {
+		opacity: 0.8 !important;
+		filter: alpha(opacity=80) !important;
+	}
+
+	
+	.link {
+		position:relative;
+		float:right;
+		color:black;
+		font-weight:bold;
+	}
+	.link a {
+		text-decoration:none;
+		color:black;
+	}
+	.link:hover {
+		text-shadow:1px 1px #aaa;
+		color:black;
+	}
+	.link img {
+		padding-left:25px;
+		border: 0;
+		opacity: 1;
+		filter: alpha(opacity=100);
+		width:19px;
+		height:19px;
+		vertical-align:top;
+		padding-right:5px;
+	}
+	.link:hover img {
+		opacity: 0.7;
+		filter: alpha(opacity=70);
+	}
+	
+	/* header for left panel widgets */
+	.dijitTitlePaneTextNode {
+		font-size: medium;
+	}
+	/* images for left panel widgets */
+	.dijitTitlePaneTextNode img{
+		width: 30px;
+		height: 30px;
+		padding-right: 10px;
+	}
+	/* Put scrollbar at the edge for large TOC */
+	.claro .dijitTitlePaneContentInner {
+		padding: 10px 0px 10px 10px !important;
+	}
+	
+	#search_help {
+		position:absolute;
+		overflow:auto;
+		padding:10px;
+		font-size: .8em;
+		top:38px;
+		right:10px;
+		width:350px;
+		background-color:white;
+		border-radius: 5px;
+		border:1px solid #ccc;
+		display:none;
+	}
+	label {
+		font-size: small;
+		font-weight: bold;
+	}
+
+	.help_icon {
+		height:20px;
+		width:20px;
+		position:relative;
+		right:3px;
+		float:right;
+		top:-40px;
+		border:0;
+	}
+	
+	/* Style all dojo.form.button(s)*/
+	.dijitButtonNode {
+		height:18px;
+	}
+	
+	/* Find a Place */
+	.simpleGeocoder, .simpleGeocoder .esriGeocoderContainer {
+		width: 400px;
+	}
+	/* Find a Place input area */
+	.simpleGeocoder .esriGeocoder input {
+		width: 320px;
+	}
+	.simpleGeocoder .esriGeocoderResult {
+		cursor: pointer;
+	}
+	/* height and scroll bar for drop down */
+	.simpleGeocoder .esriGeocoderResults {
+		overflow: auto;
+	}
+	/* Partially matched text inside the result item. */ 
+	.simpleGeocoder .esriGeocoderResult .esriGeocoderResultPartial {
+		font-weight: 700;
+	}
+	#mapscale {
+		font-weight: 400;
+		font-size: 1em;
+		margin:0px;
+	}
+	#owner {
+		margin:0px;
+		font-weight: 500;
+		font-size: .6em;
+	}
+	
+	/****************/
+	/*     TOC      */
+	/****************/
+	/* this line hides layers when out of scale for the inline TOC */
+	/*#tocDiv .agsjsTOCOutOfScale {
+		display: none;
+	}*/
+	
+	.agsjsTOCLegendLabel {
+		font-size: small;
+		white-space:normal!important;
+	}
+	.agsjsTOCGroupLayerLabel {
+		font-size: small;
+		white-space:normal!important;
+	}
+	.agsjsTOCServiceLayerLabel {
+		font-size: small;
+		white-space:normal!important;
+	}
+	.agsjsTOCRootLayerLabel {
+		font-size: small;
+		font-weight: bold;
+		white-space:normal!important;
+	}
+	/* Make height of Root Layer the same as the slider */
+	.agsjsTOCRootLayer {
+		height: 2em;
+	}
+	/* Make it wrap nicely if the left panel is narrow */
+	.agsjsTOCContent {
+		display: inline-block;
+	}
+	/* Move slider to right of TOC Root Layer */
+	.agsjsTOCRootLayer .agsjsTOCContent {
+		position: relative;
+		display: inline-block;
+	}
+	.agsjsTOCSlider {
+		position:relative;
+		height: 2em;
+		top:-0.5em;
+		float:right;
+		width:12em;
+	}
+	/* tlb change TOC expand/collapse image to an right or down arrow (72x16 pixels) instead of default  + or - */
+	.agsjsTOCContent .dijitTreeExpando {
+		background-image:url(../../assets/images/arrows.png) !important;
+	}
+	/* tlb use the blue right arrow */
+	.agsjsTOCContent .dijitTreeExpandoClosed {
+		background-position: 48px 3px !important;
+	}
+	/* tlb use the blue down arrow */
+	.agsjsTOCContent .dijitTreeExpandoOpened {
+		background-position: 16px 3px !important;
+	}
+	/* TOC Slider Labels transparent, opaque font size*/
+	.dijitRuleLabelH {
+		font-size:.8em;
+	}
+	/* Set margins for TOC Slider Labels */
+	.claro .dijitRuleLabelsContainerH {
+		margin: -7px 20px 0 30px;
+		height: 1em;
+	}
+	/* Margins for TOC Slider Tick Marks */ 
+	.dijitRuleContainerH {
+		margin: -12px 15px 5px;
+		height: 0.3em;
+	}
+	
+	
+	/* Format large slider zoom bar */
+	/* filter:alpha(opacity=80);  for IE */
+	/*	-moz-opacity:0.8;   for Mozilla */
+	/*	opacity: 0.8;   for CSS3 */
+	/* 	//border: 1px solid #ccc; */
+	.claro .esriLargeSlider {
+		border-radius: 5px;
+		background-color: white;
+		filter:alpha(opacity=80);
+		-ms-filter: alpha(opacity=80);
+		-moz-opacity:0.8;
+		opacity: 0.8;
+		-khtml-opacity:.80;
+		filter: progid:DXImageTransform.Microsoft.Alpha(opacity=0.8);
+		width: 25px;/*60px;*/
+	}
+	/* left pane splitter button */
+	.claro .dijitSplitterV .dijitSplitterThumb {
+		width: 10px;
+		height: 40px;
+		background-color: #666;
+	}
+	
+	
+	/* Change CSS Color   $focus-outline-color */
+	/* 	border:1px solid #769DC0;
+		background-color:#7dbefa;*/
+	/*.claro .dijitAccordionInnerContainerActive {
+		border:1px solid #5F786D;
+		background-color:#8AAB9D;
+	}
+	.claro .dijitAccordionInnerContainer {
+		border:1px solid #9FB5AC;
+		background-color:#B9C9C3;
+	}
+	.claro .dijitButtonContents {
+		border:1px solid #9FB5AC;
+		background-color:#B9C9C3;
+	}
+	.claro .dijitButton .dijitButtonNode, .claro .dijitDropDownButton .dijitButtonNode, .claro .dijitComboButton .dijitButtonNode, .claro .dijitToggleButton .dijitButtonNode {
+		background-color: #BCD8F4;
+		border: 1px solid #759DC0;
+	}*/
+	
+	.ButtonSelected {
+		border: 2px solid white;
+		border-radius: 4px;
+	}
+
+	/* Remove dotted line border on button select in Firefox
+	/* for checkboxes or radio buttons, hatch border around the corresponding label, to indicate focus */
+	.claro .dijitFocusedLabel {
+		outline: 0;
+	}
+	
+	/* set title font properties */
+	.infowindow .window .top .right .user .titlebar .title { 
+		font-weight:bold;
+		font-size:14pt;
+	}
+	/* set content font properties */
+	.infowindow .window .top .right .user .content {
+		font-style:italic;
+		font-weight:bold;
+		font-size:10pt;
+	}
+	
+	/* Feature Search grid */
+	.dgrid-row-odd tr:hover {
+	    background: #999!important; /* Make selected rows be gray */
+	}
+	.dgrid-row-even tr:hover {
+	    background: #999!important; /* Make selected rows be gray */
+	}
+	.dgrid {
+		height:200px!important;
+		overflow:auto!important;
+	}
+	.dgrid-scroller {
+		margin-top:22px!important;
+	}
+	.dgrid-header {
+		height: 22px;
+	}
+	
+	/* Resource Report */
+	#reportPreview {
+		margin-top:5px;
+		margin-bottom:5px;
+		min-width:752px;
+		min-height:528px;
+		width:752px!important;
+		height:528px!important;
+	}
+	#reportPreview  .map .container{
+		min-width: 100%;
+		min-height: 100%;
+		width: 100%;
+		height: 100%;
+	}
+	#reportPreview_root {
+		width: 100%!important;
+		height: 100%!important;
+	}
+	#reportPreview_root .container{
+		width: 100%!important;
+		height: 100%!important;
+	}
+	#reportPreview_layers {
+		width: 100%!important;
+		height: 100%!important;
+		min-width:752px;
+		min-height:528px;
+	}

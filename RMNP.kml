@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<kml xmlns='http://www.opengis.net/kml/2.2'>
+	<Document>
+		<name>Rocky Mt. National Park</name>
+		<description><![CDATA[Hikes we like to take.]]></description>
+		<Folder>
+			<name>Rocky Mt. National Park</name>
+			<Placemark>
+				<name>Bear Lake</name>
+				<description><![CDATA[<img src="https://lh6.googleusercontent.com/kK6tax0UZKv_Zb2kX81sTUuWMpljrbvjhAoBOdiD3EriVOleW7aoGUQXwnA8cMvI4REn2SK_7LkqPX6u4QrbM-VM8zUbxGvqHLZqIyiJ8QyeL9r5TPnDuMZ7P_q1SJkK" height="200" width="auto" /><br><br>Easy hike around this lake.]]></description>
+				<styleUrl>#icon-1596-0288D1</styleUrl>
+				<ExtendedData>
+					<Data name='gx_media_links'>
+						<value>https://lh6.googleusercontent.com/kK6tax0UZKv_Zb2kX81sTUuWMpljrbvjhAoBOdiD3EriVOleW7aoGUQXwnA8cMvI4REn2SK_7LkqPX6u4QrbM-VM8zUbxGvqHLZqIyiJ8QyeL9r5TPnDuMZ7P_q1SJkK</value>
+					</Data>
+				</ExtendedData>
+				<Point>
+					<coordinates>-105.6463766,40.3132068,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Lake Hyatha</name>
+				<description><![CDATA[<img src="https://lh6.googleusercontent.com/rJQD1R-rt2aJZTuFq1Cnnz14tqL3iu67PfU-bx9B9uocJWSfA6B8npHXDwmvBviv8pumHlkpRHxC98PWzPNLJGuBkepOHK-aCOWP_6wrofCurpbcEVotA1Ze7clfqL0" height="200" width="auto" /><br><br>Fun hike about 4 miles round trip.]]></description>
+				<styleUrl>#icon-1899-0288D1</styleUrl>
+				<ExtendedData>
+					<Data name='gx_media_links'>
+						<value>https://lh6.googleusercontent.com/rJQD1R-rt2aJZTuFq1Cnnz14tqL3iu67PfU-bx9B9uocJWSfA6B8npHXDwmvBviv8pumHlkpRHxC98PWzPNLJGuBkepOHK-aCOWP_6wrofCurpbcEVotA1Ze7clfqL0</value>
+					</Data>
+				</ExtendedData>
+				<Point>
+					<coordinates>-105.6631565,40.3050581,0.0</coordinates>
+				</Point>
+			</Placemark>
+		</Folder>
+		<Folder>
+			<name>Untitled layer</name>
+		</Folder>
+		<Style id='icon-1596-0288D1-normal'>
+			<IconStyle>
+				<color>ffD18802</color>
+				<scale>1.0</scale>
+				<Icon>
+					<href>http://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+				</Icon>
+			</IconStyle>
+			<LabelStyle>
+				<scale>0.0</scale>
+			</LabelStyle>
+		</Style>
+		<Style id='icon-1596-0288D1-highlight'>
+			<IconStyle>
+				<color>ffD18802</color>
+				<scale>1.0</scale>
+				<Icon>
+					<href>http://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+				</Icon>
+			</IconStyle>
+			<LabelStyle>
+				<scale>1.0</scale>
+			</LabelStyle>
+		</Style>
+		<StyleMap id='icon-1596-0288D1'>
+			<Pair>
+				<key>normal</key>
+				<styleUrl>#icon-1596-0288D1-normal</styleUrl>
+			</Pair>
+			<Pair>
+				<key>highlight</key>
+				<styleUrl>#icon-1596-0288D1-highlight</styleUrl>
+			</Pair>
+		</StyleMap>
+		<Style id='icon-1899-0288D1-normal'>
+			<IconStyle>
+				<color>ffD18802</color>
+				<scale>1.0</scale>
+				<Icon>
+					<href>http://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+				</Icon>
+			</IconStyle>
+			<LabelStyle>
+				<scale>0.0</scale>
+			</LabelStyle>
+		</Style>
+		<Style id='icon-1899-0288D1-highlight'>
+			<IconStyle>
+				<color>ffD18802</color>
+				<scale>1.0</scale>
+				<Icon>
+					<href>http://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+				</Icon>
+			</IconStyle>
+			<LabelStyle>
+				<scale>1.0</scale>
+			</LabelStyle>
+		</Style>
+		<StyleMap id='icon-1899-0288D1'>
+			<Pair>
+				<key>normal</key>
+				<styleUrl>#icon-1899-0288D1-normal</styleUrl>
+			</Pair>
+			<Pair>
+				<key>highlight</key>
+				<styleUrl>#icon-1899-0288D1-highlight</styleUrl>
+			</Pair>
+		</StyleMap>
+	</Document>
+</kml>

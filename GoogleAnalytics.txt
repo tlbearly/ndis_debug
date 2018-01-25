@@ -1,0 +1,23 @@
+Google Analytics (GA) Statistics
+
+https://analytics.google.com/analytics/web/?pli=1#embed/report-home/a102394177w149961320p154898449/
+
+Allow someone to login to GA stats:
+	In GA, goto Admin, User Management
+	
+Set Up Tracking Javascript Code:
+	In GA, goto Admin. Under Property, Tracking Info, Tracking Code you will find the javascript to add to the end of index.html just before the closing body tag.
+	
+Set Up Application Name in the left column of reports (dimension):
+	In GA, goto Admin. Under Property, Custom Definitions, Custom Dimensions
+	I setup name: "Custom App Name"
+	Scope: Hit
+	Active: checked
+	
+	
+	
+https://datastudio.google.com/reporting/0B0Ftwl-aKilnWDd2Qk9GT2NVZTA/page/Ll5G/edit
+Stats by app
+
+ndis-flex-2/debug
+https://datastudio.google.com/reporting/0B0Ftwl-aKilnMGhBdWNaQ2hGQ0U/page/Pi5G

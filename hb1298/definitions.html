@@ -1,0 +1,107 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<style type="text/css"> 
+	@import "../assets/css/help.css";
+</style>
+<title>Map Information</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" >
+<script type="text/javascript" src="../javascript/xmlUtils.js" true></script>
+<script text="text/javascript">
+	var xmlhttp = createXMLhttpRequest();
+	xmlhttp.open("POST","readDBall.aspx",true);
+	xmlhttp.onreadystatechange = function() {
+		if (xmlhttp.readyState===4 && xmlhttp.status === 200) {
+			var xmlData=createXMLparser(xmlhttp.responseText.substr(xmlhttp.response.indexOf("?>")+2));
+			var rsoArr = xmlData.getElementsByTagName("rso")[0].getElementsByTagName("Data");
+			var swhArr = xmlData.getElementsByTagName("swh")[0].getElementsByTagName("Data");
+			//var cdowArr = xmlData.getElementsByTagName("cdow")[0].getElementsByTagName("Data");
+			// RSO
+			var str="";
+			for (var i=0; i<rsoArr.length; i++) {
+				str+='<hr class="heading"></hr>';
+				str+='<p class="headcontent">'+rsoArr[i].getElementsByTagName("Species")[0].firstChild.nodeValue.trim().toUpperCase()+'<br>Activity Definitions';
+				str+='<hr class="heading"></hr>';
+				str+='<p class="content"><b>'+rsoArr[i].getElementsByTagName("Activity")[0].firstChild.nodeValue.trim()+':</b>  '+rsoArr[i].getElementsByTagName("Description")[0].firstChild.nodeValue.trim();
+				var j=i;
+				while (rsoArr[j+1] && rsoArr[j].getElementsByTagName("Species")[0].firstChild.nodeValue.trim() == rsoArr[j+1].getElementsByTagName("Species")[0].firstChild.nodeValue.trim()) {
+					str+='<p class="content"><b>'+rsoArr[j+1].getElementsByTagName("Activity")[0].firstChild.nodeValue.trim()+':</b>  '+rsoArr[j+1].getElementsByTagName("Description")[0].firstChild.nodeValue.trim();
+					j++;
+				}
+				str+='<br><br><br>';
+				i=j+1;
+			}
+			document.getElementById("rso").innerHTML=str;
+			// SWH
+			str="";
+			for (var i=0; i<swhArr.length; i++) {
+				str+='<hr class="heading"></hr>';
+				str+='<p class="headcontent">'+swhArr[i].getElementsByTagName("Species")[0].firstChild.nodeValue.trim().toUpperCase()+'<br>Activity Definitions';
+				str+='<hr class="heading"></hr>';
+				str+='<p class="content"><b>'+swhArr[i].getElementsByTagName("Activity")[0].firstChild.nodeValue.trim()+':</b>  '+swhArr[i].getElementsByTagName("Description")[0].firstChild.nodeValue.trim();
+				var j=i;
+				while (swhArr[j+1] && swhArr[j].getElementsByTagName("Species")[0].firstChild.nodeValue.trim() == swhArr[j+1].getElementsByTagName("Species")[0].firstChild.nodeValue.trim()) {
+					str+='<p class="content"><b>'+swhArr[j+1].getElementsByTagName("Activity")[0].firstChild.nodeValue.trim()+':</b>  '+swhArr[j+1].getElementsByTagName("Description")[0].firstChild.nodeValue.trim();
+					j++;
+				}
+				str+='<br><br><br>';
+				i=j+1;
+			}
+			document.getElementById("swh").innerHTML=str;
+			document.getElementById("loading").style.display="none";
+		}
+		else if (xmlhttp.status === 404) {
+			alert("WARNING: Cannot read definitions. Missing hb1298/readDBall.aspx file.");
+			document.getElementById("loading").style.display="none";
+		}
+		else if (xmlhttp.readyState===4 && xmlhttp.status===500) {
+			alert("WARNING: Cannot read definitions. Missing hb1298/readDBall.aspx.");
+			document.getElementById("loading").style.display="none";
+		}
+	}
+	xmlhttp.send(null);
+</script>
+</head>
+<body>
+
+<table class="header">
+<tr class="banner" colspan="2">
+<td class="logo"> <!---->
+<center><img border="0" src="../assets/images/cpwseal.png"></center>
+</td>
+<td class="banner">
+<p class="heading">MAP INFORMATION<br>
+<font size='5'>Colorado HB1298 Habitat Impact Assessment Tool</font>
+</td>
+</table>
+
+<table>
+<tr><td>
+<h4><a href="help.html">Help</a> &#149;
+<a href="videos.html">How-To Videos</a> &#149;
+Habitat Impact Information</h4>
+
+<div id="errMsg"></div>
+<p align="center" id="loading"><img src="../assets/images/loading.gif"/></p>
+<h3>Restricted Surface Occupancy</h3>
+<table class="content">
+<tr><td>
+<div id="rso"></div>
+</tr></td>
+</table>
+
+<h3>Sensitive Wildlife Habitat</h3>
+<table class="content">
+<tr><td>
+<div id="swh"></div>
+
+<br>
+<center><p><a href="#TOP">Back to Top</a> &nbsp;&nbsp;&nbsp;<a style="font-size:x-small" href='mailto:ndisadmin@nrel.colostate.edu'>Email Webmaster</a></center><br>
+<h4><a href="help.html">Help</a> &#149;
+<a href="videos.html">How-To Videos</a> &#149;
+Habitat Impact Information</h4>
+</tr></td>
+</table>
+</table> 
+</body>
+</html>
