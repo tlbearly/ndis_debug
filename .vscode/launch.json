@@ -1,0 +1,48 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Desktop Chrome",
+      "url": "https://ndis-flex-2.nrel.colostate.edu/debug/index.html",
+      "webRoot": "${workspaceFolder}"
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Mobile Chrome",
+      "url": "https://ndis-flex-2.nrel.colostate.edu/debug/indexM.html",
+      "webRoot": "${workspaceFolder}"
+    },
+    //{
+    //  "type": "node",
+    //  "request": "launch",
+    //  "name": "Node",
+    //  "program": "${file}"
+    //},
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Node",
+      "port": 9229,
+      "protocol":"inspector",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run-script",
+        "start"
+      ],
+      "console": "internalConsole"
+    }
+  ],
+  "compounds": [
+    {
+      "name":"Full-stack",
+      "configurations": ["Node","Desktop Chrome"]
+
+    }
+  ]
+}
