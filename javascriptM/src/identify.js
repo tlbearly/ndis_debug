@@ -239,13 +239,17 @@
 	                              alert("Error in " + app + "/SettingsWidget.xml. Missing url or id in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
 	                          else {
 	                              for (var j = 0; j < identifyLayerIds[identifyGroups[f]].length; j++) {
-	                                  if (identifyLayerIds[identifyGroups[f]][j].url == layer[i].getElementsByTagName("url")[0].childNodes[0].nodeValue &&
+	                                  // Identify only visible layers. Each layer in this folder in SettingsWidget.xml must have a vis_id and vis_url tags
+	                                  if ((folder[f].getAttribute("id_vis_only") && folder[f].getAttribute("id_vis_only").toLowerCase() == "true") &&
+	                                      identifyLayerIds[identifyGroups[f]][j].url == layer[i].getElementsByTagName("url")[0].childNodes[0].nodeValue &&
+	                                      identifyLayerIds[identifyGroups[f]][j].vis_url == layer[i].getElementsByTagName("vis_url")[0].childNodes[0].nodeValue &&
 	                                      identifyLayerIds[identifyGroups[f]][j].geometry == layer[i].getElementsByTagName("geometry")[0].childNodes[0].nodeValue.toLowerCase()) {
 	                                      identifyLayerIds[identifyGroups[f]][j].ids.push(layer[i].getElementsByTagName("id")[0].childNodes[0].nodeValue);
-	                                      // Identify only visible layers. Each layer in this folder in SettingsWidget.xml must have a vis_id and vis_url tags
-	                                      if (folder[f].getAttribute("id_vis_only") && folder[f].getAttribute("id_vis_only").toLowerCase() == "true") {
-	                                          identifyLayerIds[identifyGroups[f]][j].vis_ids.push(layer[i].getElementsByTagName("vis_id")[0].childNodes[0].nodeValue);
-	                                      }
+	                                      identifyLayerIds[identifyGroups[f]][j].vis_ids.push(layer[i].getElementsByTagName("vis_id")[0].childNodes[0].nodeValue);
+	                                      found = true;
+	                                  } else if (identifyLayerIds[identifyGroups[f]][j].url == layer[i].getElementsByTagName("url")[0].childNodes[0].nodeValue &&
+	                                      identifyLayerIds[identifyGroups[f]][j].geometry == layer[i].getElementsByTagName("geometry")[0].childNodes[0].nodeValue.toLowerCase()) {
+	                                      identifyLayerIds[identifyGroups[f]][j].ids.push(layer[i].getElementsByTagName("id")[0].childNodes[0].nodeValue);
 	                                      found = true;
 	                                  }
 	                              }
@@ -555,7 +559,7 @@
 	                                  skip = true;
 	                              }
 	                          }
-	                      });
+	                      }); // for each layer
 	                  } else {
 	                      skip = false;
 	                      task = new IdentifyTask(item.url);
@@ -570,7 +574,7 @@
 	                  if (identifyParams.layerIds.length == 0) skip = true;
 	                  if (!skip)
 	                      deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
-	              } else if (skip == -1) skip = true;
+	              }
 	          }
 	          // Add goat and sheep gmus
 	          if (identifyGroup == "GMU and Land Management") {
@@ -586,7 +590,7 @@
 	                  deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
 	              }
 	          }
-	          if (!skip) {
+	          if (deferreds && deferreds.length > 0) {
 	              var dlist = new DeferredList(deferreds);
 	              dlist.then(handleQueryResults);
 	          } else {
@@ -594,6 +598,9 @@
 	              numDatabaseCalls = 0;
 	              processedDatabaseCalls = 0;
 	              features = [];
+	              // Set header
+	              title = "No " + identifyGroup;
+	              map.infoWindow.setTitle(title);
 	              displayInfoWindow();
 	          }
 	      });

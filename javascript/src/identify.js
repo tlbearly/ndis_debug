@@ -169,16 +169,19 @@ function readSettingsWidget() {
                                 alert("Error in " + app + "/SettingsWidget.xml. Missing url or id in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
                             else {
                                 for (var j = 0; j < identifyLayerIds[identifyGroups[f]].length; j++) {
-                                    if (identifyLayerIds[identifyGroups[f]][j].url == layer[i].getElementsByTagName("url")[0].childNodes[0].nodeValue &&
+                                    // Identify only visible layers. Each layer in this folder in SettingsWidget.xml must have a vis_id and vis_url tags
+                                    if ((folder[f].getAttribute("id_vis_only") && folder[f].getAttribute("id_vis_only").toLowerCase() == "true") &&
+                                        identifyLayerIds[identifyGroups[f]][j].url == layer[i].getElementsByTagName("url")[0].childNodes[0].nodeValue &&
+                                        identifyLayerIds[identifyGroups[f]][j].vis_url == layer[i].getElementsByTagName("vis_url")[0].childNodes[0].nodeValue &&
                                         identifyLayerIds[identifyGroups[f]][j].geometry == layer[i].getElementsByTagName("geometry")[0].childNodes[0].nodeValue.toLowerCase()) {
                                         identifyLayerIds[identifyGroups[f]][j].ids.push(layer[i].getElementsByTagName("id")[0].childNodes[0].nodeValue);
-                                        // Identify only visible layers. Each layer in this folder in SettingsWidget.xml must have a vis_id and vis_url tags
-                                        if (folder[f].getAttribute("id_vis_only") && folder[f].getAttribute("id_vis_only").toLowerCase() == "true") {
-                                            identifyLayerIds[identifyGroups[f]][j].vis_ids.push(layer[i].getElementsByTagName("vis_id")[0].childNodes[0].nodeValue);
-                                        }
+                                        identifyLayerIds[identifyGroups[f]][j].vis_ids.push(layer[i].getElementsByTagName("vis_id")[0].childNodes[0].nodeValue);
+                                        found = true;
+                                    } else if (identifyLayerIds[identifyGroups[f]][j].url == layer[i].getElementsByTagName("url")[0].childNodes[0].nodeValue &&
+                                        identifyLayerIds[identifyGroups[f]][j].geometry == layer[i].getElementsByTagName("geometry")[0].childNodes[0].nodeValue.toLowerCase()) {
+                                        identifyLayerIds[identifyGroups[f]][j].ids.push(layer[i].getElementsByTagName("id")[0].childNodes[0].nodeValue);
                                         found = true;
                                     }
-
                                 }
                             }
                             if (!found) {
@@ -201,7 +204,6 @@ function readSettingsWidget() {
                                         vis_url: vis_url,
                                         vis_ids: vis_ids
                                     });
-
                                 }
                             }
 
@@ -350,6 +352,19 @@ function doIdentify(evt) {
         });
 }
 
+function setInfoWindowHeader() {
+    // Set title drop down
+    // Called by displayContent on empty content and handleQueryResults
+    title = "<span style='float:left;width:255px;text-overflow:ellipsis;'>Show: <select id='id_group' name='id_group' style='margin: 5px;color:black;' onChange='changeIdentifyGroup(this)'>";
+    for (var i = 0; i < identifyGroups.length; i++) {
+        title += "<option";
+        if (identifyGroup == identifyGroups[i]) title += " selected";
+        title += ">" + identifyGroups[i] + "</option>";
+    }
+    title += "</select></span>";
+    map.infoWindow.setTitle(title);
+}
+
 function displayContent() {
     // Loop through each layer found at the map click
     require(["dojo/_base/array", "esri/tasks/IdentifyTask", "dojo/DeferredList", "dojo/_base/Deferred"], function(array, IdentifyTask, DeferredList, Deferred) {
@@ -386,7 +401,6 @@ function displayContent() {
                 // NOTE: IdentifyParameters option LAYER_OPTION_VISIBLE is supposed to do this but is not working 1-9-18
                 if (item.id_vis_only) {
                     //identifyParams.layerOption = IdentifyParameters.LAYER_OPTION_VISIBLE; // this is not working so get visible layers manually and set identifyParams.layerIds
-                    // NOTE: When the top layer is unchecked (layer.visible=false) it shows all data!!!! This is an ESRI bug.
                     // Get list of visible layers
                     task = new IdentifyTask(item.vis_url);
                     var layers = map.getLayersVisibleAtScale(map.getScale());
@@ -441,7 +455,7 @@ function displayContent() {
                 if (identifyParams.layerIds.length == 0) skip = true;
                 if (!skip)
                     deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
-            } else if (skip == -1) skip = true;
+            }
         }
         // Add goat and sheep gmus
         if (identifyGroup == "GMU and Land Management") {
@@ -457,7 +471,7 @@ function displayContent() {
                 deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
             }
         }
-        if (!skip) {
+        if (deferreds && deferreds.length > 0) {
             var dlist = new DeferredList(deferreds);
             dlist.then(handleQueryResults);
         } else {
@@ -465,6 +479,8 @@ function displayContent() {
             numDatabaseCalls = 0;
             processedDatabaseCalls = 0;
             features = [];
+            // Set header drop down
+            setInfoWindowHeader();
             displayInfoWindow();
         }
     });
@@ -513,14 +529,8 @@ function handleQueryResults(results) {
             }
 
             // Set title drop down
-            title = "<span style='float:left;width:255px;text-overflow:ellipsis;'>Show: <select id='id_group' name='id_group' style='margin: 5px;color:black;' onChange='changeIdentifyGroup(this)'>";
-            for (var i = 0; i < identifyGroups.length; i++) {
-                title += "<option";
-                if (identifyGroup == identifyGroups[i]) title += " selected";
-                title += ">" + identifyGroups[i] + "</option>";
-            }
-            title += "</select></span>";
-            map.infoWindow.setTitle(title);
+            setInfoWindowHeader();
+
             // Set info Content Header
             var str = getIdentifyHeader(identifyGroup);
             var tmpStr;
