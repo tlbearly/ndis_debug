@@ -47,7 +47,7 @@ header("Pragma: no-cache");
                     location: location.pathname.replace(/\/[^/]+$/, "") + "/javascript/src"
                 }, {
                     name: "agsjs",
-                    location: location.pathname.replace(/\/[^/]+$/, "") + "/javascript/toc/build/agsjs"
+                    location: location.pathname.replace(/\/[^/]+$/, "") + "/javascript/toc/src/agsjs"
                 }, {
                     name: "jsPDF",
                     location: location.pathname.replace(/\/[^/]+$/, "") + "/jsPDF"
@@ -80,28 +80,28 @@ header("Pragma: no-cache");
         <!-- pdf library from https://github.com/MrRio/jsPDF  also in js.arcgis.com 3.23, but missing saveAs function -->
         <!-- for saveAs funciton to save to disk -->
         <script type="text/javascript" src="jsPDF/dist/jspdf.debug.js" true></script>
-        <link rel="stylesheet" type="text/css" href="assets/css/layout.css?v=3.11" />
+        <!--link rel="stylesheet" type="text/css" href="assets/css/layout.css?v=3.11" /-->
         <!--script type="text/javascript" src="javascript/errorBox.js?v=3.16"></script>
-	<script type="text/javascript" src="javascript/xmlUtils.js?v=3.11"></script>
-	<script type="text/javascript" src="javascript/utilFuncs.js?v=3.11"></script>
-	<script type="text/javascript" src="javascript/bookmark.js?v=3.17"></script>
-	<script type="text/javascript" src="javascript/disclaimer.js?v=3.11"></script>
-	<script type="text/javascript" src="javascript/draw.js?v=3.16"></script>
-	<script type="text/javascript" src="javascript/findPlace.js?v=3.11"></script>
-	<script type="text/javascript" src="javascript/gmu.js?v=3.11"></script>
-	<script type="text/javascript" src="javascript/identify.js?v=3.17"></script>	
-	<script type="text/javascript" src="javascript/maplink.js?v=3.11"></script>
-	<script type="text/javascript" src="javascript/print.js?v=3.16"></script>
-	<script type="text/javascript" src="javascript/readConfig.js?v=3.17"></script>
-	<script type="text/javascript" src="javascript/resourceReport.js?v=3.16"></script>
-	<script type="text/javascript" src="javascript/search.js?v=3.11"></script-->
+        <script type="text/javascript" src="javascript/xmlUtils.js?v=3.11"></script>
+        <script type="text/javascript" src="javascript/utilFuncs.js?v=3.11"></script>
+        <script type="text/javascript" src="javascript/bookmark.js?v=3.17"></script>
+        <script type="text/javascript" src="javascript/disclaimer.js?v=3.11"></script>
+        <script type="text/javascript" src="javascript/draw.js?v=3.16"></script>
+        <script type="text/javascript" src="javascript/findPlace.js?v=3.11"></script>
+        <script type="text/javascript" src="javascript/gmu.js?v=3.11"></script>
+        <script type="text/javascript" src="javascript/identify.js?v=3.17"></script>	
+        <script type="text/javascript" src="javascript/maplink.js?v=3.11"></script>
+        <script type="text/javascript" src="javascript/print.js?v=3.16"></script>
+        <script type="text/javascript" src="javascript/readConfig.js?v=3.17"></script>
+        <script type="text/javascript" src="javascript/resourceReport.js?v=3.16"></script>
+        <script type="text/javascript" src="javascript/search.js?v=3.11"></script-->
         <!--script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCnamSJ8X7vZxYVby_V52kuveWx1jXx2SQ"></script><!-- for google maps elevation data. Used by Identify -->
         <!--script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script-->
         <!-- for google maps elevation data. Used by Identify -->
 
+
         <script type="text/javascript">
             /* For DEBUGGING */
-            // /*
             var jsVer = Date.now();
             var path = "javascript/src";
             document.write('<link rel="stylesheet" href="assets/css/layout.css?v=' + jsVer + '"><\/script>');
@@ -119,7 +119,6 @@ header("Pragma: no-cache");
             document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/resourceReport.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/search.js?v=' + jsVer + '"><\/script>');
-            // */
             try {
                 // load mobile version if necessary
                 //if (detectmob())
