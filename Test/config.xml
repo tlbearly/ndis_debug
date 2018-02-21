@@ -50,7 +50,7 @@
          <!-- Set opensublayer=comma delimited list of layer names under the mapservice checkbox to expand at the start. open must be true. -->
          <!--     example: open="true" opensublayer="Places of Interest,Township Range Sections" --> 
         <operationallayers>
-			<layer label="Temp Water Systems" open="true" type="dynamic" visible="true" alpha="0.9"        
+			<layer label="Temp Water Systems" open="true" type="dynamic" visible="true" alpha="0.8"        
                 url="https://ndis-flex-2.nrel.colostate.edu/arcgis/rest/services/Temp/WaterSystems/MapServer"/>
         </operationallayers>
 		
