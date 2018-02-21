@@ -1,0 +1,99 @@
+<?xml version="1.0" ?>
+<!--
+//  Hunter Resource Report XML
+//
+// The querylayers specify all the mapservices that will be used
+// <querylayers>
+//	Hunter Resource Report:  (to get the hunter reports you must include the next three tags.)
+//		<pointsofinterest name="Points of Interest" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/CHA_AssetReport_Data/MapServer/0" />
+//    		<contactinfo name="Contact Boundaries" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/CHA_AssetReport_Data/MapServer/1" />
+//	    	<gameunits name="Game Boundaries" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/CHA_AssetReport_Data/MapServer/2" />
+//	Custom Report:
+//		<layer name="the mapservice name" type="is this mapservice point, line, or poly?" url="mapservice url"/>
+// </querylayers>
+//
+// <reporttitle> - The main title on the PDF file. Added 4/23/12 
+//
+// CUSTOM REPORTS:
+// The reports section specifies the format of each part of the report.  Two types of reports are available:
+// Set the orientation of the first page in printlayout.  Tables will be printed in landscape and lists
+// in portrait.
+//
+// 1) List - One value for each field. All of the data comes from one map service using a where clause
+//	to filter.  Uses the first value found. Examples:
+//    		County:			Larimer
+//      or
+//		BLM (underlined)
+//		BLM District:		Colorado River Valley
+//		BLM Field Office:	Colorado River Valley BLM Field Office
+// 		etc.
+//
+// 2) Table - Multiple values for each field.  All of the data comes from one map service using a where
+//	clause to filter.  Example:
+//		Header Row
+//		followed by rows and columns
+//
+// <reports>
+//	<report id="name from <querylayers><layer> or <databaselookups><database> tag above"
+//		type="list or table.  A list will use only one value per field.
+//		title ="the title for this mini report or blank, will generate a page break unless first one"
+//		subtitle="the underlined title for this section"
+//		displayfields="comma delimited display names. Include display names for database fields."
+//		fields="comma delimited field names.  Include fields from a database."
+//		where_field="the field name to use to make a where clause"
+//		where_inequality="equal, not_equal, less_than, or greater_than"
+//		where_value="a value"
+//		where_type="string or number"
+//		sortfields="Comma delimited list of the field names to sort the table on.  Use names from fields tag above."/>
+//		key="the field name in the mapservice that links to the database"
+//		database="the url to the asp.net file that queries the database"
+//		filename="the table in the database to query"
+//		one2onefields="comma delimited list of field names containing one value for each key"
+//		one2manyfields="comma delimited list of field names where each key has many values"/>
+//
+//	... Repeat report tags.
+// </reports>
+-->
+
+<configuration xmlns:xsi="//www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/ResourceReportWidget.xsd">    
+	<!-- buffer section
+		Buffer is used as input to query points of interest
+		default:  	the default value to be selected in the buffer radius pulldown. It must be included in "list" attribute
+		list:		comma separated list of integers as buffer radius distances
+		units:		units of measure. See //help.arcgis.com/en/webapi/flex/apiref/com/esri/ags/tasks/GeometryService.html#constantSummary
+	 	unitslabel:	the label displayed on the UI
+	 -->
+    <buffer default="25" list="5,10,25,50,100" units="9093" unitslabel="mile" />
+    
+    <!-- querylayers section
+    	These layers are used to generate report data
+    	pointsofinterest:	point featurelayer containing asset information
+    		name:	display name used in error reporting
+    		url:	REST endpoint to layer index in map service
+    	contactinfo:		polygon featurelayer containing contact information in boundary features
+    	gameunits:			polygon featurelayer containing various game unit IDs
+     -->
+    <querylayers>
+    	<pointsofinterest name="Points of Interest" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/0" />
+    	<contactinfo name="Contact Boundaries" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/1" />
+    	<gameunits name="Game Boundaries" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/2" />
+    </querylayers>
+    
+    <reporttitle>Colorado Hunting Atlas Asset Report</reporttitle>
+
+	<!-- The base map to use in the report map -->
+	<!-- Available basemaps:  streets, satellite, hybrid, topo, gray, osm, and national_geographic-->
+	<basemapurl>streets</basemapurl>
+
+    <!-- 
+    	REST endpoint to a map service that will be displayed in the report print window and included in the printed report
+     -->    
+    <reportserviceurl>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Print/MapServer</reportserviceurl>
+	
+	<!-- GPService for printing -->
+    <printserviceurl>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printserviceurl>
+
+	<title>Colorado Hunting Atlas</title>
+	<subtitle>Asset Report</subtitle>
+	<disclaimer>This map was generated by the Colorado Hunting Atlas (https://ndismaps.nrel.colostate.edu/huntingatlas). Information depicted is for reference purposes only and is compiled from the best available sources. Reasonable efforts have been made to ensure accuracy. The Colorado Parks and Wildlife is not responsible for damages that may arise from the use of this map. Mapped property boundaries may or may not reflect actual legal holdings. It is the hunter's responsibility to know where private property exists. Colorado law does NOT require landowners to fence or mark property boundaries. For more detailed or missing information, please contact the Colorado Parks and Wildlife at (303)297-1192 (M-F 8am-5pm MST).</disclaimer>
+</configuration>

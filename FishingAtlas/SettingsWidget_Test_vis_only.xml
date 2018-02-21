@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" ?>
+<?xml version="1.0" ?>
 <!--
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -23,11 +23,11 @@
 //     to a super cookie this will not be used.
 //
 // use_map_link - add Map Link label & icon after the Print label on the main button bar.
-//		This will display the url to the current map.  It will include currently
-//		selected layers, basemap, graphics, and extent.
+//			This will display the url to the current map.  It will include currently
+//			selected layers, basemap, graphics, and extent.
 //
-// use_get_extent - add display extent label & icon after the print label on the main button bar.
-//		This will display the current extent in a popup.
+// use_get_extent - add Display Extent label & icon after the print label on the main button bar.
+//		    This will display the current extent in a popup.
 //
 // use_gmus - add a combo box to the main button bar which will zoom to a GMU. If sheep or goat WRIS data is 
 //		displayed, it will report appropriate GMU.
@@ -113,77 +113,106 @@
 // For Mobile the mapservice's "Display Field" is used in the popup title.
 ////////////////////////////////////////////////////////////////////////////////
 -->
-<configuration xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/SettingsWidget.xsd">
+<configuration xmlns:xsi="//www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/SettingsWidget.xsd">
 	<xy_projection>26913</xy_projection>
 	<use_map_link>true</use_map_link>
 	<use_get_extent>false</use_get_extent>
-	<use_gmus>true</use_gmus>
-	<gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/78</gmu_url>
-	<gmu_field>GMUID</gmu_field>
-	<sheep_gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/79</sheep_gmu_url>
-	<sheep_gmu_field>BSGMU</sheep_gmu_field>
-	<goat_gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/80</goat_gmu_url>
-	<goat_gmu_field>MGGMU</goat_gmu_field>
-		
-	<driving_directions>true</driving_directions>
-	<elevation>true</elevation>
-	<elevation_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/CHA_Elevation/MapServer</elevation_url>
+	<driving_directions>false</driving_directions>
+	<elevation>false</elevation>
 	
 	<tree>
-		<folder label="GMU and Land Management" id_vis_only="true">
-			<!-- CPW Properties -->
-			<layer label="CPW Public Access Properties">
-		     	<!--id>99</id-->
-				<id>3</id>
-				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
-	    	  	<!--url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url-->
-           		<vis_id>99</vis_id>
-				<vis_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</vis_url>
-           		<geometry>polygon</geometry>
-		      	<fields>PropName</fields>
-		      	<displaynames>CPW Property Name</displaynames>
+	<folder label="Office" id_vis_only="true">
+			<layer label="Field Office">
+		     	<id>14</id>
+	    	  	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_AnglerBase_Map/MapServer</url>
+           		<vis_id>14</vis_id>
+	    	  	<vis_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_AnglerBase_Map/MapServer</vis_url>
+				<geometry>line</geometry>
+				<fields>Name</fields>
+				<displaynames>Office</displaynames>
 	   		</layer>
-			<!-- WIA Small Game ONLY -->
-			<!--
-			<layer label="Small Game ONLY">
-				<id>97</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
-				<geometry>polygon</geometry>
-				<fields>COVER,URL</fields>
-				<displaynames>Cover,CPW Walk-in website</displaynames>
-			</layer>
-			-->
-			<!-- WIA Small Game ONLY -->
-			<!--
-			<layer label="Small Game AND Big Game">
-				<id>98</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
-				<geometry>polygon</geometry>
-				<fields>COVER,URL</fields>
-				<displaynames>Cover,CPW Walk-in website</displaynames>
-			</layer>
-			-->
-			<!-- COMaP v8 -->
-			<layer label="Land Management (COMaP v10)">
-		    	<id>4</id>
-	    	  	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
-				<vis_id>100</vis_id>
-	    	  	<vis_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</vis_url>
-           		<geometry>polygon</geometry>
-		      	<fields>NAME,MANAGER</fields>
-		      	<displaynames>Property Name,Land Manager</displaynames>
-	   		</layer>
-			<!-- GMU -->
-			<layer label="Big Game GMU">
-				<id>2</id>
-	    	  	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
-	    		<vis_id>78</vis_id>
-	    		<vis_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</vis_url>
-	        	<geometry>polygon</geometry>
-		      	<fields>GMUID</fields>
-	    	  	<displaynames>GMU Number</displaynames>
-	   		</layer>	
 		</folder>
+		<folder label="Gold Medal Water" id_vis_only="true">
+			<layer label="Gold Medal Streams">
+		     	<id>8</id>
+	    	  	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_Angler_Data/MapServer</url>
+           		<vis_id>95</vis_id>
+	    	  	<vis_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_AnglerMain_Map/MapServer</vis_url>
+				<geometry>line</geometry>
+				<fields>WATERNAME</fields>
+				<displaynames>Water</displaynames>
+	   		</layer>
+			<layer label="Gold Medal Lakes">
+		     	<id>9</id>
+	    	  	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_Angler_Data/MapServer</url>
+           		<vis_id>96</vis_id>
+	    	  	<vis_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_AnglerMain_Map/MapServer</vis_url>
+				<geometry>polygon</geometry>
+				<fields>NAME</fields>
+				<displaynames>Water</displaynames>
+	   		</layer>
+		</folder>
+		<folder label="Fishing Info">
+			<!-- Location Info -->
+			<layer label="Fishing Information Point">
+		     	<id>0</id>
+	    	  	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_Angler_Data/MapServer</url>
+           		<geometry>point</geometry>
+				<fields>WATERCODE,FA_NAME2,COUNTYNAME,PROP_ID,ACCESS_EASE,BOATING,FISH_PRESSURE,STOCKED,SURVEY_URL,DRIVING_URL,Illegal_Stocking,ELEV_FT_TXT</fields>
+				<displaynames>Fish Species,Water,County,Property name,Ease of Access,Boating,Fishing Pressure,Stocked,Detailed fisheries info,Driving directions,Non-native Species Info,Elevation(ft)</displaynames>
+		      	<!-- The position in the fields list where the database stuff should be placed -->
+				<position>3</position>
+				<!-- The database file must be the same directory structure as the index.html file. -->
+				<database>IdentifyFishingPlacesDB.aspx</database>
+		      	<filename>tblMasterSpecies_GrpBy_WaterID_Species</filename>
+		      	<one2one_fields></one2one_fields>
+		      	<one2one_display></one2one_display>
+		      	<one2many_fields>AtlasFish</one2many_fields>
+	   		</layer>
+			<!-- Fishing Regs -->
+			<layer label="Special Fishing Regulations (stream)">
+		     	<id>5</id>
+	    	  	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_Angler_Data/MapServer</url>
+           		<geometry>line</geometry>
+		      	<fields>LOC_ID</fields>
+		      	<displaynames>Fishing Regulations</displaynames>
+		      	<database>IdentifyFishingRegsDB.aspx</database>
+		      	<filename>LOCATION_NO_OVERLAP</filename>
+		      	<one2one_fields>Water,Specific_Area</one2one_fields>
+		      	<one2one_display>Water,Specific Area</one2one_display>
+		      	<one2many_fields>REG_DESC</one2many_fields>
+	  		</layer>
+			<layer label="Special Fishing Regulations (lake)">
+				<id>12</id>
+	    	  	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_Angler_Data/MapServer</url>
+           		<geometry>line</geometry>
+		      	<fields>LOC_ID</fields>
+		      	<displaynames>Fishing Regulations</displaynames>
+		      	<database>IdentifyFishingRegsDB.aspx</database>
+		      	<filename>LOCATION_NO_OVERLAP</filename>
+		      	<one2one_fields>Water,Specific_Area</one2one_fields>
+		      	<one2one_display>Water,Specific Area</one2one_display>
+		      	<one2many_fields>REG_DESC</one2many_fields>
+	   		</layer>
+			<!-- License Agent  -->
+			<layer label="License Agent">
+	      		<id>2</id>
+	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_AnglerMain_Map/MapServer</url>
+           		<geometry>point</geometry>
+	      		<fields>Name,Address,City,Phone</fields>
+	      		<displaynames>Name,Address,City,Phone</displaynames>
+	   		</layer>
+		</folder> 
+		
+		<folder label="Stream Gage">
+			<layer label="Stream Gage">
+	    		<id>4</id>
+	    		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_Angler_Data/MapServer</url>
+	        	<geometry>point</geometry>
+		      	<fields>NAME,HTMLLINK</fields>
+	    	  	<displaynames>Station Name,Realtime data</displaynames>
+	   		</layer>
+	   	</folder>
 		
 		<folder label="Contact Info">
 			<layer label="Contact Info">
@@ -195,8 +224,26 @@
 	   		</layer>
 	   	</folder>
 	   	
-	   	<folder label="Hunter Resources">
-			<desc>Hunter resources include: campgrounds, license agents, hospitals and sherrif's offices, field offices, welcome centers, and chamber of commerce.</desc>
+	   	<folder label="Public Lands">
+			<!-- CPW Properties -->
+			<layer label="CPW Public Access Properties">
+		     	<id>96</id>
+	    	  	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+           		<geometry>polygon</geometry>
+		      	<fields>PropName</fields>
+		      	<displaynames>CPW Property Name</displaynames>
+	   		</layer>
+			<!-- COMaP v10 -->
+			<layer label="Land Management (COMaP v10)">
+		    	<id>97</id>
+	    	  	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+           		<geometry>polygon</geometry>
+		      	<fields>NAME,MANAGER</fields>
+		      	<displaynames>Property Name,Land Manager</displaynames>
+	   		</layer>
+		</folder>
+		
+		<folder label="Campgrounds">
 			<!-- Campground  -->
 			<layer label="Campground">
 	    	 	<id>47</id>
@@ -204,7 +251,10 @@
 	           	<geometry>point</geometry>
 		      	<fields>Name,Manager,CGPropertyName,CGReservable,URL1</fields>
 	    	  	<displaynames>Name,Manager,Property Name,Reservable,More Information</displaynames>
-	   		</layer>	
+	   		</layer>
+		</folder>
+		
+		<folder label="Offices and Hospitals">
 			<!-- Emergency -->
 			<layer label="Emergency">
 	      		<id>25</id>
@@ -229,38 +279,23 @@
 	      		<fields>Name,Address,City,Phone</fields>
 	      		<displaynames>Name,Address,City,Phone</displaynames>
 	   		</layer>
-			<!-- License Agent  -->
-			<layer label="License Agent">
-	      		<id>3</id>
-	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
-           		<geometry>point</geometry>
-	      		<fields>Name,Address,City,Phone</fields>
-	      		<displaynames>Name,Address,City,Phone</displaynames>
-	   		</layer>
 		</folder>
 		
-		<folder label="Field Map Finder">
-			<layer label="Forest Service map">
-	    		<id>102</id>
-	    		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
-	        	<geometry>polygon</geometry>
-		      	<fields>MapName,URL</fields>
-	    	  	<displaynames>USFS Map Name,USFS Map Link</displaynames>
-	   		</layer>
-			<layer label="USGS Topo Quad">
-	    		<id>103</id>
-	    		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
-	        	<geometry>polygon</geometry>
-		      	<fields>QUADNAME</fields>
-	    	  	<displaynames>USGS Quad Name</displaynames>
-	   		</layer> 
-			<layer label="BLM/USGS 100K map">
-	    		<id>104</id>
-	    		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
-	        	<geometry>polygon</geometry>
-		      	<fields>QUAD_NAME</fields>
-	    	  	<displaynames>BLM or USGS 100K Map Name</displaynames>
-	   		</layer>
-	   	</folder>
+		<folder label="Nearby Waters">
+			<layer label="All Lakes">
+				<id>11</id>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_Angler_Data/MapServer</url>
+				<geometry>polygon</geometry>
+				<fields>Search_Name</fields>
+				<displaynames>Water Body</displaynames>
+			</layer>
+			<layer label="All Streams">
+				<id>10</id>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_Angler_Data/MapServer</url>
+				<geometry>line</geometry>
+				<fields>Search_Nam</fields>
+				<displaynames>Stream Name</displaynames>
+			</layer>
+		</folder>
 	</tree>
 </configuration>

@@ -535,23 +535,15 @@
 	                              if (layer.visible == true) {
 	                                  skip = false;
 	                                  for (var i = 0; i < identifyParams.layerIds.length; i++) {
-	                                      // if this is the top layer and it is visible add it to list  or if this item is not visible then we are done do not add it.
-	                                      if (layer.layerInfos[identifyParams.layerIds[i]].parentLayerId == -1 ||
-	                                          layer.layerInfos[identifyParams.layerIds[i]].visible == false) {
-	                                          if (layer.layerInfos[identifyParams.layerIds[i]].visible == true)
+	                                      var id = identifyParams.layerIds[i];
+	                                      // Make sure it and all it's parents are visible
+	                                      while (layer.layerInfos[id].visible == true) {
+	                                          if (layer.layerInfos[id].parentLayerId == -1) {
 	                                              vis_layers.push(identifyParams.layerIds[i]);
-	                                      }
-	                                      // if parent layer is top layer and visible add it to list  or if this item is not visible then we are done do not add it.
-	                                      else if (layer.layerInfos[layer.layerInfos[identifyParams.layerIds[i]].parentLayerId].parentLayerId == -1 ||
-	                                          layer.layerInfos[layer.layerInfos[identifyParams.layerIds[i]].parentLayerId].visible == false) {
-	                                          if (layer.layerInfos[layer.layerInfos[identifyParams.layerIds[i]].parentLayerId].visible == true)
-	                                              vis_layers.push(identifyParams.layerIds[i]);
-	                                      }
-	                                      // if grandparent is top layer and visible add it to list  or if this item is not visible then we are done do not add it.
-	                                      else if (layer.layerInfos[layer.layerInfos[layer.layerInfos[identifyParams.layerIds[i]].parentLayerId].parentLayerId].parentLayerId == -1 ||
-	                                          layer.layerInfos[layer.layerInfos[layer.layerInfos[identifyParams.layerIds[i]].parentLayerId].parentLayerId].visible == false) {
-	                                          if (layer.layerInfos[layer.layerInfos[layer.layerInfos[identifyParams.layerIds[i]].parentLayerId].parentLayerId].visible == true)
-	                                              vis_layers.push(identifyParams.layerIds[i]);
+	                                              break;
+	                                          } else {
+	                                              id = layer.layerInfos[id].parentLayerId;
+	                                          }
 	                                      }
 	                                  }
 	                                  identifyParams.layerIds = vis_layers;
