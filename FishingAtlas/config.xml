@@ -55,8 +55,8 @@
             <layer label="Reference" open="false" type="dynamic" visible="false" alpha="0.85"
             		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_AnglerBase_Map/MapServer"/>
 			<layer label="Fishing Info" open="true" opensublayer="Recommended opportunties" type="dynamic" visible="true" alpha="0.9"
-            		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_AnglerMain_Map/MapServer"/>
-        </operationallayers>
+            		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_AnglerMain_Map/MapServer"/>                    
+       </operationallayers>
 		
 		<hideGroupSublayers>Fishing License Agent,Family friendly,More remote fly fishing,Ice fishing,Special Fishing Regulations,Fishing Information Point,Stocked with catchables (~10 inches),Emergency,Field Office,Chamber of Commerce or Welcome Center,Campgrounds and SWA Facilities</hideGroupSublayers>
 		<radiolayers>Recommended opportunties</radiolayers>

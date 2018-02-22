@@ -1,0 +1,88 @@
+		<folder label="Elk Activity Area">
+			<layer label="Elk Winter Concentration Area">
+	    		<id>12</id>
+	    		<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_BigGameSpecies_Map/MapServer</url>
+	        	<geometry>polygon</geometry>
+		      	<fields>ACTIVITYCODE</fields>
+	    	  	<displaynames>Activity Code</displaynames>
+	   		</layer>
+			<layer label="Elk Winter Range">
+	    		<id>13</id>
+	    		<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_BigGameSpecies_Map/MapServer</url>
+	        	<geometry>polygon</geometry>
+		      	<fields>ACTIVITYCODE</fields>
+	    	  	<displaynames>Activity Code</displaynames>
+	   		</layer>
+			<layer label="Elk Summer Concentration Area">
+	    		<id>14</id>
+	    		<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_BigGameSpecies_Map/MapServer</url>
+	        	<geometry>polygon</geometry>
+		      	<fields>ACTIVITYCODE</fields>
+	    	  	<displaynames>Activity Code</displaynames>
+	   		</layer>
+			<layer label="Elk Summer Range">
+	    		<id>15</id>
+	    		<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_BigGameSpecies_Map/MapServer</url>
+	        	<geometry>polygon</geometry>
+		      	<fields>ACTIVITYCODE</fields>
+	    	  	<displaynames>Activity Code</displaynames>
+	   		</layer>
+			<layer label="Elk Resident Population Area">
+	    		<id>16</id>
+	    		<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_BigGameSpecies_Map/MapServer</url>
+	        	<geometry>polygon</geometry>
+		      	<fields>ACTIVITYCODE</fields>
+	    	  	<displaynames>Activity Code</displaynames>
+	   		</layer>
+			<layer label="Elk Overall Range">
+	    		<id>17</id>
+	    		<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_BigGameSpecies_Map/MapServer</url>
+	        	<geometry>polygon</geometry>
+		      	<fields>ACTIVITYCODE</fields>
+	    	  	<displaynames>Activity Code</displaynames>
+	   		</layer>
+			<layer label="Elk Migration Corridors">
+	    		<id>11</id>
+	    		<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_BigGameSpecies_Map/MapServer</url>
+	        	<geometry>polygon</geometry>
+		      	<fields>ACTIVITYCODE</fields>
+	    	  	<displaynames>Activity Code</displaynames>
+	   		</layer>
+		</folder>
+		<folder label="Mule Deer Activity Area">
+			<layer label="Mule Deer Winter Concentration Area">
+	    		<id>34</id>
+	    		<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_BigGameSpecies_Map/MapServer</url>
+	        	<geometry>polygon</geometry>
+		      	<fields>ACTIVITYCODE</fields>
+	    	  	<displaynames>Activity Code</displaynames>
+	   		</layer>
+			<layer label="Mule Deer Winter Range">
+	    		<id>35</id>
+	    		<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_BigGameSpecies_Map/MapServer</url>
+	        	<geometry>polygon</geometry>
+		      	<fields>ACTIVITYCODE</fields>
+	    	  	<displaynames>Activity Code</displaynames>
+	   		</layer>
+			<layer label="Mule Deer Summer Range">
+	    		<id>36</id>
+	    		<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_BigGameSpecies_Map/MapServer</url>
+	        	<geometry>polygon</geometry>
+		      	<fields>ACTIVITYCODE</fields>
+	    	  	<displaynames>Activity Code</displaynames>
+	   		</layer>
+			<layer label="Mule Deer Overall Range">
+	    		<id>37</id>
+	    		<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_BigGameSpecies_Map/MapServer</url>
+	        	<geometry>polygon</geometry>
+		      	<fields>ACTIVITYCODE</fields>
+	    	  	<displaynames>Activity Code</displaynames>
+	   		</layer>
+			<layer label="Mule Deer Migration Corridors">
+	    		<id>33</id>
+	    		<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_BigGameSpecies_Map/MapServer</url>
+	        	<geometry>polygon</geometry>
+		      	<fields>ACTIVITYCODE</fields>
+	    	  	<displaynames>Activity Code</displaynames>
+	   		</layer>
+		</folder>

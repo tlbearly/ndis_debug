@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////
+//
+// Settings
+//
+// Copyright © 2008 ESRI
+//
+// All rights reserved under the copyright laws of the United States.
+// You may freely redistribute and use this software, with or
+// without modification, provided you include the original copyright
+// and use restrictions.  See use restrictions in the file:
+// <install location>/FlexViewer/License.txt
+//
+// This file is read by ConfigManager.as on startup to set the default
+// values for the layers to identify. If the user has changed the settings
+// it will read from their shared object (super cookie) to set the selected
+// values.
+//
+// TAGS:
+// xy_projection = the default projection number (such as 26913) for
+//     entering & displaying xy points.  If the user has saved their settings
+//     to a super cookie this will not be used.
+//
+// use_map_link - add Map Link label & icon after the Print label on the main button bar.
+//		This will display the url to the current map.  It will include currently
+//		selected layers, basemap, graphics, and extent.
+//
+// use_get_extent - add display extent label & icon after the print label on the main button bar.
+//		This will display the current extent in a popup.
+//
+// use_gmus - add a combo box to the main button bar which will zoom to a GMU. If sheep or goat WRIS data is 
+//		displayed, it will report appropriate GMU.
+//
+// gmu_url = if use_gmus is true, this will contain the url to the Big Game GMU mapservice layer.
+// 
+// gmu_field = if use_gmus is true, this will contain the field name for Big Game GMUs.
+//
+// sheep_gmu_url = if use_gmus is true, this will contain the url to the Bighorn Sheep GMU mapservice layer.
+// 
+// sheep_gmu_field = if use_gmus is true, this will contain the field name for Bighorn Sheep GMUs.
+//
+// goat_gmu_url = if use_gmus is true, this will contain the url to the Mountain Goat GMU mapservice layer.
+// 
+// goat_gmu_field = if use_gmus is true, this will contain the field name for Mountain Goat GMUs.
+//
+// driving_directions = true/false, true if it should give a link to get driving 
+//		directions at the map click.
+// elevation = true/false, set to true to show elevation in the footer
+// elevation_url = mapservice to get elevation from in feet. Uses Identify and displays Pixel Value. Elevation must be true.
+//
+// tree = The tree tag defines what layers are available to the user to identify
+// 		under the Settings Widget.  Layers with state set to checked will display
+// 		in the identify popup on startup unless the user has saved the settings
+// 		to a super cookie, then the user's settings will be used instead.
+//	
+//		folder = folder labels will populate the ID quick pick drop down. The folder holds all that will be displayed
+//			when this folder is selected from the quick pick drop down.
+//			folder parameters:
+//			label = the display header
+//			id_vis_only = For layers in this folder only identify them if they are visible. Values: "true" or "false".
+//						= default is "false" identify all layers in the folder whether they are visible or not.
+//						** if this is set to true, you must have vis_id and vis_url in each layer in the folder.
+//
+//		desc = an optional description of the layers the folder contains. This is displayed at the top of the identify popup.
+//
+//		layer = a layer in a mapserviced
+//			layer parameters:
+//			label = The name of the layer in the mapservice.  Case sensitive!
+//
+//			layer tags:
+//			id = the layer id number in the mapservice
+//			url = the url.  For example: https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/BigGame/MapServer
+//			geometry = point, line, or polygon.  Used to set identify tolerance.
+//			fields = Comma delimited list of field names from the mapservice.  Include hypertext fields.  Case sensitve!
+//				Hypertext links will be determined by field values starting with "//" (not case sensitive).
+//			displaynames = Comma delimited list of display names for the above fields.  Include hypertext link display text.
+//			vis_id = Required if id_vis_only is set to true for the folder. The layer id number in the mapservice of the 
+//				layer in the map to check if it is visible. Here id (above) would be the data layer id.
+//			vis_url = Required if id_vis_only is set to true for the folder. The layer url for the mapservice of the 
+//				layer in the map to check if it is visible. Here url (above) would be the data layer url.
+//
+//		** The next tags are optional.  Only use if you need to look up info in a database.  In this case, the first value
+//			in the fields tag will be used to look up the info in the database. The first value in displaynames will be 
+//			used for a title for the one2many list.  If you do not want a title set this to 'none' (lowercase). Added 2/6/20012,
+//			modified 3/29/13 **
+//
+//			position = (Not a required tag) In the list of fields above, where should the database info be placed?  If first,
+//				 this would be 0, if second, this would be 1, etc.  Added 3/28/12
+//			database = A url to the vb.net file which reads a database.  It will pass the value of the fields tag, at the
+//				map click, to this file to do an sql lookup.  Setup the database name and SQL in this file.
+//				For example: https://ndismaps.nrel.colostate.edu/debug/test/readDB.aspx
+//			filename = The name of the database file.  For example: LOCATION_NO_OVERLAP
+//			one2one_fields = Comma delimited list of field names in the database that represent a one to one relationship
+//				that will be displayed in the indentify popup as label: value.  Case Sensitive!
+//			one2one_display = Comma delimited list of display names for the above fields.
+//			one2many_fields = Comma delimited list of field names in the database that represent a one to many relationship.
+//				Will be displayed in identify popup as a bullet list.  Case Sensitive!
+//
+//		Identify popup will be formatted as follows:
+//			If only one field is listed in fields tag:
+//				display name in bold:  field value 
+//				display name as a hyperlink if field value begins with // (case does not matter)  
+//			If more than one field is listed in fields tag:
+//				layer tag label in bold:
+//					display name:  field value
+//					display name:  field value
+//					display name as hypertext if field value begins with // (case does not matter)  
+//
+// NOTE: In the layer tags the label is the case sensitive layer name.  Must match the layer name in the mapservice.
+// 		 The field names are case sensitive also.
+//
+// For Mobile the mapservice's "Display Field" is used in the popup title.
+////////////////////////////////////////////////////////////////////////////////
+-->
+<configuration xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/SettingsWidget.xsd">
+	<xy_projection>26913</xy_projection>
+	<use_map_link>true</use_map_link>
+	<use_get_extent>false</use_get_extent>
+	<use_gmus>false</use_gmus>
+		
+	<driving_directions>true</driving_directions>
+	<elevation>true</elevation>
+	<elevation_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/CHA_Elevation/MapServer</elevation_url>
+	
+	<tree>
+		<folder label="test" id_vis_only="true">
+			<id>15</id>
+			<url>http://localhost:6080/arcgis/rest/services/Temp/WaterSystems_Data/MapServer</url>
+			<vis_id>9</vis_id>
+			<vis_url>http://localhost:6080/arcgis/rest/services/Temp/WaterSystems/MapServer</vis_url>
+				<geometry>point</geometry>
+			<fields>structname </fields>
+			<displaynames>Name</displaynames>
+		</folder>
+	</tree>
+</configuration>

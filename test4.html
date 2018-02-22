@@ -1,0 +1,101 @@
+<!DOCTYPE HTML>
+<?php
+// Force browser, ISP, etc. to refresh their cache for this file.
+// Date in the past
+header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+// always modified
+header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+// HTTP/1.1
+header("Cache-Control: no-store, no-cache, must-revalidate");
+header("Cache-Control: post-check=0, pre-check=0", false);
+// HTTP/1.0
+header("Pragma: no-cache");
+?> 
+<html>
+    <head>
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
+        <!--meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no"/-->
+		<!-- Safari iOS apps only -->
+		<!-- Sets whether a web application runs in full-screen mode when the user has added it to their home screen -->
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<!-- Chrome for Android runs in full scrren mode when added to home screen -->
+		<meta name="mobile-web-app-capable" content="yes">
+		<!-- defines standalone web app for Chrome. The manifest.json file must be in this directory. -->
+		<link rel="manifest" href="manifest.json">
+		
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<!-- icon in browser tab -->
+		<link rel="shortcut icon" href="assets/images/favicon.png"/>
+		<link rel="icon" type="image/png" href="assets/images/favicon.png"/>
+		<link rel="apple-touch-icon" href="assets/images/cpwseal.png"/>
+		<link rel="apple-touch-icon" href="assets/images/cpwlogo_48x48.png" sizes="57x57"/>
+		<link rel="apple-touch-icon" href="assets/images/cpwseal.png" sizes="114x114"/>
+		<link rel="apple-touch-startup-image" href="assets/images/cpwseal.png" sizes="114x114"/> <!-- supposed to show the icon on startup, but does nothing! -->
+		
+		<!-- CSS files -->
+		<link rel="stylesheet" href="assets/css/layoutM.css?v=3.1" />
+        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.17compact/dojox/mobile/themes/iphone/iphone.css"/>
+		<link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.17/esri/css/esri.css" />
+		<link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.17compact/dojox/image/resources/image.css">  
+		<link rel="stylesheet" href="javascriptM/toc/build/agsjs/css/agsjs.css" />
+		<!-- Available themes: claro, tundra, soria, and nihilo.-->
+		<!-- Feature Search combo box styles -->
+		<link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.17/dijit/themes/soria/soria.css"/>
+		 <script type="text/javascript">
+		  // agsjs is for legend/layerlist
+		  // dojo-firebug and dojo-debug-messages = true is for debugging-->
+		  // VERSION add next line to dojoConfig to update version.
+		  // cacheBust: "v=3.2", or cacheBust: Date.now(),
+		  var dojoConfig = {
+		    cacheBust: "v=3.3",
+			packages: [
+				{ name: "javascript", location: location.pathname.replace(/\/[^/]+$/, "")+ "/javascriptM/src" },
+				{ name: "agsjs", location: location.pathname.replace(/\/[^/]+$/, "")+ "/javascriptM/toc/build/agsjs" },
+				{ name: "jsPDF", location: location.pathname.replace(/\/[^/]+$/, "")+ "/jsPDF" }
+			],
+			has: {
+				"dojo-debug-messages": false
+			}
+		  };
+		</script>
+		<!-- Load our javascript. If last parameter is true it will load asyncronously. Else the script is fetched and executed immediately. -->
+		<script src="https://js.arcgis.com/3.17compact"></script>
+		<!--script src="//ajax.googleapis.com/ajax/libs/dojo/1.11.2/dojo/dojo.js"></script-->
+		<script>
+		 require([
+			 "dojox/mobile/parser", 
+			 "dojox/mobile",
+			 "dojox/mobile/Button",
+			 "dojox/mobile/compat",
+			 "dojox/mobile/ContentPane",
+			 "dojox/mobile/SimpleDialog",
+			 "dojox/mobile/Heading", 
+			 "dojox/mobile/Overlay",
+			 "dojox/mobile/Switch",
+			 "dojox/mobile/EdgeToEdgeList",
+			 "dojox/mobile/ListItem",
+			 "dojox/mobile/ToolBarButton",
+			 "dojox/mobile/ExpandingTextArea",
+			 "dijit/registry",
+			 "dojo/domReady!"
+			 ], 
+			 function(parser,esriConfig) {
+				parser.parse();
+			});
+			function replaceDiv(){
+			document.getElementById("newDiv").innerHTML = "<div class='esriPopupItemTitle'>Way Point found at map click:</div>"+
+			"<form id='popupForm'>"+
+			"<textarea id='wayPtTitle' data-dojo-type='dojox/mobile/ExpandingTextArea' class='mblTextArea mblExpandingTextArea' style='width:95%;height: auto; overflow-y:hidden;' "+
+			"placeHolder=\"Description\">test</textarea>"+
+			"</form>";
+			}
+		</script>
+	</head>
+	<body>
+		<textarea data-dojo-type="dojox.mobile.ExpandingTextArea" rows="1" cols="20" class="mblTextArea mblExpandingTextArea" tabindex="0" id="dojox_mobile_ExpandingTextArea_0" widgetid="dojox_mobile_ExpandingTextArea_0" value="ExpandingTextArea" style="height: 40px; overflow-y: hidden;">ExpandingTextArea</textarea>
+		<br/><br/><div id="newDiv">new text area here...</div><br/><br/>
+		<button onclick="javascript:replaceDiv()">New Div</button>
+	</body>
+</html>

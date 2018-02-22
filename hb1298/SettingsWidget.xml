@@ -40,21 +40,29 @@
 //	
 //		folder = folder labels will populate the ID quick pick drop down. The folder holds all that will be displayed
 //			when this folder is selected from the quick pick drop down.
+//			folder parameters:
 //			label = the display header
+//			id_vis_only = For layers in this folder only identify them if they are visible. Values: "true" or "false".
+//						= default is "false" identify all layers in the folder whether they are visible or not.
+//						** if this is set to true, you must have vis_id and vis_url in each layer in the folder.
 //
 //		desc = an optional description of the layers the folder contains. This is displayed at the top of the identify popup.
 //
-//		layer = a layer in a mapservice
+//		layer = a layer in a mapserviced
 //			layer parameters:
-//			label = The name of the layer in the mapservice.  Case sensitive!  Used as the bold label in the ID box.
+//			label = The name of the layer in the mapservice.  Case sensitive!
 //
 //			layer tags:
 //			id = the layer id number in the mapservice
-//			url = the url.  For example: https://ndis-data2.nrel.colostate.edu/ArcGIS/rest/services/BigGame/MapServer
+//			url = the url.  For example: https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/BigGame/MapServer
 //			geometry = point, line, or polygon.  Used to set identify tolerance.
-//			fields = Comma delimited list of field names from the mapservice.  Include hypertext fields.  Case sensitive!
-//				Hypertext links will be determined by field values starting with "https://" (not case sensitive).
+//			fields = Comma delimited list of field names from the mapservice.  Include hypertext fields.  Case sensitve!
+//				Hypertext links will be determined by field values starting with "//" (not case sensitive).
 //			displaynames = Comma delimited list of display names for the above fields.  Include hypertext link display text.
+//			vis_id = Required if id_vis_only is set to true for the folder. The layer id number in the mapservice of the 
+//				layer in the map to check if it is visible. Here id (above) would be the data layer id.
+//			vis_url = Required if id_vis_only is set to true for the folder. The layer url for the mapservice of the 
+//				layer in the map to check if it is visible. Here url (above) would be the data layer url.
 //
 //		** The next tags are optional.  Only use if you need to look up info in a database.  In this case, the first value
 //			in the fields tag will be used to look up the info in the database. The first value in displaynames will be 
