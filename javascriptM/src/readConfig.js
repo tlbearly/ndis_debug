@@ -151,6 +151,8 @@ function createMap() {
 							var myLayer;
 							// If loading layers from URL load layerObj
 							if (queryObj.layer && queryObj.layer != "") {
+								// &layer= basemap | id | opacity | visible layers , id | opacity | visible layers , repeat...
+                // &layer= streets|layer2|.8|3-5-12,layer3|.65|2-6-10-12
 								var layersArr = queryObj.layer.substring(queryObj.layer.indexOf("|") + 1).split(",");
 								layerObj = {};
 								for (var i = 0; i < layersArr.length; i++) {
