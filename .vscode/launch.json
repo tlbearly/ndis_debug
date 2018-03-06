@@ -44,6 +44,5 @@
       "name":"Full-stack",
       "configurations": ["Node","Desktop Chrome","Mobile Chrome"]
     }
-    
   ]
 }
