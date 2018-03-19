@@ -13,6 +13,21 @@
 	</style>
 </head>
 <body>
+		<script language="vb" runat="server">
+        Dim app As String
+        Dim subtitle As String
+        Sub Page_Load(Sender As Object, E as EventArgs)
+            app = Server.HTMLEncode(Request.Querystring("app"))
+            If((app.ToLower() <> "huntingatlas") AND (app.ToLower() <> "fishingatlas") AND (app.ToLower() <> "propertyfinder") AND (app.ToLower() <> "stockingrestrictions")) Then
+                app = "huntingatlas"
+            End If
+            
+            subtitle = Server.HTMLEncode(Request.Querystring("subtitle"))
+            If((subtitle.ToLower() <> "Colorado Hunting Atlas") AND (subtitle.ToLower() <> "Colorado Fishing Atlas") AND (subtitle.ToLower() <> "Colorado Property Finder") AND (subtitle.ToLower() <> "Colorado Stocking Restrictions")) Then
+                subtitle = "Colorado Hunting Atlas"
+            End If
+        End Sub
+    </script>
 <table class="header"> <!---->
 <tr class="banner" colspan="2">
 <td class="logo"> <!---->
@@ -20,14 +35,14 @@
 </td>
 <td class="banner"> <!---->
 <p class="heading">Troubleshooting <br>
-<font size='5'><%=Request.Querystring("subtitle")%></font>
+<font size='5'><%=subtitle%></font>
 </td></tr>
 </table>
 
 <table><tr>
 <td>
-<h4><a href="<%=Request.Querystring("app")%>/help.html">Help</a> &#149;
-	<a href="<%=Request.Querystring("app")%>/definitions.html">Map Information</a></h4>
+<h4><a href="<%=app%>/help.html">Help</a> &#149;
+	<a href="<%=app%>/definitions.html">Map Information</a></h4>
 
 </td></tr>
 <tr><td>
