@@ -148,9 +148,16 @@ function readConfig() {
 			else
 				document.getElementById('xycoords_combo').value = xycoords_format;
 			var queryObj = ioquery.queryToObject(document.location.search.substr((document.location.search[0] === "?" ? 1 : 0)));
-			app = queryObj.app;
+			app = encodeURIComponent(queryObj.app);
 			if (!app)
 				app = "HuntingAtlas";
+			else if ((app.toLowerCase() != "huntingatlas") &&
+			(app.toLowerCase() != "fishingatlas") &&
+			(app.toLowerCase() != "propertyfinder") &&
+			(app.toLowerCase() != "stockingrestrictions")){
+				app = "HuntingAtlas";
+				alert("Application name not found. Defaulting to Hunting Atlas.","Notice");
+			}
 			document.getElementById("mapDescFile").href = app + "/definitions.html";
 			var xmlhttp = createXMLhttpRequest();
 			var configFile = app + "/config.xml?v=" + ndisVer;
