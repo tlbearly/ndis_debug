@@ -191,7 +191,15 @@ header("Pragma: no-cache");
                     parser.parse();
                     queryObj = ioquery.queryToObject(document.location.search.substr((document.location.search[0] === "?" ? 1 : 0)));
                     app = queryObj.app;
-                    if (!app) app = "HuntingAtlas";
+                    if (!app)
+                        app = "HuntingAtlas";
+                    else if ((app.toLowerCase() != "huntingatlas") &&
+                    (app.toLowerCase() != "fishingatlas") &&
+                    (app.toLowerCase() != "propertyfinder") &&
+                    (app.toLowerCase() != "stockingrestrictions")){
+                        app = "HuntingAtlas";
+                        alert("Application name not found. Defaulting to Hunting Atlas.","Notice");
+			        }
 
                     esriConfig.defaults.io.proxyUrl = "/proxy/DotNet/proxy.ashx";
                     esriConfig.defaults.io.alwaysUseProxy = false;
