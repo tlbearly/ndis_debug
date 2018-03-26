@@ -143,10 +143,7 @@ function mlGetText() {
 		if (i>0) url += ",";
 		else url = "&text=";
 		var str = encodeURIComponent(layer.symbol.text);
-		url += parseInt(layer.geometry.x) + "|"
-			+ parseInt(layer.geometry.y) + "|"
-			+ encodeURI(str) + "|"
-			+ "0|" + parseInt(layer.symbol.font.size) + "|0|t|f|f";
+		url += parseInt(layer.geometry.x) + "|"	+ parseInt(layer.geometry.y) + "|" + encodeURI(str) + "|"	+ "0|" + parseInt(layer.symbol.font.size) + "|0|t|f|f";
 		//+ layer.symbol.text.replace(singleQuote,"\\%27").replace(doubleQuote,"\\%22") + "|"
 	}
 	return url;
@@ -177,8 +174,7 @@ function mlGetPoints() {
 		if (rgb[0] == 255) ptColor = "r";
 		else if (rgb[1] == 255) ptColor = "g";
 		else if (rgb[2] == 255) ptColor = "b";
-		url += size+"|"+ptColor+"|"+parseInt(layer.geometry.x) + "|"
-			+ parseInt(layer.geometry.y);
+		url += size+"|"+ptColor+"|"+parseInt(layer.geometry.x) + "|" + parseInt(layer.geometry.y);
 		// Old format
 		//url += "circle|" +layer.symbol.size+ "|" +rgb[0]+";"+rgb[1]+";"+rgb[2]+ "|0.6|h" + layer.symbol.outline.color.toHex().substr(1)+"|1|"
 		//	+ parseInt(layer.geometry.x) + "|"
@@ -186,7 +182,7 @@ function mlGetPoints() {
 		// If Label
 		if (map.getLayer(drawGraphicsCount[i]).graphics[1]) {
 			layer = map.getLayer(drawGraphicsCount[i]).graphics[1].symbol.text;
-			url +=  "|" +layer.replace(singleQuote,"\\%27").replace(doubleQuote,"\\%22").replace(",",";");
+			url +=  "|" +layer.replace(singleQuote,"\\%27").replace(doubleQuote,"\\%22").replace(/,/g,";");
 			//+ "|"+ "0|" + parseInt(layer.symbol.font.size) + "|0|t|f|f";
 		}
 		//else url+="|Way%20Point";
@@ -211,15 +207,13 @@ function mlGetLines() {
 		for (j=0; j<layer.geometry.paths.length; j++){ // number of paths
 			url += "|"+layer.geometry.paths[j].length; // number of points
 			for (k=0; k<layer.geometry.paths[j].length; k++){ // add x|y
-				url +="|"+ parseInt(layer.geometry.paths[j][k][0]) + "|"
-					+ parseInt(layer.geometry.paths[j][k][1]);
+				url +="|"+ parseInt(layer.geometry.paths[j][k][0]) + "|" + parseInt(layer.geometry.paths[j][k][1]);
 			}
 		}
 		// If Label
 		if (map.getLayer(drawGraphicsCount[i]).graphics[1]) {
 			layer = map.getLayer(drawGraphicsCount[i]).graphics[1];
-			url +=  "|" +parseInt(layer.geometry.x)+ "|" +parseInt(layer.geometry.y)+ "|" +layer.symbol.text.replace(singleQuote,"\\%27").replace(doubleQuote,"\\%22").replace(",",";") + "|"
-			+ "0|" + parseInt(layer.symbol.font.size) + "|0|t|f|f";
+			url +=  "|" +parseInt(layer.geometry.x)+ "|" +parseInt(layer.geometry.y)+ "|" +layer.symbol.text.replace(singleQuote,"\\%27").replace(doubleQuote,"\\%22").replace(/,/g,";") + "|"	+ "0|" + parseInt(layer.symbol.font.size) + "|0|t|f|f";
 		}
 		rgb = null;
 	}
@@ -249,20 +243,17 @@ function mlGetPolys() {
 		if (url != "&poly=") url += ",";
 		var rgba = layer.symbol.color.toRgba();
 		var outlineRgb = layer.symbol.outline.color.toRgb();
-		url += layer.symbol.style+"|" +rgba[0]+";"+rgba[1]+";"+rgba[2]+";"+rgba[3]+ "|-1|solid|"
-			+outlineRgb[0]+";"+outlineRgb[1]+";"+outlineRgb[2]+ "|"+layer.symbol.outline.width+"|"+layer.geometry.rings.length;
+		url += layer.symbol.style+"|" +rgba[0]+";"+rgba[1]+";"+rgba[2]+";"+rgba[3]+ "|-1|solid|" +outlineRgb[0]+";"+outlineRgb[1]+";"+outlineRgb[2]+ "|"+layer.symbol.outline.width+"|"+layer.geometry.rings.length;
 		for (j=0; j<layer.geometry.rings.length; j++){ // number of rings
 			url += "|"+layer.geometry.rings[j].length; // number of points
 			for (k=0; k<layer.geometry.rings[j].length; k++){ // add x|y
-				url +="|"+ parseInt(layer.geometry.rings[j][k][0]) + "|"
-					+ parseInt(layer.geometry.rings[j][k][1]);
+				url +="|"+ parseInt(layer.geometry.rings[j][k][0]) + "|" + parseInt(layer.geometry.rings[j][k][1]);
 			}
 		}
 		// If Label
 		if (map.getLayer(drawGraphicsCount[i]).graphics[1]) {
 			layer = map.getLayer(drawGraphicsCount[i]).graphics[1];
-			url +=  "|" +parseInt(layer.geometry.x)+ "|" +parseInt(layer.geometry.y)+ "|" +layer.symbol.text.replace(singleQuote,"\\%27").replace(doubleQuote,"\\%22").replace(",",";") + "|"
-			+ "0|" + parseInt(layer.symbol.font.size) + "|0|t|f|f";
+			url +=  "|" +parseInt(layer.geometry.x)+ "|" +parseInt(layer.geometry.y)+ "|" +layer.symbol.text.replace(singleQuote,"\\%27").replace(doubleQuote,"\\%22").replace(/,/g,";") + "|" + "0|" + parseInt(layer.symbol.font.size) + "|0|t|f|f";
 		}
 		rgba = null;
 		outlineRgb = null;
@@ -292,19 +283,16 @@ function mlGetRect() {
 		if (url != "&rect=") url += ",";
 		var rgba = layer.symbol.color.toRgba();
 		var outlineRgb = layer.symbol.outline.color.toRgb();
-		url += layer.symbol.style+"|" +rgba[0]+";"+rgba[1]+";"+rgba[2]+";"+rgba[3]+ "|-1|solid|"
-			+outlineRgb[0]+";"+outlineRgb[1]+";"+outlineRgb[2]+ "|"+layer.symbol.outline.width;
+		url += layer.symbol.style+"|" +rgba[0]+";"+rgba[1]+";"+rgba[2]+";"+rgba[3]+ "|-1|solid|" +outlineRgb[0]+";"+outlineRgb[1]+";"+outlineRgb[2]+ "|"+layer.symbol.outline.width;
 		for (j=0; j<layer.geometry.rings.length; j++){ // number of rings
 			for (k=0; k<layer.geometry.rings[j].length; k++){ // add x|y
-				url +="|"+ parseInt(layer.geometry.rings[j][k][0]) + "|"
-					+ parseInt(layer.geometry.rings[j][k][1]);
+				url +="|"+ parseInt(layer.geometry.rings[j][k][0]) + "|"+ parseInt(layer.geometry.rings[j][k][1]);
 			}
 		}
 		// If Label
 		if (map.getLayer(drawGraphicsCount[i]).graphics[1]) {
 			layer = map.getLayer(drawGraphicsCount[i]).graphics[1];
-			url +=  "|" +parseInt(layer.geometry.x)+ "|" +parseInt(layer.geometry.y)+ "|" +layer.symbol.text.replace(singleQuote,"\\%27").replace(doubleQuote,"\\%22").replace(",",";") + "|"
-			+ "0|" + parseInt(layer.symbol.font.size) + "|0|t|f|f";
+			url +=  "|" +parseInt(layer.geometry.x)+ "|" +parseInt(layer.geometry.y)+ "|" +layer.symbol.text.replace(singleQuote,"\\%27").replace(doubleQuote,"\\%22").replace(/,/g,";") + "|" + "0|" + parseInt(layer.symbol.font.size) + "|0|t|f|f";
 		}
 		rgba = null;
 		outlineRgb = null;
@@ -338,7 +326,7 @@ function mlGetLayers() {
 						id = layer[i].layerInfos[id].parentLayerId;
 					}
 					// sort visible layers
-					layer[i].visibleLayers = layer[i].visibleLayers.sort(function(a,b){return a-b})
+					layer[i].visibleLayers = layer[i].visibleLayers.sort(function(a,b){return a-b;});
 				}
 			}
 
