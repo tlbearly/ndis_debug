@@ -141,13 +141,810 @@ function clearAddress() {
 //**********************
 function readConfig() {
 	require(["dojo/dom", "dojo/io-query", "esri/layers/ArcGISDynamicMapServiceLayer", "esri/tasks/GeometryService", "esri/SpatialReference", "esri/tasks/ProjectParameters", "esri/map", "esri/geometry/Extent", "esri/dijit/Popup", "esri/symbols/SimpleFillSymbol", "esri/tasks/locator", "dijit/form/CheckBox", "agsjs/dijit/TOC", "esri/symbols/SimpleLineSymbol", "esri/layers/ArcGISTiledMapServiceLayer", "esri/dijit/BasemapGallery", "esri/dijit/Basemap", "esri/dijit/BasemapLayer", "esri/arcgis/utils", "esri/dijit/Gallery", "dojo/_base/array", "dojo/sniff"], function (dom, ioquery, ArcGISDynamicMapServiceLayer, GeometryService, SpatialReference, ProjectParameters, Map, Extent, Popup, SimpleFillSymbol, Locator, CheckBox, TOC, SimpleLineSymbol, ArcGISTiledMapServiceLayer, BasemapGallery, Basemap, BasemapLayer, arcgisUtils, Gallery, array, has) {
+		var xmlDoc;
+		var ext;
+		//----------------------------------------------------------------
+		// Add Points, Lines, Polygons, Rectangles, Labels
+		//----------------------------------------------------------------
+		function addGraphicsAndLabels() {
+			try {
+				var sr;
+				var regexp;
+				if (!queryObj.prj || queryObj.prj == "")
+					sr = new SpatialReference(102100);
+				else {
+					sr = new SpatialReference(parseInt(queryObj.prj));
+				}
+				//----------------------------
+				//        Add points
+				//----------------------------
+				// points = circle|size|color|alpha(transparency)|outline color|outline width|x|y|
+				//   text|font|font size|color|bold as t or f|italic as t or f|underline as t or f|placement|offset, next point...
+				// For example: circle|10|4173788|1|0|1|-11713310|4743885|480;779; 4;333;990|1|12|4173788|t|f|f|above|5
+				if (queryObj.point && queryObj.point != "") {
+					addPoints(queryObj.point, sr);
+				}
+				
+				//----------------------------
+				//        Add lines
+				//----------------------------
+				// &line= style | color | alpha | lineWidth | number of paths | [number of points | x | y | x | y |... repeat for each path] 
+				// |x|y|label|font|font-size|color|bold|italic|underline|placement|offset, repeat for each line
+				// &line=solid|4173788|1|5|1|3|-11900351|4800983|-11886749|4805344|-11883462|4812449|-11891907|4806716|10.5 mi|1|12|4173788|t|f|f|above|5
+				if (queryObj.line && queryObj.line != "") {
+					addLines(queryObj.line, sr);
+				}
+				//----------------------------
+				//        Add polygons
+				//----------------------------
+				// &poly=  fillStyle | fillColor | fillAlpha | lineStyle | lineColor | lineWidth | 
+				// number of rings | number of points | x | y | x | y |... repeat for each ring , repeat for each polygon
+				// fillAlpha is now in fillColor (was used in flex), lineStyle = solid, lineWidth = 2
+				if (queryObj.poly && queryObj.poly != "") {
+					addPolys(queryObj.poly, sr);
+				}
+				//----------------------------
+				//        Add rectangles
+				//----------------------------
+				// &rect=  fillStyle | fillColor | fillAlpha | lineStyle | lineColor | lineWidth | 
+				// number of rings | number of points | x | y | x | y |... repeat for each ring , repeat for each polygon
+				// fillAlpha is now in fillColor (was used in flex), lineStyle = solid, lineWidth = 2
+				if (queryObj.rect && queryObj.rect != "") {
+					addRects(queryObj.rect, sr);
+				}
+				//----------------------------
+				//        Add labels
+				//----------------------------
+				// &text=x|y|text|font|font size|color|bold as t or f|italic as t or f|underline as t or f
+				// font, color, bold, italic, and underline are not used in this version. They default to Helvetica, black, bold
+				if (queryObj.text && queryObj.text != "") {
+					addLabels(queryObj.text, sr);
+				}
+				sr = null;
+			} catch (e) {
+				alert("Error loading graphics from the URL. In javascript/readConfig.js. Error message: " + e.message, "URL Graphics Error", e);
+			}
+		}
+			
+		//******************
+		//  Add Map Layers
+		//******************
+		function addMapLayers() {
+			// Add layer after it has loaded
+			function layerLoadHandler(event) {
+				try {
+					var num = new Array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+					var j;
+					var layerInfos = [];
+					if (layerObj[event.layer.id]) {
+						layerInfos = event.layer.layerInfos;
+						// See what gmu is turned on		   
+						if (event.layer.id == "Hunter Reference") {
+							for (j = 0; j < layerObj[event.layer.id].visLayers.length; j++) {
+								if (layerInfos[layerObj[event.layer.id].visLayers[j]].name.substr(layerInfos[layerObj[event.layer.id].visLayers[j]].name.length - 3, 3).indexOf("GMU") > -1) {
+									gmu = layerInfos[layerObj[event.layer.id].visLayers[j]].name;
+									break;
+								}
+							}
+						// if gmu was not visible but a game species was selected then set gmu
+						} else if (event.layer.id == "Game Species") {
+							for (j = 0; j < layerObj[event.layer.id].visLayers.length; j++) {
+								if (layerInfos[layerObj[event.layer.id].visLayers[j]].name === "Bighorn Sheep") {
+									gmu = "Bighorn GMU";
+									break;
+								} else if (layerInfos[layerObj[event.layer.id].visLayers[j]].name === "Mountain Goat") {
+									gmu = "Goat GMU";
+									break;
+								}
+							}
+						}
+						for (j = 0; j < layerInfos.length; j++) {
+							// If layer is found in the visLayers make it visible.
+							if (layerObj[event.layer.id].visLayers.indexOf(layerInfos[j].id) != -1)
+								layerInfos[j].defaultVisibility = true;
+							// Else if this is not the top layer and it has no sub-layers set default visibility
+							else if (layerInfos[j].parentLayerId != -1 && !layerInfos[j].subLayerIds) {
+								// if this is a gmu layer make sure it is the one that was turned on in visLayers
+								if (layerInfos[j].name.substr(layerInfos[j].name.length - 3, 3).indexOf("GMU") > -1) {
+									// handle this later below when all layers have loaded. Need to wait for Game Species to load. If GMU layer is not set was not working.
+								}
+								// use the default value for sub menu item layers that are under a menu item that is unchecked
+								else if ((layerInfos[j].defaultVisibility == true) && (layerObj[event.layer.id].visLayers.indexOf(layerInfos[j].parentLayerId) === -1)) {
+									layerObj[event.layer.id].visLayers.push(j);
+									// If by default it is visible see if the name of the parent is a number (varies with extent) and make it visible also
+									if (num.indexOf(parseInt(layerInfos[layerInfos[j].parentLayerId].name.substr(0, 1))) > -1) {
+										layerObj[event.layer.id].visLayers.push(layerInfos[j].parentLayerId);
+										layerInfos[layerInfos[j].parentLayerId].defaultVisibility = true;
+									}
+								}
+							// Else this is a top level toc menu item and not found in the visible list, make it not visible.
+							} else
+								layerInfos[j].defaultVisibility = false;
+						}
+						event.layer.setVisibleLayers(layerObj[event.layer.id].visLayers.sort(function (a, b) {
+								return a - b;
+							}));
+						event.layer.refresh();
+					}
+					collapsedFlg = true;
+					if (event.layer.visible)
+						collapsedFlg = false;
+					legendLayers.push({
+						layer: event.layer,
+						title: event.layer.id,
+						autoToggle: true, // If true, closes the group when unchecked and opens the group when checked. If false does nothing.
+						slider: true, // whether to display a transparency slider
+						slider_ticks: 3,
+						slider_labels: ["transparent", "50%", "opaque"],
+						hideGroupSublayers: hideGroupSublayers,
+						radioLayers: radioLayers,
+						noLegend: true,
+						openSubLayers: [],
+						collapsed: collapsedFlg // whether this root layer should be collapsed initially, default false. 
+					});
+					mapLayers.push(event.layer);
+					if (mapLayers.length == xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length) {
+						// reverse order of layer for legendLayers
+						var tmp = [layer.length];
+						var m = 0;
+						for (j = layer.length - 1; j > -1; j--) {
+							for (k = 0; k < layer.length; k++) {
+								if (legendLayers[k].title === layer[j].getAttribute("label")) {
+									tmp[m++] = legendLayers[k];
+									break;
+								}
+							}
+						}
+						legendLayers = tmp;
+						// set gmu after Game Species and Hunter Reference have been processed
+						for (var k = 0; k < mapLayers.length; k++) {
+							if ((mapLayers[k].id == "Hunter Reference") && (layerObj["Hunter Reference"])) {
+								layerInfos = null;
+								layerInfos = mapLayers[k].layerInfos;
+								for (j = 0; j < layerInfos.length; j++) {
+									if (layerInfos[j].name.substr(layerInfos[j].name.length - 3, 3).indexOf("GMU") > -1) {
+										if (layerInfos[j].name == gmu) {
+											if (layerObj["Hunter Reference"].visLayers.indexOf(j) == -1)
+												layerObj["Hunter Reference"].visLayers.push(j);
+											layerInfos[j].defaultVisibility = true;
+											if ((num.indexOf(parseInt(layerInfos[layerInfos[j].parentLayerId].name.substr(0, 1))) > -1) && (layerObj["Hunter Reference"].visLayers.indexOf(layerInfos[j].parentLayerId) == -1)) {
+												layerObj["Hunter Reference"].visLayers.push(layerInfos[j].parentLayerId);
+												layerInfos[layerInfos[j].parentLayerId].defaultVisibility = true;
+											}
+										} else
+											layerInfos[j].defaultVisibility = false;
+									}
+								}
+								mapLayers[k].setVisibleLayers(layerObj["Hunter Reference"].visLayers.sort(function (a, b) {
+										return a - b;
+									}));
+							}
+						}
+						map.addLayers(mapLayers);
+					}
+				} catch (e) {
+					alert("Error in readConfig.js/layerLoadHandler " + e.message, "Code Error", e);
+				}
+			}
+			try {
+				var myLayer;
+				var i;
+				// &layer= basemap | id | opacity | visible layers , id | opacity | visible layers , repeat...
+				// &layer= streets|layer2|.8|3-5-12,layer3|.65|2-6-10-12
+				// get array of layers without the basemap stuff;
+				if (queryObj.layer && queryObj.layer != "") {
+					var layersArr = queryObj.layer.substring(queryObj.layer.indexOf("|") + 1).split(",");
+					layerObj = {};
+					//if (layersArr.length == 1) layersArr.pop(); // remove empty element if no layers are visible
+					for (i = 0; i < layersArr.length; i++) {
+						// build an array of objects indexed by layer id
+						var layerArr = layersArr[i].split("|");
+						if (layerArr[0] == "") continue;// tlb 1-5-18 if no layers are visible 
+						layerArr[0] = layerArr[0].replace(/~/g, " ");
+						if (layerArr.length == 3)
+							layerArr.push(true);
+						if (layerArr[2] == -1)
+							layerObj[layerArr[0]] = {
+								"opacity": layerArr[1],
+								"visLayers": [], // tlb 1-5-18 used to be [-1],
+								"visible": true
+							};
+						else
+							layerObj[layerArr[0]] = {
+								"opacity": layerArr[1],
+								"visLayers": layerArr[2].split("-"),
+								"visible": layerArr[3] == "1" ? true : false
+							};
+						// Convert visLayers from strings to int using bitwise conversion
+						for (var j = 0; j < layerObj[layerArr[0]].visLayers.length; j++)
+							layerObj[layerArr[0]].visLayers[j] = layerObj[layerArr[0]].visLayers[j] | 0;
+					}
+				}
+				try {
+					if (xmlDoc.getElementsByTagName("hideGroupSublayers")[0] && xmlDoc.getElementsByTagName("hideGroupSublayers")[0].firstChild)
+						hideGroupSublayers = xmlDoc.getElementsByTagName("hideGroupSublayers")[0].firstChild.nodeValue.split(",");
+				} catch (e) {
+					alert("Warning: Missing hideGroupSublayers tag in " + app + "/config.xml file. " + e.message, "Data Error");
+				}
+				try {
+					if (xmlDoc.getElementsByTagName("radiolayers")[0] && xmlDoc.getElementsByTagName("radiolayers")[0].firstChild)
+						radioLayers = xmlDoc.getElementsByTagName("radiolayers")[0].firstChild.nodeValue.split(",");
+				} catch (e) {
+					alert("Warning: Missing radiolayers tag in " + app + "/config.xml file. " + e.message, "Data Error");
+				}
+				
+				
+				var collapsedFlg;
+				var layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer");
+				for (i = 0; i < layer.length; i++) {
+					loadedFromCfg = true; // the layer is loaded from config.xml. If false loaded from url &layers.
+					var id = layer[i].getAttribute("label");
+					
+					// Set layer properties on startup if specified on url
+					if (queryObj.layer && queryObj.layer != "") {
+						if (layerObj[id])
+							myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
+									"opacity": layerObj[id].opacity,
+									"id": id,
+									"visible": layerObj[id].visible,
+									"visibleLayers": layerObj[id].visLayers
+								});
+						// not found on url, not visible
+						else
+							myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
+									"opacity": Number(layer[i].getAttribute("alpha")),
+									"id": id,
+									"visible": false
+								});
+						loadedFromCfg = false; // not loaded from config.xml file.
+						// Handle IE bug. In Internet Explorer, due to resource caching, the onLoad event is fired as soon as the
+						// layer is constructed. Consequently you should check whether the layer's loaded property is true before
+						// registering a listener for the "load" event.
+						if (myLayer.loaded) {
+							layerLoadHandler({
+								"layer": myLayer
+							});
+						} else {
+							myLayer.on("load", layerLoadHandler);
+						}
+					// Set layer properties from config.xml file
+					} else {
+						if (layer[i].getAttribute("visible") == "false")
+							myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
+									"opacity": Number(layer[i].getAttribute("alpha")),
+									"id": id,
+									"visible": false
+								});
+						else
+							myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
+									"opacity": Number(layer[i].getAttribute("alpha")),
+									"id": id,
+									"visible": true
+								});
+					}
+					if (loadedFromCfg) {
+						collapsedFlg = false;
+						if (layer[i].getAttribute("open") == "false")
+							collapsedFlg = true;
+						var openSubLayers = [];
+						var oslArr = layer[i].getAttribute("opensublayer");
+						if (oslArr)
+							openSubLayers = oslArr.split(",");
+						legendLayers.push({
+							layer: myLayer,
+							title: layer[i].getAttribute("label"),
+							autoToggle: true, // If true, closes the group when unchecked and opens the group when checked. If false does nothing.
+							slider: true, // whether to display a transparency slider
+							slider_ticks: 3,
+							slider_labels: ["transparent", "50%", "opaque"],
+							hideGroupSublayers: hideGroupSublayers,
+							radioLayers: radioLayers,
+							noLegend: true,
+							openSubLayers: openSubLayers,
+							collapsed: collapsedFlg // whether this root layer should be collapsed initially, default false. 
+						});
+						mapLayers.push(myLayer);
+						openSubLayers = null;
+						oslArr = null;
+					}
+				}
+				if (loadedFromCfg) {
+					map.addLayers(mapLayers);
+					// Display operational layers in reverse order so that the layer that is on top of map is displayed at top of TOC.
+					legendLayers.reverse();
+				}
+			} catch (e) {
+				alert("Error in readConfig.js/addMapLayers " + e.message, "Code Error", e);
+			}
+		}
+
+		//*************
+		// Add Widgets	
+		//*************
+		function addWidgets() {
+			require(["dojo/dom", "dijit/registry"], function (dom, registry) {
+				var str;
+				var widgetStr = "";
+				for (var w = 0; w < xmlDoc.getElementsByTagName("widget").length; w++) {
+					var preload = xmlDoc.getElementsByTagName("widget")[w].getAttribute("preload") == "open" ? true : false;
+					var label = xmlDoc.getElementsByTagName("widget")[w].getAttribute("label");
+					var widgetHeight = xmlDoc.getElementsByTagName("widget")[w].getAttribute("height");
+					var video = xmlDoc.getElementsByTagName("widget")[w].getAttribute("video");
+					var icon = xmlDoc.getElementsByTagName("widget")[w].getAttribute("icon");
+					if (label == null)
+						continue;
+					widgetStr += label;
+					if (label == "Map Layers & Legend") {
+						if (video == null)
+							alert("Warning: Missing help video in " + app + "/config.xml file for widget Map Layers & Legend.", "Data Error");
+							dom.byId("tocHelp").href = video;
+						if (icon)
+							document.getElementById("tocIcon").src = icon;
+						if (preload)
+							registry.byId("tocPane").toggle();
+						dom.byId("tocPane").style.display = "block";
+						dom.byId("tocPane").style.visibility = "visible";
+						if (widgetHeight && widgetHeight != "")
+							document.getElementById("tocContent").style.height = widgetHeight + "px";
+					} else if (label == "HB1298 Report") {
+						if (video == null)
+							alert("Warning: Missing help video in " + app + "/config.xml file for widget Map Layers & Legend.", "Data Error");
+							dom.byId("hb1298Help").href = video;
+						if (icon)
+							document.getElementById("hb1298Icon").src = icon;
+						document.getElementById("hb1298Pane").style.display = "block";
+						if (preload) {
+							openedHB1298 = true;
+							loadjscssfile("javascript/hb1298.js", "js");
+						}
+					} else if (label.indexOf("Resource Report") > 0) {
+						if (video == null)
+							alert("Warning: Missing help video in " + app + "/config.xml file for widget " + label + ".", "Data Error");
+							dom.byId("reportHelp").href = video;
+						if (icon)
+							document.getElementById("reportIcon").src = icon;
+						dom.byId("reportTitle").innerHTML = label;
+						if (preload)
+							registry.byId("reportDiv").toggle();
+						dom.byId("reportDiv").style.display = "block";
+						dom.byId("reportDiv").style.visibility = "visible";
+						reportInit();
+					} else if (label == "Feature Search") {
+						if (video == null)
+							alert("Warning: Missing help video in " + app + "/config.xml file for widget Feature Search.", "Data Error");
+							dom.byId("searchHelp").href = video;
+						if (icon)
+							document.getElementById("searchIcon").src = icon;
+						if (preload) {
+							registry.byId("searchDiv").toggle();
+							openedFeatureSearch = true;
+							searchInit();
+						}
+						dom.byId("searchDiv").style.display = "block";
+						dom.byId("searchDiv").style.visibility = "visible";
+					} else if (label == "Address") {
+						try {
+							locator = new Locator(xmlDoc.getElementsByTagName("addressservice")[0].getAttribute("url"));
+						} catch (e) {
+							alert('Missing tag: addressservice in ' + app + '/config.xml.\n\nTag should look like: &lt;addressservice url="http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"/&gt;\n\nWill use that url for now.', 'Data Error');
+							locator = new Locator("http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates");
+						}
+						if (video == null)
+							alert("Warning: Missing help video in " + app + "/config.xml file for widget Address.", "Data Error");
+						if (icon)
+							document.getElementById("addressIcon").src = icon;
+						dom.byId("addressHelp").href = video;
+						if (preload)
+							registry.byId("addressPane").toggle();
+						dom.byId("addressPane").style.display = "block";
+						dom.byId("addressPane").style.visibility = "visible";
+					} else if (label == "Draw, Label, & Measure") {
+						if (video == null)
+							alert("Warning: Missing help video in " + app + "/config.xml file for widget Draw, Label, & Measure.", "Data Error");
+						dom.byId("drawHelp").href = video;
+						if (icon)
+							document.getElementById("drawIcon").src = icon;
+						if (preload)
+							registry.byId("drawDiv").toggle();
+						//drawInit(); // in javascript/draw.js called in identify.js/readSettingsWidget because it needs XYProjection from this file.
+						dom.byId("drawDiv").style.display = "block";
+						dom.byId("drawDiv").style.visibility = "visible";
+					} else if (label == "Bookmark") {
+						if (video == null)
+							alert("Warning: Missing help video in " + app + "/config.xml file for widget Bookmark.", "Data Error");
+						dom.byId("bookmarkHelp").href = video;
+						if (icon)
+							document.getElementById("bookmarkIcon").src = icon;
+						setBookmarks(); // in javascript/bookmarks.js
+						if (preload)
+							registry.byId("bookmarkDiv").toggle();
+						dom.byId("bookmarkDiv").style.display = "block";
+						dom.byId("bookmarkDiv").style.visibility = "visible";
+					} else if (label == "Settings") {
+						if (video == null)
+							alert("Warning: Missing help video in " + app + "/config.xml file for widget Settings.", "Data Error");
+							dom.byId("settingsHelp").href = video;
+						if (icon)
+							document.getElementById("settingsIcon").src = icon;
+						if (preload)
+							registry.byId("settingsDiv").toggle();
+						dom.byId("settingsDiv").style.display = "block";
+						dom.byId("settingsDiv").style.visibility = "visible";
+					} else if (label == "Find a Place") {}
+					else if (label == "Print") {
+						if (icon)
+							document.getElementById("printIcon").src = icon;
+					} else if (label == "Identify") {}
+					else if (label == "GetExtent") {
+						if (icon)
+							document.getElementById("extentIcon").src = icon;
+					} else if (label == "MapLink") {
+						if (icon)
+							document.getElementById("linkIcon").src = icon;
+					} else {
+						alert("Error in " + app + "/config.xml widget. Label: " + label + " was not found.  \n\nAvailable options include:\n\tMap Layers & Legend\n\t" + "<something> Resource Report \n\tFeature Search\n\tAddress\n\tDraw, Label, & Measure\n\tBookmark\n\tFind a Place\n\tPrint\n\t" + "Settings\n\tIdentify\n Edit javascript/readConfig.js to change this.", "Data Error");
+					}
+				}
+				// read the PrintPdfWidget.xml file
+				printInit();
+				// Hide widgets
+				if (widgetStr.indexOf("Map Layers & Legend") == -1)
+					dom.byId("tocPane").style.display = "none";
+				else if (widgetStr.indexOf("Resource Report") == -1)
+					dom.byId("reportDiv").style.display = "none";
+				else if (widgetStr.indexOf("Feature Search") == -1)
+					dom.byId("searchDiv").style.display = "none";
+				else if (widgetStr.indexOf("Address") == -1)
+					dom.byId("addressPane").style.display = "none";
+				else if (widgetStr.indexOf("Draw, Label, & Measure") == -1)
+					dom.byId("drawDiv").style.display = "none";
+				else if (widgetStr.indexOf("Bookmark") == -1)
+					dom.byId("bookmarkDiv").style.display = "none";
+				else if (widgetStr.indexOf("Settings") == -1)
+					dom.byId("settingsDiv").style.display = "none";
+				
+				// Add Links
+				var linkStr = '<span class="link"><a href="' + app + '/help.html" target="help"><img src="assets/images/i_help.png"/>Help</a></span>';
+				var link = xmlDoc.getElementsByTagName("links")[0].getElementsByTagName("link");
+				for (var i = 0; i < link.length; i++) {
+					linkStr += '<span class="link"><a href="' + link[i].getAttribute("url").replace("%3F", "?").replace("%26", "&") + '" target="_new"><img src="' + link[i].getAttribute("icon") + '"/>' + link[i].getAttribute("label") + '</a></span>';
+				}
+				dom.byId("links").innerHTML = linkStr;
+				addMapLayers();
+			});
+		}
+
+		//********************
+		//     Add Map
+		//********************
+		function addMap() {
+			require(["dojo/dom", "dijit/registry", "dojo/sniff", "dojo/on"], function (dom, registry, has, on) {
+				try {
+					// labels for slider scale bar
+				//var labels = [9244,4622,2311,1155,577,288,144,72,36,18,9,4,2,1];
+					//var labels = [4622,1155,288,72,18,4,1];
+					//var labels = [9244,2311,577,144,36,9,2];
+					// set sliderStyle: "large" for long slider
+					// Set initial basemap. Available basemaps:  streets, satellite, hybrid, topo, gray, ocean, osm, and national_geographic		
+					// showAttribution=true shows the name of the basemap next to the logo.
+					// displayGraphicsOnPan=false for IE may speed up pans
+					//			basemap: "streets",
+					// 	sliderLabels: labels,
+					mapBasemap = "streets";
+					if (queryObj.layer && queryObj.layer != "") {
+						var basemapArr = queryObj.layer.substring(0, queryObj.layer.indexOf("|")).split(",");
+							// old version used 0,1,2|... and first one was selected basemap.
+							if (basemapArr[0] == 0)
+								mapBasemap = "streets";
+							else if (basemapArr[0] == 1)
+								mapBasemap = "hybrid";
+							else if (basemapArr[0] == 2)
+								mapBasemap = "topo";
+							else
+								mapBasemap = basemapArr[0];
+							basemapArr = null;
+					}
+					//map.setExtent(initExtent);
+					map.infoWindow.resize(330, 350);
+					// print preview map
+					// 4-19-17 added custom lods from 9M to 1K. Used to have 19 levels, now it has 12.
+					customLods = [{
+							"level": 6,
+							"resolution": 2445.98490512499,
+							"scale": 9244648.868618
+						}, {
+							"level": 7,
+							"resolution": 1222.992452562495,
+							"scale": 4622324.434309
+						}, {
+							"level": 8,
+							"resolution": 611.4962262813797,
+							"scale": 2311162.217155
+						}, {
+							"level": 9,
+							"resolution": 305.74811314055756,
+							"scale": 1155581.108577
+						}, {
+							"level": 10,
+							"resolution": 152.87405657041106,
+							"scale": 577790.554289
+						}, {
+							"level": 11,
+							"resolution": 76.43702828507324,
+							"scale": 288895.277144
+						}, {
+							"level": 12,
+							"resolution": 38.21851414253662,
+							"scale": 144447.638572
+						}, {
+							"level": 13,
+							"resolution": 19.10925707126831,
+							"scale": 72223.819286
+						}, {
+							"level": 14,
+							"resolution": 9.554628535634155,
+							"scale": 36111.909643
+						}, {
+							"level": 15,
+							"resolution": 4.77731426794937,
+							"scale": 18055.954822
+						}
+					];
+					previewMap = new Map("printPreviewMap", {
+							extent: initExtent,
+							autoResize: true,
+							showAttribution: false,
+							logo: false,
+							isRubberBandZoom: true,
+							isScrollWheelZoom: true,
+							isShiftDoubleClick: true,
+							displayGraphicsOnPan: !has("ie"),
+							sliderStyle: "large",
+							minScale: 9244649,
+							lods: customLods
+						});
+					customLods = null;
+					basemapGallery = new BasemapGallery({
+							showArcGISBasemaps: true,
+							map: map
+						});
+					var opening = true;
+					// Adjust scrollbar for basemaps. If you leave it full, identify will not function in the space below it.
+					on(registry.byId("basemapTitlePane"), "toggle", function () {
+						if (opening) {
+							opening = false;
+							document.getElementById("basemapDiv").style.overflow = "auto";
+							document.getElementById("basemapDiv").style.height = "90%";
+						} else {
+							opening = true;
+							document.getElementById("basemapDiv").style.overflow = "hidden";
+							document.getElementById("basemapDiv").style.height = "30px";
+						}
+					});
+					basemapGallery.on("load", function () {
+						var items = [];
+						array.forEach(basemapGallery.basemaps, function (basemap) {
+							// Rename ids and display titles. Ids are used for map link
+							if (basemap.title == "Imagery with Labels") {
+								basemap.id = "hybrid";
+								basemap.title = "Aerial";
+							} 
+							// Remove Imagery with/out Labels and Oceans
+							else if (basemap.title == "Imagery" || basemap.title == "Oceans")
+								return;
+							else if (basemap.title == "Streets")
+								basemap.id = "streets";
+							else if (basemap.title == "USA Topo Maps") {
+								basemap.id = "topo";
+							} else if (basemap.title == "Topographic") {
+								basemap.id = "topo2";
+							} else if (basemap.title == "Terrain with Labels")
+								basemap.id = "terrain";
+							else if (basemap.title == "Light Gray Canvas")
+								basemap.id = "gray";
+							else if (basemap.title == "OpenStreetMap")
+								basemap.id = "openstreet";
+							else if (basemap.title == "National Geographic")
+								basemap.id = "natgeo";
+							items.push({
+								thumbnailUrl: basemap.thumbnailUrl,
+								id: basemap.id,
+								layers: basemap.layers,
+								title: basemap.title
+							});
+						});
+						var params = {};
+						// Move Streets to first item.
+						var street = null;
+						var i;
+						for (i = 0; i < items.length; i++) {
+							if (items[i].title == "Streets") {
+								street = items[i];
+								items.moveTo(street, 0);
+								break;
+							}
+						}
+						//  Move USA Topo Maps to third item.
+						var topo = null;
+						for (i = 0; i < items.length; i++) {
+							if (items[i].title == "USA Topo Maps") {
+								topo = items[i];
+								items.moveTo(topo, 2);
+								break;
+							}
+						}
+						var selected_id; // to highlight selected thumbnail in basemapGallery Gallery
+						for (i = 0; i < items.length; i++) {
+							if (items[i].id == mapBasemap)
+								selected_id = i;
+						}
+						params.items = items;
+						params.thumbnailStyle = "small";
+						var gallery = new Gallery(params, "basemapGallery");
+						gallery.on("select", function (item) {
+							// unselect all, then apply highlight class to selected one, because when bookmark sets the selected basemap it is not unselected here.
+							var basemapDom = dom.byId("basemapGallery").firstChild.children;
+							for (var p = 0; p < basemapDom.length; p++) {
+								if (basemapDom[p].children[1].childNodes[0].nodeValue == item.item.title) {
+									basemapDom[p].attributes.class.value = "thumbnailcontainer small selected";
+									basemapDom[p].children[0].attributes.class.value = "thumbnail small selected";
+									basemapDom[p].children[1].attributes.class.value = "title small selected";
+									basemapDom[p].children[2].attributes.class.value = "title small selected";
+								} else {
+									basemapDom[p].attributes.class.value = "thumbnailcontainer small";
+									basemapDom[p].children[0].attributes.class.value = "thumbnail small";
+									basemapDom[p].children[1].attributes.class.value = "title small";
+									basemapDom[p].children[2].attributes.class.value = "title small";
+								}
+							}
+							basemapGallery.select(item.item.id);
+							mapBasemap = item.item.id;// save the selected basemap in a global
+							registry.byId("basemapTitlePane").toggle(); // close the panel
+						});
+						gallery.select(params.items[selected_id]); // highlight currently selected basemap, this opens the basemap pane.
+						registry.byId("basemapTitlePane").toggle(); // close the pane
+						gallery._slideDiv.style.width = 'auto';
+						// height of each basemap image and title is controled in layout.css .esriMobileGallery .thumbnailcontainer.small
+						gallery.startup();
+						dom.byId("basemapTitlePane").style.visibility = "visible";
+						dom.byId("basemapTitlePane").style.display = "block";
+						gallery.on("error", function (msg) {
+							alert("Basemap gallery error creating gallery in readConfig.js/addMap/basemapGallery.on('load'):  " + JSON.stringify(msg, null, 4), "Code Error");
+						});
+					});
+					basemapGallery.on("error", function (msg) {
+						alert("Basemap gallery error creating basemapGallery in readConfig.js/addMap/basemapGallery.on('load'):  " + JSON.stringify(msg, null, 4), "Code Error");
+					});
+					addWidgets();
+				} catch (e) {
+					alert("Error in readConfig.js/addMap " + e.message, "Code Error", e);
+				}
+			});
+		}
+
 		try {
 			var xycoords_format = getCookie("xycoords");
 			if (xycoords_format == "")
 				document.getElementById('xycoords_combo').value = "dms";
 			else
 				document.getElementById('xycoords_combo').value = xycoords_format;
-			var queryObj = ioquery.queryToObject(document.location.search.substr((document.location.search[0] === "?" ? 1 : 0)));
+			var queryObj = {};
+			queryObj = ioquery.queryToObject(document.location.search.substr((document.location.search[0] === "?" ? 1 : 0)));
+			// Sanitize user input. Protect against XSS attacks.
+			// test for XSS attack. Pattern contains allowed characters. [^ ] means match any character that is not
+			// in the is set. \ escapes characters used by regex like .-'"|\
+			var regexp;
+			// For labels allow ' " for degrees minutes seconds
+			// Points
+			if (queryObj.point){
+				regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+				if (regexp.test(queryObj.point)) alert("Illegal characters were removed from the points to load which were specified on the URL.","Warning");
+				regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_*()])/g;
+				queryObj.point=queryObj.point.replace(regexp,""); // clean it
+			}
+
+			// Lines
+			if (queryObj.line){
+				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+				if (regexp.test(queryObj.line)) alert("Illegal characters were removed from the lines to load which were specified on the URL.","Warning");
+				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g;
+				queryObj.line=queryObj.line.replace(regexp,""); // clean it
+			}
+
+			// Polygons
+			if (queryObj.poly){
+				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+				if (regexp.test(queryObj.poly)) alert("Illegal characters were removed from the shapes (polygons) to load which were specified on the URL.","Warning");
+				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g;
+				queryObj.poly=queryObj.poly.replace(regexp,""); // clean it
+			}
+
+			// Rectangles
+			if (queryObj.rect){
+				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+				if (regexp.test(queryObj.rect)) alert("Illegal characters were removed from the rectangles to load which were specified on the URL.","Warning");
+				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g;
+				queryObj.rect=queryObj.rect.replace(regexp,""); // clean it
+			}
+			
+			// Text
+			if (queryObj.text){
+				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+				if (regexp.test(queryObj.text)) alert("Illegal characters were removed from the labels to load which were specified on the URL.","Warning");
+				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g;
+				queryObj.text=queryObj.text.replace(regexp,""); // clean it
+			}
+
+			// Layer
+			if (queryObj.layer){
+				regexp=/([^a-zA-Z0-9 \-\|,\._()])/g; // allow \ for the test (\' \") but remove it for the clean
+				if (regexp.test(queryObj.layer)) alert("Illegal characters were removed from the layers to load which were specified on the URL.","Warning");
+				//regexp=/([^a-zA-Z0-9 \-,\._()])/g; // Used if testing for \\ above
+				queryObj.layer=queryObj.layer.replace(regexp,""); // clean it
+			}
+
+			// keyword
+			if (queryObj.keyword){
+				regexp=/([^a-zA-Z0-9 \-\._()])/g; // allow \ for the test (\' \") but remove it for the clean
+				if (regexp.test(queryObj.keyword)) alert("Illegal characters were removed from the keywords to load which were specified on the URL.","Warning");
+				//regexp=/([^a-zA-Z0-9 \-\._()])/g; // Used if testing for \\ above
+				queryObj.keyword=queryObj.keyword.replace(regexp,""); // clean it
+			}
+
+			// value
+			if (queryObj.value){
+				regexp=/([^a-zA-Z0-9 \-\',\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+				if (regexp.test(queryObj.value)) alert("Illegal characters were removed from the values to load which were specified on the URL.","Warning");
+				regexp=/([^a-zA-Z0-9 \-\',\.!_*()])/g;
+				queryObj.value=queryObj.value.replace(regexp,""); // clean it
+			}
+
+			// label
+			if (queryObj.label){
+				regexp=/([^a-zA-Z0-9 \-\',\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+				if (regexp.test(queryObj.label)) alert("Illegal characters were removed from the labels to load which were specified on the URL.","Warning");
+				regexp=/([^a-zA-Z0-9 \-\',\.!_*()])/g;
+				queryObj.label=queryObj.label.replace(regexp,""); // clean it
+			}
+
+			// map
+			if (queryObj.map){
+				regexp=/([^a-zA-Z0-9 \-,\._():\/])/g; // allow \ for the test (\' \") but remove it for the clean
+				if (regexp.test(queryObj.map)) alert("Illegal characters were removed from the map to load which were specified on the URL.","Warning");
+				//regexp=/([^a-zA-Z0-9 \-\=,\._():\/])/g; // Used if testing for \\ above
+				queryObj.map=queryObj.map.replace(regexp,""); // clean it
+			}
+
+			// map
+			if (queryObj.field){
+				regexp=/([^a-zA-Z0-9 \-_])/g; // allow \ for the test (\' \") but remove it for the clean
+				if (regexp.test(queryObj.field)) alert("Illegal characters were removed from the field to load which were specified on the URL.","Warning");
+				//regexp=/([^a-zA-Z0-9 \-\=,\._():\/])/g; // Used if testing for \\ above
+				queryObj.field=queryObj.field.replace(regexp,""); // clean it
+			}
+
+			// projection Only allow integers.
+			if (queryObj.prj && isNaN(queryObj.prj)) {
+				queryObj.prj = 102100;
+				alert("Problem reading map projection from the URL, defaulting to WGS84.","Warning");
+			}
+
+			// Extent
+			if (queryObj.extent){
+				regexp=/([^0-9 \-,\.])/g; // allow \ for the test (\' \") but remove it for the clean
+				if (regexp.test(queryObj.extent)) alert("Illegal characters were removed from the map extent to load which were specified on the URL.","Warning");
+				queryObj.extent=queryObj.extent.replace(regexp,""); // clean it
+			}
+
+			// Place
+			if (queryObj.place){
+				regexp=/([^a-zA-Z0-9 \-\',\.!_*():\\])/g; // allow \ for the test (\' \") but remove it for the clean, : used in degree, min, sec point
+				if (regexp.test(queryObj.place)) alert("Illegal characters were removed from the places to load which were specified on the URL.","Warning");
+				regexp=/([^a-zA-Z0-9 \-\',\.!_*():])/g;
+				queryObj.place=queryObj.place.replace(regexp,""); // clean it
+			}
+
+			// app
 			app = encodeURIComponent(queryObj.app);
 			if (!app)
 				app = "HuntingAtlas";
@@ -163,10 +960,11 @@ function readConfig() {
 			var configFile = app + "/config.xml?v=" + ndisVer;
 			xmlhttp.onreadystatechange = function () {
 				if (xmlhttp.readyState == 4 && xmlhttp.status === 200) {
-					var xmlDoc = createXMLdoc(xmlhttp);
+					xmlDoc = createXMLdoc(xmlhttp);
 					// Set Geometry Service
+					var geoService;
 					try{
-						var geoService = xmlDoc.getElementsByTagName("geometryservice")[0].getAttribute("url");
+						geoService = xmlDoc.getElementsByTagName("geometryservice")[0].getAttribute("url");
 					} catch (e) {
 						alert('Missing tag: geometryservice in ' + app + '/config.xml.\n\nTag should look like: &lt;geometryservice url="http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/Utilities/Geometry/GeometryServer"/&gt;\n\nWill use that url for now.', 'Data Error');
 						geoService = "http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/Utilities/Geometry/GeometryServer";
@@ -185,8 +983,9 @@ function readConfig() {
 						alert('Missing tag: printservicegeo in ' + app + '/config.xml.\n\nTag should look like: &lt;printservicegeo&gt;http://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting&lt;/printservice&gt;\n\nWill use that url for now.', 'Data Error');
 						printGeoServiceUrl = "http://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting";
 					}
+					var title;
 					try {
-						var title = xmlDoc.getElementsByTagName("title")[0].firstChild.nodeValue;
+						title = xmlDoc.getElementsByTagName("title")[0].firstChild.nodeValue;
 					} catch (e) {
 						alert("Warning: Missing title tag in " + app + "/config.xml file. " + e.message, "Data Error");
 					}
@@ -216,684 +1015,15 @@ function readConfig() {
 					}
 					// Set initial/full map extent
 					try {
-						var ext = xmlDoc.getElementsByTagName("map")[0].getAttribute("initialextent").split(" ");
+						ext = xmlDoc.getElementsByTagName("map")[0].getAttribute("initialextent").split(" ");
 						wkid = parseInt(xmlDoc.getElementsByTagName("map")[0].getAttribute("wkid").trim());
 					} catch (e) {
 						alert("Warning: Missing tag attributes initalextent or wkid for the map tag in " + app + "/config.xml file. " + e.message, "Data Error");
 					}
 					
-					//----------------------------------------------------------------
-					// Add Points, Lines, Polygons, Rectangles, Labels
-					//----------------------------------------------------------------
-					function addGraphicsAndLabels() {
-						try {
-							var sr;
-							if (!queryObj.prj || queryObj.prj == "")
-								sr = new SpatialReference(102100);
-							else
-								sr = new SpatialReference(parseInt(queryObj.prj));
-							//----------------------------
-							//        Add points
-							//----------------------------
-							// points = circle|size|color|alpha(transparency)|outline color|outline width|x|y|
-							//   text|font|font size|color|bold as t or f|italic as t or f|underline as t or f|placement|offset, next point...
-							// For example: circle|10|4173788|1|0|1|-11713310|4743885|480;779; 4;333;990|1|12|4173788|t|f|f|above|5
-							if (queryObj.point && queryObj.point != "") {
-								addPoints(queryObj.point, sr);
-							}
-							//----------------------------
-							//        Add lines
-							//----------------------------
-							// &line= style | color | alpha | lineWidth | number of paths | [number of points | x | y | x | y |... repeat for each path] 
-							// |x|y|label|font|font-size|color|bold|italic|underline|placement|offset, repeat for each line
-							// &line=solid|4173788|1|5|1|3|-11900351|4800983|-11886749|4805344|-11883462|4812449|-11891907|4806716|Length: 10.5 mi|1|12|4173788|t|f|f|above|5
-							if (queryObj.line && queryObj.line != "") {
-								addLines(queryObj.line, sr);
-							}
-							//----------------------------
-							//        Add polygons
-							//----------------------------
-							// &poly=  fillStyle | fillColor | fillAlpha | lineStyle | lineColor | lineWidth | 
-							// number of rings | number of points | x | y | x | y |... repeat for each ring , repeat for each polygon
-							// fillAlpha is now in fillColor (was used in flex), lineStyle = solid, lineWidth = 2
-							if (queryObj.poly && queryObj.poly != "") {
-								addPolys(queryObj.poly, sr);
-							}
-							//----------------------------
-							//        Add rectangles
-							//----------------------------
-							// &rect=  fillStyle | fillColor | fillAlpha | lineStyle | lineColor | lineWidth | 
-							// number of rings | number of points | x | y | x | y |... repeat for each ring , repeat for each polygon
-							// fillAlpha is now in fillColor (was used in flex), lineStyle = solid, lineWidth = 2
-							if (queryObj.rect && queryObj.rect != "") {
-								addRects(queryObj.rect, sr);
-							}
-							//----------------------------
-							//        Add labels
-							//----------------------------
-							// &text=x|y|text|font|font size|color|bold as t or f|italic as t or f|underline as t or f
-							// font, color, bold, italic, and underline are not used in this version. They default to Helvetica, black, bold
-							if (queryObj.text && queryObj.text != "") {
-								addLabels(queryObj.text, sr);
-							}
-							sr = null;
-						} catch (e) {
-							alert("Error loading labels, points, lines, polygons, and rectangles from the URL. In javascript/readConfig.js " + e.message + "\ntext=" + queryObj.text + "\npoints=" + queryObj.point + "\nlines=" + queryObj.line + "\npolys=" + queryObj.poly + "\nrectangles=" + queryObj.rect, "URL Graphics Error", e);
-						}
-					}
+
 					
-					//******************
-					//  Add Map Layers
-					//******************
-					function addMapLayers() {
-						try {
-							var myLayer;
-							// &layer= basemap | id | opacity | visible layers , id | opacity | visible layers , repeat...
-							// &layer= streets|layer2|.8|3-5-12,layer3|.65|2-6-10-12
-							// get array of layers without the basemap stuff;
-							if (queryObj.layer && queryObj.layer != "") {
-								var layersArr = queryObj.layer.substring(queryObj.layer.indexOf("|") + 1).split(",");
-								layerObj = {};
-								//if (layersArr.length == 1) layersArr.pop(); // remove empty element if no layers are visible
-								for (var i = 0; i < layersArr.length; i++) {
-									// build an array of objects indexed by layer id
-									var layerArr = layersArr[i].split("|");
-									if (layerArr[0] == "") continue;// tlb 1-5-18 if no layers are visible 
-									layerArr[0] = layerArr[0].replace(/~/g, " ");
-									if (layerArr.length == 3)
-										layerArr.push(true);
-									if (layerArr[2] == -1)
-										layerObj[layerArr[0]] = {
-											"opacity": layerArr[1],
-											"visLayers": [], // tlb 1-5-18 used to be [-1],
-											"visible": true
-										};
-									else
-										layerObj[layerArr[0]] = {
-											"opacity": layerArr[1],
-											"visLayers": layerArr[2].split("-"),
-											"visible": layerArr[3] == "1" ? true : false
-										};
-									// Convert visLayers from strings to int using bitwise conversion
-									for (var j = 0; j < layerObj[layerArr[0]].visLayers.length; j++)
-										layerObj[layerArr[0]].visLayers[j] = layerObj[layerArr[0]].visLayers[j] | 0;
-								}
-							}
-							try {
-								if (xmlDoc.getElementsByTagName("hideGroupSublayers")[0] && xmlDoc.getElementsByTagName("hideGroupSublayers")[0].firstChild)
-									hideGroupSublayers = xmlDoc.getElementsByTagName("hideGroupSublayers")[0].firstChild.nodeValue.split(",");
-							} catch (e) {
-								alert("Warning: Missing hideGroupSublayers tag in " + app + "/config.xml file. " + e.message, "Data Error");
-							}
-							try {
-								if (xmlDoc.getElementsByTagName("radiolayers")[0] && xmlDoc.getElementsByTagName("radiolayers")[0].firstChild)
-									radioLayers = xmlDoc.getElementsByTagName("radiolayers")[0].firstChild.nodeValue.split(",");
-							} catch (e) {
-								alert("Warning: Missing radiolayers tag in " + app + "/config.xml file. " + e.message, "Data Error");
-							}
-							
-							// Add layer after it has loaded
-							function layerLoadHandler(event) {
-								try {
-									var num = new Array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
-									if (layerObj[event.layer.id]) {
-										var layerInfos = new Array();
-										layerInfos = event.layer.layerInfos;
-										// See what gmu is turned on		   
-										if (event.layer.id == "Hunter Reference") {
-											for (var j = 0; j < layerObj[event.layer.id].visLayers.length; j++) {
-												if (layerInfos[layerObj[event.layer.id].visLayers[j]].name.substr(layerInfos[layerObj[event.layer.id].visLayers[j]].name.length - 3, 3).indexOf("GMU") > -1) {
-													gmu = layerInfos[layerObj[event.layer.id].visLayers[j]].name;
-													break;
-												}
-											}
-										// if gmu was not visible but a game species was selected then set gmu
-										} else if (event.layer.id == "Game Species") {
-											for (var j = 0; j < layerObj[event.layer.id].visLayers.length; j++) {
-												if (layerInfos[layerObj[event.layer.id].visLayers[j]].name === "Bighorn Sheep") {
-													gmu = "Bighorn GMU";
-													break;
-												} else if (layerInfos[layerObj[event.layer.id].visLayers[j]].name === "Mountain Goat") {
-													gmu = "Goat GMU";
-													break;
-												}
-											}
-										}
-										for (var j = 0; j < layerInfos.length; j++) {
-											// If layer is found in the visLayers make it visible.
-											if (layerObj[event.layer.id].visLayers.indexOf(layerInfos[j].id) != -1)
-												layerInfos[j].defaultVisibility = true;
-											// Else if this is not the top layer and it has no sub-layers set default visibility
-											else if (layerInfos[j].parentLayerId != -1 && !layerInfos[j].subLayerIds) {
-												// if this is a gmu layer make sure it is the one that was turned on in visLayers
-												if (layerInfos[j].name.substr(layerInfos[j].name.length - 3, 3).indexOf("GMU") > -1) {
-													// handle this later below when all layers have loaded. Need to wait for Game Species to load. If GMU layer is not set was not working.
-												}
-												// use the default value for sub menu item layers that are under a menu item that is unchecked
-												else if ((layerInfos[j].defaultVisibility == true) && (layerObj[event.layer.id].visLayers.indexOf(layerInfos[j].parentLayerId) === -1)) {
-													layerObj[event.layer.id].visLayers.push(j);
-													// If by default it is visible see if the name of the parent is a number (varies with extent) and make it visible also
-													if (num.indexOf(parseInt(layerInfos[layerInfos[j].parentLayerId].name.substr(0, 1))) > -1) {
-														layerObj[event.layer.id].visLayers.push(layerInfos[j].parentLayerId);
-														layerInfos[layerInfos[j].parentLayerId].defaultVisibility = true;
-													}
-												}
-											// Else this is a top level toc menu item and not found in the visible list, make it not visible.
-											} else
-												layerInfos[j].defaultVisibility = false;
-										}
-										event.layer.setVisibleLayers(layerObj[event.layer.id].visLayers.sort(function (a, b) {
-												return a - b
-											}));
-										event.layer.refresh();
-									}
-									collapsedFlg = true;
-									if (event.layer.visible)
-										collapsedFlg = false;
-									legendLayers.push({
-										layer: event.layer,
-										title: event.layer.id,
-										autoToggle: true, // If true, closes the group when unchecked and opens the group when checked. If false does nothing.
-										slider: true, // whether to display a transparency slider
-										slider_ticks: 3,
-										slider_labels: ["transparent", "50%", "opaque"],
-										hideGroupSublayers: hideGroupSublayers,
-										radioLayers: radioLayers,
-										noLegend: true,
-										openSubLayers: [],
-										collapsed: collapsedFlg // whether this root layer should be collapsed initially, default false. 
-									});
-									mapLayers.push(event.layer);
-									if (mapLayers.length == xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length) {
-										// reverse order of layer for legendLayers
-										var tmp = [layer.length];
-										var m = 0;
-										for (var j = layer.length - 1; j > -1; j--) {
-											for (k = 0; k < layer.length; k++) {
-												if (legendLayers[k].title === layer[j].getAttribute("label")) {
-													tmp[m++] = legendLayers[k];
-													break;
-												}
-											}
-										}
-										legendLayers = tmp;
-										// set gmu after Game Species and Hunter Reference have been processed
-										for (var k = 0; k < mapLayers.length; k++) {
-											if ((mapLayers[k].id == "Hunter Reference") && (layerObj["Hunter Reference"])) {
-												layerInfos = null;
-												layerInfos = mapLayers[k].layerInfos;
-												for (var j = 0; j < layerInfos.length; j++) {
-													if (layerInfos[j].name.substr(layerInfos[j].name.length - 3, 3).indexOf("GMU") > -1) {
-														if (layerInfos[j].name == gmu) {
-															if (layerObj["Hunter Reference"].visLayers.indexOf(j) == -1)
-																layerObj["Hunter Reference"].visLayers.push(j);
-															layerInfos[j].defaultVisibility = true;
-															if ((num.indexOf(parseInt(layerInfos[layerInfos[j].parentLayerId].name.substr(0, 1))) > -1) && (layerObj["Hunter Reference"].visLayers.indexOf(layerInfos[j].parentLayerId) == -1)) {
-																layerObj["Hunter Reference"].visLayers.push(layerInfos[j].parentLayerId);
-																layerInfos[layerInfos[j].parentLayerId].defaultVisibility = true;
-															}
-														} else
-															layerInfos[j].defaultVisibility = false;
-													}
-												}
-												mapLayers[k].setVisibleLayers(layerObj["Hunter Reference"].visLayers.sort(function (a, b) {
-														return a - b
-													}));
-											}
-										}
-										map.addLayers(mapLayers);
-									}
-								} catch (e) {
-									alert("Error in readConfig.js/layerLoadHandler " + e.message, "Code Error", e);
-								}
-							}
-							var collapsedFlg;
-							var layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer");
-							for (var i = 0; i < layer.length; i++) {
-								loadedFromCfg = true; // the layer is loaded from config.xml. If false loaded from url &layers.
-								var id = layer[i].getAttribute("label");
-								
-								// Set layer properties on startup if specified on url
-								if (queryObj.layer && queryObj.layer != "") {
-									if (layerObj[id])
-										myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
-												"opacity": layerObj[id].opacity,
-												"id": id,
-												"visible": layerObj[id].visible,
-												"visibleLayers": layerObj[id].visLayers
-											});
-									// not found on url, not visible
-									else
-										myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
-												"opacity": Number(layer[i].getAttribute("alpha")),
-												"id": id,
-												"visible": false
-											});
-									loadedFromCfg = false; // not loaded from config.xml file.
-									// Handle IE bug. In Internet Explorer, due to resource caching, the onLoad event is fired as soon as the
-									// layer is constructed. Consequently you should check whether the layer's loaded property is true before
-									// registering a listener for the "load" event.
-									if (myLayer.loaded) {
-										layerLoadHandler({
-											"layer": myLayer
-										});
-									} else {
-										myLayer.on("load", layerLoadHandler);
-									}
-								// Set layer properties from config.xml file
-								} else {
-									if (layer[i].getAttribute("visible") == "false")
-										myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
-												"opacity": Number(layer[i].getAttribute("alpha")),
-												"id": id,
-												"visible": false
-											});
-									else
-										myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
-												"opacity": Number(layer[i].getAttribute("alpha")),
-												"id": id,
-												"visible": true
-											});
-								}
-								if (loadedFromCfg) {
-									collapsedFlg = false;
-									if (layer[i].getAttribute("open") == "false")
-										collapsedFlg = true;
-									var openSubLayers = [];
-									var oslArr = layer[i].getAttribute("opensublayer");
-									if (oslArr)
-										openSubLayers = oslArr.split(",");
-									legendLayers.push({
-										layer: myLayer,
-										title: layer[i].getAttribute("label"),
-										autoToggle: true, // If true, closes the group when unchecked and opens the group when checked. If false does nothing.
-										slider: true, // whether to display a transparency slider
-										slider_ticks: 3,
-										slider_labels: ["transparent", "50%", "opaque"],
-										hideGroupSublayers: hideGroupSublayers,
-										radioLayers: radioLayers,
-										noLegend: true,
-										openSubLayers: openSubLayers,
-										collapsed: collapsedFlg // whether this root layer should be collapsed initially, default false. 
-									});
-									mapLayers.push(myLayer);
-									openSubLayers = null;
-									oslArr = null;
-								}
-							}
-							if (loadedFromCfg) {
-								map.addLayers(mapLayers);
-								// Display operational layers in reverse order so that the layer that is on top of map is displayed at top of TOC.
-								legendLayers.reverse();
-							}
-						} catch (e) {
-							alert("Error in readConfig.js/addMapLayers " + e.message, "Code Error", e);
-						}
-					}
 					
-					//*************
-					// Add Widgets	
-					//*************
-					function addWidgets() {
-						require(["dojo/dom", "dijit/registry"], function (dom, registry) {
-							var str;
-							var widgetStr = "";
-							for (var w = 0; w < xmlDoc.getElementsByTagName("widget").length; w++) {
-								var preload = xmlDoc.getElementsByTagName("widget")[w].getAttribute("preload") == "open" ? true : false;
-								var label = xmlDoc.getElementsByTagName("widget")[w].getAttribute("label");
-								var widgetHeight = xmlDoc.getElementsByTagName("widget")[w].getAttribute("height");
-								var video = xmlDoc.getElementsByTagName("widget")[w].getAttribute("video");
-								var icon = xmlDoc.getElementsByTagName("widget")[w].getAttribute("icon");
-								if (label == null)
-									continue;
-								widgetStr += label;
-								if (label == "Map Layers & Legend") {
-									if (video == null)
-										alert("Warning: Missing help video in " + app + "/config.xml file for widget Map Layers & Legend.", "Data Error")
-										dom.byId("tocHelp").href = video;
-									if (icon)
-										document.getElementById("tocIcon").src = icon;
-									if (preload)
-										registry.byId("tocPane").toggle();
-									dom.byId("tocPane").style.display = "block";
-									dom.byId("tocPane").style.visibility = "visible";
-									if (widgetHeight && widgetHeight != "")
-										document.getElementById("tocContent").style.height = widgetHeight + "px";
-								} else if (label == "HB1298 Report") {
-									if (video == null)
-										alert("Warning: Missing help video in " + app + "/config.xml file for widget Map Layers & Legend.", "Data Error")
-										dom.byId("hb1298Help").href = video;
-									if (icon)
-										document.getElementById("hb1298Icon").src = icon;
-									document.getElementById("hb1298Pane").style.display = "block";
-									if (preload) {
-										openedHB1298 = true;
-										loadjscssfile("javascript/hb1298.js", "js");
-									}
-								} else if (label.indexOf("Resource Report") > 0) {
-									if (video == null)
-										alert("Warning: Missing help video in " + app + "/config.xml file for widget " + label + ".", "Data Error")
-										dom.byId("reportHelp").href = video;
-									if (icon)
-										document.getElementById("reportIcon").src = icon;
-									dom.byId("reportTitle").innerHTML = label;
-									if (preload)
-										registry.byId("reportDiv").toggle();
-									dom.byId("reportDiv").style.display = "block";
-									dom.byId("reportDiv").style.visibility = "visible";
-									reportInit();
-								} else if (label == "Feature Search") {
-									if (video == null)
-										alert("Warning: Missing help video in " + app + "/config.xml file for widget Feature Search.", "Data Error")
-										dom.byId("searchHelp").href = video;
-									if (icon)
-										document.getElementById("searchIcon").src = icon;
-									if (preload) {
-										registry.byId("searchDiv").toggle();
-										openedFeatureSearch = true;
-										searchInit();
-									}
-									dom.byId("searchDiv").style.display = "block";
-									dom.byId("searchDiv").style.visibility = "visible";
-								} else if (label == "Address") {
-									try {
-										locator = new Locator(xmlDoc.getElementsByTagName("addressservice")[0].getAttribute("url"));
-									} catch (e) {
-										alert('Missing tag: addressservice in ' + app + '/config.xml.\n\nTag should look like: &lt;addressservice url="http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"/&gt;\n\nWill use that url for now.', 'Data Error');
-										locator = new Locator("http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates");
-									}
-									if (video == null)
-										alert("Warning: Missing help video in " + app + "/config.xml file for widget Address.", "Data Error");
-									if (icon)
-										document.getElementById("addressIcon").src = icon;
-									dom.byId("addressHelp").href = video;
-									if (preload)
-										registry.byId("addressPane").toggle();
-									dom.byId("addressPane").style.display = "block";
-									dom.byId("addressPane").style.visibility = "visible";
-								} else if (label == "Draw, Label, & Measure") {
-									if (video == null)
-										alert("Warning: Missing help video in " + app + "/config.xml file for widget Draw, Label, & Measure.", "Data Error");
-									dom.byId("drawHelp").href = video;
-									if (icon)
-										document.getElementById("drawIcon").src = icon;
-									if (preload)
-										registry.byId("drawDiv").toggle();
-									//drawInit(); // in javascript/draw.js called in identify.js/readSettingsWidget because it needs XYProjection from this file.
-									dom.byId("drawDiv").style.display = "block";
-									dom.byId("drawDiv").style.visibility = "visible";
-								} else if (label == "Bookmark") {
-									if (video == null)
-										alert("Warning: Missing help video in " + app + "/config.xml file for widget Bookmark.", "Data Error");
-									dom.byId("bookmarkHelp").href = video;
-									if (icon)
-										document.getElementById("bookmarkIcon").src = icon;
-									setBookmarks(); // in javascript/bookmarks.js
-									if (preload)
-										registry.byId("bookmarkDiv").toggle();
-									dom.byId("bookmarkDiv").style.display = "block";
-									dom.byId("bookmarkDiv").style.visibility = "visible";
-								} else if (label == "Settings") {
-									if (video == null)
-										alert("Warning: Missing help video in " + app + "/config.xml file for widget Settings.", "Data Error")
-										dom.byId("settingsHelp").href = video;
-									if (icon)
-										document.getElementById("settingsIcon").src = icon;
-									if (preload)
-										registry.byId("settingsDiv").toggle();
-									dom.byId("settingsDiv").style.display = "block";
-									dom.byId("settingsDiv").style.visibility = "visible";
-								} else if (label == "Find a Place") {}
-								else if (label == "Print") {
-									if (icon)
-										document.getElementById("printIcon").src = icon;
-								} else if (label == "Identify") {}
-								else if (label == "GetExtent") {
-									if (icon)
-										document.getElementById("extentIcon").src = icon;
-								} else if (label == "MapLink") {
-									if (icon)
-										document.getElementById("linkIcon").src = icon;
-								} else {
-									alert("Error in " + app + "/config.xml widget. Label: " + label + " was not found.  \n\nAvailable options include:\n\tMap Layers & Legend\n\t" + "<something> Resource Report \n\tFeature Search\n\tAddress\n\tDraw, Label, & Measure\n\tBookmark\n\tFind a Place\n\tPrint\n\t" + "Settings\n\tIdentify\n Edit javascript/readConfig.js to change this.", "Data Error");
-								}
-							}
-							// read the PrintPdfWidget.xml file
-							printInit();
-							// Hide widgets
-							if (widgetStr.indexOf("Map Layers & Legend") == -1)
-								dom.byId("tocPane").style.display = "none";
-							else if (widgetStr.indexOf("Resource Report") == -1)
-								dom.byId("reportDiv").style.display = "none";
-							else if (widgetStr.indexOf("Feature Search") == -1)
-								dom.byId("searchDiv").style.display = "none";
-							else if (widgetStr.indexOf("Address") == -1)
-								dom.byId("addressPane").style.display = "none";
-							else if (widgetStr.indexOf("Draw, Label, & Measure") == -1)
-								dom.byId("drawDiv").style.display = "none";
-							else if (widgetStr.indexOf("Bookmark") == -1)
-								dom.byId("bookmarkDiv").style.display = "none";
-							else if (widgetStr.indexOf("Settings") == -1)
-								dom.byId("settingsDiv").style.display = "none";
-							
-							// Add Links
-							var linkStr = '<span class="link"><a href="' + app + '/help.html" target="help"><img src="assets/images/i_help.png"/>Help</a></span>';
-							var link = xmlDoc.getElementsByTagName("links")[0].getElementsByTagName("link");
-							for (var i = 0; i < link.length; i++) {
-								linkStr += '<span class="link"><a href="' + link[i].getAttribute("url").replace("%3F", "?").replace("%26", "&") + '" target="_new"><img src="' + link[i].getAttribute("icon") + '"/>' + link[i].getAttribute("label") + '</a></span>';
-							}
-							dom.byId("links").innerHTML = linkStr;
-							addMapLayers();
-						});
-					}
-					
-					//********************
-					//     Add Map
-					//********************
-					function addMap() {
-						require(["dojo/dom", "dijit/registry", "dojo/sniff", "dojo/on"], function (dom, registry, has, on) {
-							try {
-								// labels for slider scale bar
-							//var labels = [9244,4622,2311,1155,577,288,144,72,36,18,9,4,2,1];
-								//var labels = [4622,1155,288,72,18,4,1];
-								//var labels = [9244,2311,577,144,36,9,2];
-								// set sliderStyle: "large" for long slider
-								// Set initial basemap. Available basemaps:  streets, satellite, hybrid, topo, gray, ocean, osm, and national_geographic		
-								// showAttribution=true shows the name of the basemap next to the logo.
-								// displayGraphicsOnPan=false for IE may speed up pans
-								//			basemap: "streets",
-								// 	sliderLabels: labels,
-								mapBasemap = "streets";
-								if (queryObj.layer && queryObj.layer != "") {
-									var basemapArr = queryObj.layer.substring(0, queryObj.layer.indexOf("|")).split(",")
-										// old version used 0,1,2|... and first one was selected basemap.
-										if (basemapArr[0] == 0)
-											mapBasemap = "streets";
-										else if (basemapArr[0] == 1)
-											mapBasemap = "hybrid";
-										else if (basemapArr[0] == 2)
-											mapBasemap = "topo";
-										else
-											mapBasemap = basemapArr[0];
-										basemapArr = null;
-								}
-								//map.setExtent(initExtent);
-								map.infoWindow.resize(330, 350);
-								// print preview map
-								// 4-19-17 added custom lods from 9M to 1K. Used to have 19 levels, now it has 12.
-								customLods = [{
-										"level": 6,
-										"resolution": 2445.98490512499,
-										"scale": 9244648.868618
-									}, {
-										"level": 7,
-										"resolution": 1222.992452562495,
-										"scale": 4622324.434309
-									}, {
-										"level": 8,
-										"resolution": 611.4962262813797,
-										"scale": 2311162.217155
-									}, {
-										"level": 9,
-										"resolution": 305.74811314055756,
-										"scale": 1155581.108577
-									}, {
-										"level": 10,
-										"resolution": 152.87405657041106,
-										"scale": 577790.554289
-									}, {
-										"level": 11,
-										"resolution": 76.43702828507324,
-										"scale": 288895.277144
-									}, {
-										"level": 12,
-										"resolution": 38.21851414253662,
-										"scale": 144447.638572
-									}, {
-										"level": 13,
-										"resolution": 19.10925707126831,
-										"scale": 72223.819286
-									}, {
-										"level": 14,
-										"resolution": 9.554628535634155,
-										"scale": 36111.909643
-									}, {
-										"level": 15,
-										"resolution": 4.77731426794937,
-										"scale": 18055.954822
-									}
-								];
-								previewMap = new Map("printPreviewMap", {
-										extent: initExtent,
-										autoResize: true,
-										showAttribution: false,
-										logo: false,
-										isRubberBandZoom: true,
-										isScrollWheelZoom: true,
-										isShiftDoubleClick: true,
-										displayGraphicsOnPan: !has("ie"),
-										sliderStyle: "large",
-										minScale: 9244649,
-										lods: customLods
-									});
-								customLods = null;
-								basemapGallery = new BasemapGallery({
-										showArcGISBasemaps: true,
-										map: map
-									});
-								var opening = true;
-								// Adjust scrollbar for basemaps. If you leave it full, identify will not function in the space below it.
-								on(registry.byId("basemapTitlePane"), "toggle", function () {
-									if (opening) {
-										opening = false;
-										document.getElementById("basemapDiv").style.overflow = "auto";
-										document.getElementById("basemapDiv").style.height = "90%";
-									} else {
-										opening = true;
-										document.getElementById("basemapDiv").style.overflow = "hidden";
-										document.getElementById("basemapDiv").style.height = "30px";
-									}
-								});
-								basemapGallery.on("load", function () {
-									var items = [];
-									array.forEach(basemapGallery.basemaps, function (basemap) {
-										// Rename ids and display titles. Ids are used for map link
-										if (basemap.title == "Imagery with Labels") {
-											basemap.id = "hybrid";
-											basemap.title = "Aerial";
-										} 
-										// Remove Imagery with/out Labels and Oceans
-										else if (basemap.title == "Imagery" || basemap.title == "Oceans")
-											return;
-										else if (basemap.title == "Streets")
-											basemap.id = "streets";
-										else if (basemap.title == "USA Topo Maps") {
-											basemap.id = "topo";
-										} else if (basemap.title == "Topographic") {
-											basemap.id = "topo2";
-										} else if (basemap.title == "Terrain with Labels")
-											basemap.id = "terrain";
-										else if (basemap.title == "Light Gray Canvas")
-											basemap.id = "gray";
-										else if (basemap.title == "OpenStreetMap")
-											basemap.id = "openstreet";
-										else if (basemap.title == "National Geographic")
-											basemap.id = "natgeo";
-										items.push({
-											thumbnailUrl: basemap.thumbnailUrl,
-											id: basemap.id,
-											layers: basemap.layers,
-											title: basemap.title
-										});
-									});
-									var params = {};
-									// Move Streets to first item.
-									var street = null;
-									var i;
-									for (i = 0; i < items.length; i++) {
-										if (items[i].title == "Streets") {
-											street = items[i];
-											items.moveTo(street, 0);
-											break;
-										}
-									}
-									//  Move USA Topo Maps to third item.
-									var topo = null;
-									for (i = 0; i < items.length; i++) {
-										if (items[i].title == "USA Topo Maps") {
-											topo = items[i];
-											items.moveTo(topo, 2);
-											break;
-										}
-									}
-									var selected_id; // to highlight selected thumbnail in basemapGallery Gallery
-									for (i = 0; i < items.length; i++) {
-										if (items[i].id == mapBasemap)
-											selected_id = i;
-									}
-									params.items = items;
-									params.thumbnailStyle = "small";
-									var gallery = new Gallery(params, "basemapGallery");
-									gallery.on("select", function (item) {
-										// unselect all, then apply highlight class to selected one, because when bookmark sets the selected basemap it is not unselected here.
-										var basemapDom = dom.byId("basemapGallery").firstChild.children;
-										for (var p = 0; p < basemapDom.length; p++) {
-											if (basemapDom[p].children[1].childNodes[0].nodeValue == item.item.title) {
-												basemapDom[p].attributes.class.value = "thumbnailcontainer small selected";
-												basemapDom[p].children[0].attributes.class.value = "thumbnail small selected";
-												basemapDom[p].children[1].attributes.class.value = "title small selected";
-												basemapDom[p].children[2].attributes.class.value = "title small selected";
-											} else {
-												basemapDom[p].attributes.class.value = "thumbnailcontainer small";
-												basemapDom[p].children[0].attributes.class.value = "thumbnail small";
-												basemapDom[p].children[1].attributes.class.value = "title small";
-												basemapDom[p].children[2].attributes.class.value = "title small";
-											}
-										}
-										basemapGallery.select(item.item.id);
-										mapBasemap = item.item.id;// save the selected basemap in a global
-										registry.byId("basemapTitlePane").toggle(); // close the panel
-									});
-									gallery.select(params.items[selected_id]); // highlight currently selected basemap, this opens the basemap pane.
-									registry.byId("basemapTitlePane").toggle(); // close the pane
-									gallery._slideDiv.style.width = 'auto';
-									// height of each basemap image and title is controled in layout.css .esriMobileGallery .thumbnailcontainer.small
-									gallery.startup();
-									dom.byId("basemapTitlePane").style.visibility = "visible";
-									dom.byId("basemapTitlePane").style.display = "block";
-									gallery.on("error", function (msg) {
-										alert("Basemap gallery error creating gallery in readConfig.js/addMap/basemapGallery.on('load'):  " + JSON.stringify(msg, null, 4), "Code Error");
-									});
-								});
-								basemapGallery.on("error", function (msg) {
-									alert("Basemap gallery error creating basemapGallery in readConfig.js/addMap/basemapGallery.on('load'):  " + JSON.stringify(msg, null, 4), "Code Error");
-								});
-								addWidgets();
-							} catch (e) {
-								alert("Error in readConfig.js/addMap " + e.message, "Code Error", e);
-							}
-						});
-					}
 					// set lods
 					// 4-19-17 added custom lods from 9M to 1K. Used to have 19 levels, now it has 12.
 					var customLods = [{
@@ -1082,13 +1212,22 @@ function readConfig() {
 					// Zoom to extent on startup if specified on url
 					if (queryObj.extent && queryObj.extent != "") {
 						var extArr = [];
+						
 						if (Object.prototype.toString.call(queryObj.extent) === '[object Array]')
 							extArr = queryObj.extent[0].split(",");
 						else
 							extArr = queryObj.extent.split(",");
+						// Check for XSS attach. Make sure all extent values are numbers
+						for (var i=0; i<4; i++){
+							if (isNaN(extArr[i])){
+								extArr[i] = 0;
+								alert("Problem reading map extent from the URL. This link is corrupted.","Warning");
+							}
+						}
 						var prj;
-						if (queryObj.prj && queryObj.prj != "")
+						if (queryObj.prj && queryObj.prj != ""){
 							prj = queryObj.prj;
+						}
 						else {
 							// check for lat long
 							if (extArr[0] < 0 && extArr[0] > -200) {
@@ -1096,7 +1235,7 @@ function readConfig() {
 							} else
 								prj = 26913;
 						}
-						var ext = new Extent({
+						ext = new Extent({
 								"xmin": parseFloat(extArr[0]),
 								"ymin": parseFloat(extArr[1]),
 								"xmax": parseFloat(extArr[2]),
@@ -1176,6 +1315,7 @@ function readConfig() {
 														// Zoom to point or polygon
 														require(["esri/geometry/Point", "esri/graphicsUtils", "esri/layers/GraphicsLayer", "esri/graphic", "esri/symbols/PictureMarkerSymbol"], function (Point, graphicsUtils, GraphicsLayer, Graphic, PictureMarkerSymbol) {
 															var pt;
+															var searchGraphicsLayer;
 															if (response.geometryType == "esriGeometryPoint") {
 																var level = 8; // 4-21-17 Updated lods, used to be 14
 																if (layer[i].getElementsByTagName("mapscale")[0] && layer[i].getElementsByTagName("mapscale")[0].firstChild)
@@ -1188,7 +1328,7 @@ function readConfig() {
 																map.centerAndZoom(pt, level);
 																if (queryObj.label && queryObj.label != "") {
 																	// add label to find a place graphics layer
-																	var searchGraphicsLayer = new GraphicsLayer();
+																	searchGraphicsLayer = new GraphicsLayer();
 																	searchGraphicsLayer.id = "searchgraphics" + searchGraphicsCounter;
 																	searchGraphicsCount.push(searchGraphicsLayer.id);
 																	searchGraphicsCounter++;
@@ -1204,7 +1344,7 @@ function readConfig() {
 																map.setExtent(response.features[0].geometry.getExtent(), true);
 																if (queryObj.label && queryObj.label != "") {
 																	// add label to find a place graphics layer
-																	var searchGraphicsLayer = new GraphicsLayer();
+																	searchGraphicsLayer = new GraphicsLayer();
 																	searchGraphicsLayer.id = "searchgraphics" + searchGraphicsCounter;
 																	searchGraphicsCount.push(searchGraphicsLayer.id);
 																	searchGraphicsCounter++;
