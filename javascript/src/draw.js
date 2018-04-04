@@ -261,10 +261,10 @@ function drawInit() {
 		}
 	}
 	
-    function getAreaAndLength(evtObj) {
-      var map = this, geometry = evtObj.geometry;
+  function getAreaAndLength(evtObj) {
+    var map = this, geometry = evtObj.geometry;
 	  var symbol;
-	   
+	  var mp;
 	  switch (geometry.type)
 	  {
 		case "point":
@@ -283,6 +283,12 @@ function drawInit() {
 				
 				var fontsize = registry.byId("textStyle").value;
 				label = document.getElementById("drawlabel").value;
+				// test for XSS attack. Pattern contains allowed characters. [^ ] means match any character that is not
+				// in the is set. \ escapes characters used by regex like .-'"|\
+				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g; 
+				if (regexp.test(label)) alert("Illegal characters were removed from the label.","Warning");
+				label=label.replace(regexp,""); // clean it
+
 				addLabel(labelPoint, label, drawTextGraphicsLayer, fontsize);
 				//map.addLayer(drawGraphicsLayer);
 			}
@@ -305,9 +311,15 @@ function drawInit() {
 				// Label with custom text
 				if (registry.byId("radioLabelCustom").checked && document.getElementById("customXYlabel").value != "") {
 					label = document.getElementById("customXYlabel").value;
+					// test for XSS attack. Pattern contains allowed characters. [^ ] means match any character that is not
+					// in the is set. \ escapes characters used by regex like .-'"|\
+					regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g; 
+					if (regexp.test(label)) alert("Illegal characters were removed from the label.","Warning");
+					label=label.replace(regexp,""); // clean it
+
 					if (registry.byId("labelXY").checked) addLabel(labelPoint, label, drawGraphicsLayer, "11pt");
 					if (registry.byId("pointUnits").value == "dd") {
-						var mp = webMercatorUtils.webMercatorToGeographic(point);
+						mp = webMercatorUtils.webMercatorToGeographic(point);
 						label = mp.y.toFixed(5)+" N, "+mp.x.toFixed(5)*-1+" W"; 
 						dom.byId("length").innerHTML = "Lat, Long: "+label;
 					}
@@ -345,7 +357,7 @@ function drawInit() {
 				else {
 					// decimal degrees
 					if (registry.byId("pointUnits").value == "dd") {
-						var mp = webMercatorUtils.webMercatorToGeographic(point);
+						mp = webMercatorUtils.webMercatorToGeographic(point);
 						label = mp.y.toFixed(5)+" N, "+mp.x.toFixed(5)*-1+" W"; 
 						if (registry.byId("labelXY").checked) addLabel(labelPoint, label, drawGraphicsLayer, "11pt");
 						dom.byId("length").innerHTML = "Lat, Long: "+label;
@@ -478,8 +490,14 @@ function drawInit() {
 			// addLabel is in javascript/utilFunc.js
 			if (registry.byId("labelLine").checked){
 				// Label with custom text
-				if (registry.byId("radioLabelLineCustom").checked && document.getElementById("customLineLabel").value != "") 
+				if (registry.byId("radioLabelLineCustom").checked && document.getElementById("customLineLabel").value != "") {
 					label = document.getElementById("customLineLabel").value;
+				  // test for XSS attack. Pattern contains allowed characters. [^ ] means match any character that is not
+					// in the is set. \ escapes characters used by regex like .-'"|\
+					regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g; 
+					if (regexp.test(label)) alert("Illegal characters were removed from the label.","Warning");
+					label=label.replace(regexp,""); // clean it
+				}
 				addLabel(labelPoint, label, drawGraphicsLayer, "11pt");
 			}
 			break;
@@ -511,6 +529,11 @@ function drawInit() {
 	  if (registry.byId("labelPoly").checked) {
 		if (registry.byId("radioLabelPolyCustom").checked && document.getElementById("customPolyLabel").value != "") {
 			label = document.getElementById("customPolyLabel").value;
+			// test for XSS attack. Pattern contains allowed characters. [^ ] means match any character that is not
+			// in the is set. \ escapes characters used by regex like .-'"|\
+			regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g; 
+			if (regexp.test(label)) alert("Illegal characters were removed from the label.","Warning");
+			label=label.replace(regexp,""); // clean it
 			addLabel(labelPoint, label, drawGraphicsLayer, "11pt");
 		}
 		else
@@ -682,7 +705,7 @@ function drawPoint(){
   require (["dojo/dom", "dijit/registry", "esri/SpatialReference", "esri/geometry/Point"], 
   function (dom,registry,SpatialReference,Point){
 
-	var inSR, label, myPoint, params, x, y;
+	var inSR, label, myPoint, params, x, y, deg;
 	// decimal degrees
 	if (registry.byId("pointUnits").value == "dd") {
 		x = Number(document.getElementById("pointXdd").value);
@@ -705,7 +728,7 @@ function drawPoint(){
 			alert("This point is not in Colorado. Latitude of 35 - 42. Longitude of 100 - 110.","Warning");
 			return;
 		}
-		var deg = Number(document.getElementById("pointXdeg").value);
+		deg = Number(document.getElementById("pointXdeg").value);
 		if (deg < 0) deg*=-1;
 		label = document.getElementById("pointYdeg").value+"° "+ Number(document.getElementById("pointYmin").value) +"' "+ Number(document.getElementById("pointYsec").value)+ "\" N, "+
 			deg+"° "+ Number(document.getElementById("pointXmin").value) +"' "+ Number(document.getElementById("pointXsec").value) +"\" W";
@@ -721,7 +744,7 @@ function drawPoint(){
 			alert("This point is not in Colorado. Latitude of 35 - 42. Longitude of 100 - 110.","Warning");
 			return;
 		}
-		var deg = Number(document.getElementById("pointXddm").value);
+		deg = Number(document.getElementById("pointXddm").value);
 		if (deg < 0) deg*=-1;
 		label = document.getElementById("pointYddm").value+"° "+ Number(document.getElementById("pointYmindm").value) +"' N, "+
 			deg+"° "+ Number(document.getElementById("pointXmindm").value) +"' W";
@@ -855,119 +878,126 @@ function drawMultiPoint() {
 // Mark current location
 //-----------------------
 function drawCurrentLocation(){
+	function zoomToLocation(location) {
+		require(["dojo/dom","dijit/registry","esri/geometry/Point","esri/SpatialReference","esri/tasks/GeometryService","esri/geometry/webMercatorUtils"],
+		function(dom,registry,Point,SpatialReference,GeometryService,webMercatorUtils){	
+			var point = webMercatorUtils.geographicToWebMercator(new Point(location.coords.longitude, location.coords.latitude));
+			var label;
+			var coord;
+			// Label with custom text
+			if (registry.byId("radioLabelCustom").checked && document.getElementById("customXYlabel").value != "") {
+				label = document.getElementById("customXYlabel").value;
+				// test for XSS attack. Pattern contains allowed characters. [^ ] means match any character that is not
+				// in the is set. \ escapes characters used by regex like .-'"|\
+				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g; 
+				if (regexp.test(label)) alert("Illegal characters were removed from the label.","Warning");
+				label=label.replace(regexp,""); // clean it
+
+				if (registry.byId("pointUnits").value == "dd") {
+					coord = location.coords.latitude.toFixed(5)+" N, "+location.coords.longitude.toFixed(5)*-1+" W (plus or minus "+location.coords.accuracy+" meters)"; 
+					dom.byId("length").innerHTML = "Lat, Long: "+coord;
+					projectPointAndLabel(label,point);
+				}
+				// degress, decimal minutes
+				else if (registry.byId("pointUnits").value == "dm"){
+					xy = mappoint_to_dm(point,false); // found in utilFunc.js. false means do add a zero in front of min
+					coord = xy[0]+" N, "+xy[1]+" W (plus or minus "+location.coords.accuracy+" meters)"; 
+					dom.byId("length").innerHTML = "Lat, Long: "+coord;
+					projectPointAndLabel(label,point);
+				}
+				// deg, min, sec
+				else if (registry.byId("pointUnits").value == "dms") {
+					xy = mappoint_to_dms(point,false); // found in utilFunc.js. false means do add a zero in front of min
+					coord = xy[0]+" N, "+xy[1]+" W (plus or minus "+location.coords.accuracy+" meters)"; 
+					dom.byId("length").innerHTML = "Lat, Long: "+coord;
+					projectPointAndLabel(label,point);
+				}
+				// utm
+				else {
+					// converts point to selected projection
+					require(["esri/tasks/ProjectParameters"], function(ProjectParameters) {
+						var params = new ProjectParameters();
+						params.geometries = [point];
+						params.outSR = new SpatialReference(Number(registry.byId("pointUnits").value));
+						geometryService.project(params, function (feature) {
+							coord = feature[0].x.toFixed(0) +", " +feature[0].y.toFixed(0)+ " (plus or minus "+location.coords.accuracy+" meters)";
+							dom.byId("length").innerHTML = "UTM: "+coord;
+							projectPointAndLabel(label,point);
+						}, function (err) {
+							alert("Problem projecting point. "+err.message,"Warning");
+						});
+					});
+				}
+			}
+			// Label with XY Coordinate
+			else {
+				// decimal degrees
+				if (registry.byId("pointUnits").value == "dd") {
+					label = location.coords.latitude.toFixed(5)+" N, "+location.coords.longitude.toFixed(5)*-1+" W";  
+					dom.byId("length").innerHTML = "Lat, Long: "+label+" (plus or minus "+location.coords.accuracy+" meters)";
+					projectPointAndLabel(label,point);
+				}
+				// degress, decimal minutes
+				else if (registry.byId("pointUnits").value == "dm"){
+					xy = mappoint_to_dm(point,false); // found in utilFunc.js. false means do add a zero in front of min
+					label = xy[0]+" N, "+xy[1]+" W"; 
+					dom.byId("length").innerHTML = "Lat, Long: "+label+" (plus or minus "+location.coords.accuracy+" meters)";
+					projectPointAndLabel(label,point);
+				}
+				// deg, min, sec
+				else if (registry.byId("pointUnits").value == "dms") {
+					xy = mappoint_to_dms(point,false); // found in utilFunc.js. false means do add a zero in front of min
+					label = xy[0]+" N, "+xy[1]+" W"; 
+					dom.byId("length").innerHTML = "Lat, Long: "+label+" (plus or minus "+location.coords.accuracy+" meters)";
+					projectPointAndLabel(label,point);
+				}
+				// utm
+				else {
+					require(["esri/tasks/ProjectParameters"], function(ProjectParameters) {
+						var params = new ProjectParameters();
+						params.geometries = [point];
+						params.outSR = new SpatialReference(Number(registry.byId("pointUnits").value));
+						// converts point to selected projection
+						geometryService.project(params, function (feature) {
+							label = feature[0].x.toFixed(0) +", " +feature[0].y.toFixed(0);
+							dom.byId("length").innerHTML = "UTM: "+label+" (plus or minus "+location.coords.accuracy+" meters)";
+							projectPointAndLabel(label,point);
+							params = null;
+						}, function (err) {
+							alert("Problem projecting point. "+err.message,"Warning");
+							params = null;
+						});
+					});
+				}
+			}
+			// display point in measurements box
+			document.getElementById("measurements").style.visibility = "visible";
+			document.getElementById("measurements").style.display = "block";
+			dom.byId("area").innerHTML = "";
+		});
+	}
+	function locationError(error) {
+		switch (error.code) {
+			case error.PERMISSION_DENIED:
+				alert("Location not provided. Permission denied.","Warning");
+				break;
+
+			case error.POSITION_UNAVAILABLE:
+				alert("Current location not available.","Note");
+				break;
+
+			case error.TIMEOUT:
+				alert("Timeout while getting current location. Please try again.","Note");
+				break;
+
+			default:
+			 alert("Warning: problem while getting current location. "+error.message,"Warning");
+			 break;
+		}
+	}
 	if (navigator.geolocation) {
 		drawExit();
-		function zoomToLocation(location) {
-			require(["dojo/dom","dijit/registry","esri/geometry/Point","esri/SpatialReference","esri/tasks/GeometryService","esri/geometry/webMercatorUtils"],
-			function(dom,registry,Point,SpatialReference,GeometryService,webMercatorUtils){	
-				var point = webMercatorUtils.geographicToWebMercator(new Point(location.coords.longitude, location.coords.latitude));
-				var label;
-				var coord;
-				// Label with custom text
-				if (registry.byId("radioLabelCustom").checked && document.getElementById("customXYlabel").value != "") {
-					label = document.getElementById("customXYlabel").value;
-					if (registry.byId("pointUnits").value == "dd") {
-						coord = location.coords.latitude.toFixed(5)+" N, "+location.coords.longitude.toFixed(5)*-1+" W (plus or minus "+location.coords.accuracy+" meters)"; 
-						dom.byId("length").innerHTML = "Lat, Long: "+coord;
-						projectPointAndLabel(label,point);
-					}
-					// degress, decimal minutes
-					else if (registry.byId("pointUnits").value == "dm"){
-						xy = mappoint_to_dm(point,false); // found in utilFunc.js. false means do add a zero in front of min
-						coord = xy[0]+" N, "+xy[1]+" W (plus or minus "+location.coords.accuracy+" meters)"; 
-						dom.byId("length").innerHTML = "Lat, Long: "+coord;
-						projectPointAndLabel(label,point);
-					}
-					// deg, min, sec
-					else if (registry.byId("pointUnits").value == "dms") {
-						xy = mappoint_to_dms(point,false); // found in utilFunc.js. false means do add a zero in front of min
-						coord = xy[0]+" N, "+xy[1]+" W (plus or minus "+location.coords.accuracy+" meters)"; 
-						dom.byId("length").innerHTML = "Lat, Long: "+coord;
-						projectPointAndLabel(label,point);
-					}
-					// utm
-					else {
-						// converts point to selected projection
-						require(["esri/tasks/ProjectParameters"], function(ProjectParameters) {
-							var params = new ProjectParameters();
-							params.geometries = [point];
-							params.outSR = new SpatialReference(Number(registry.byId("pointUnits").value));
-							geometryService.project(params, function (feature) {
-								coord = feature[0].x.toFixed(0) +", " +feature[0].y.toFixed(0)+ " (plus or minus "+location.coords.accuracy+" meters)";
-								dom.byId("length").innerHTML = "UTM: "+coord;
-								projectPointAndLabel(label,point);
-							}, function (err) {
-								alert("Problem projecting point. "+err.message,"Warning");
-							});
-						});
-					}
-				}
-				// Label with XY Coordinate
-				else {
-					// decimal degrees
-					if (registry.byId("pointUnits").value == "dd") {
-						label = location.coords.latitude.toFixed(5)+" N, "+location.coords.longitude.toFixed(5)*-1+" W";  
-						dom.byId("length").innerHTML = "Lat, Long: "+label+" (plus or minus "+location.coords.accuracy+" meters)";
-						projectPointAndLabel(label,point);
-					}
-					// degress, decimal minutes
-					else if (registry.byId("pointUnits").value == "dm"){
-						xy = mappoint_to_dm(point,false); // found in utilFunc.js. false means do add a zero in front of min
-						label = xy[0]+" N, "+xy[1]+" W"; 
-						dom.byId("length").innerHTML = "Lat, Long: "+label+" (plus or minus "+location.coords.accuracy+" meters)";
-						projectPointAndLabel(label,point);
-					}
-					// deg, min, sec
-					else if (registry.byId("pointUnits").value == "dms") {
-						xy = mappoint_to_dms(point,false); // found in utilFunc.js. false means do add a zero in front of min
-						label = xy[0]+" N, "+xy[1]+" W"; 
-						dom.byId("length").innerHTML = "Lat, Long: "+label+" (plus or minus "+location.coords.accuracy+" meters)";
-						projectPointAndLabel(label,point);
-					}
-					// utm
-					else {
-						require(["esri/tasks/ProjectParameters"], function(ProjectParameters) {
-							var params = new ProjectParameters();
-							params.geometries = [point];
-							params.outSR = new SpatialReference(Number(registry.byId("pointUnits").value));
-							// converts point to selected projection
-							geometryService.project(params, function (feature) {
-								label = feature[0].x.toFixed(0) +", " +feature[0].y.toFixed(0);
-								dom.byId("length").innerHTML = "UTM: "+label+" (plus or minus "+location.coords.accuracy+" meters)";
-								projectPointAndLabel(label,point);
-								params = null;
-							}, function (err) {
-								alert("Problem projecting point. "+err.message,"Warning");
-								params = null;
-							});
-						})
-					}
-				}
-				// display point in measurements box
-				document.getElementById("measurements").style.visibility = "visible";
-				document.getElementById("measurements").style.display = "block";
-				dom.byId("area").innerHTML = "";
-			});
-		}
-		function locationError(error) {
-			switch (error.code) {
-				case error.PERMISSION_DENIED:
-				  alert("Location not provided. Permission denied.","Warning");
-				  break;
-
-				case error.POSITION_UNAVAILABLE:
-				  alert("Current location not available.","Note");
-				  break;
-
-				case error.TIMEOUT:
-				  alert("Timeout while getting current location. Please try again.","Note");
-				  break;
-
-				default:
-				 alert("Warning: problem while getting current location. "+error.message,"Warning");
-				 break;
-			}
-		}
+		
 		//if you want to track as the user moves setup navigator.geolocation.watchPostion
 		var options = {enableHighAccuracy:true};
 		navigator.geolocation.getCurrentPosition(zoomToLocation, locationError,options);
@@ -976,7 +1006,6 @@ function drawCurrentLocation(){
         alert("Your browser doesn't support Geolocation. Visit http://caniuse.com to see browser support for the Geolocation API.","Warning");
     }
 }
-
 
 function addPoints(points,sr) {
 	// New short url parameters for way pts:
@@ -997,14 +1026,15 @@ function addPoints(points,sr) {
 		var semiColon = /;/g;
 		var min = /\\'/g;
 		var sec = /\\"/g;
+		var symbol, label, point, size, ptColor, outlineColor, pointItems;
 		for (i=0; i<pointArr.length; i++){
-			var pointItems = pointArr[i].split("|");
+			pointItems = pointArr[i].split("|");
 			drawGraphicsLayer = new GraphicsLayer();
 			drawGraphicsLayer.id = "drawgraphics"+drawGraphicsCounter;
 			drawGraphicsCount.push(drawGraphicsLayer.id);
 			drawGraphicsCounter++;
 			document.getElementById("clearGraphics").style.visibility = "visible";
-			var symbol, point, label=null, size, ptColor, outlineColor;
+			label=null;
 
 			// New format: points = size|color|x|y|label|desc
 			if (pointItems.length >= 4 && pointItems.length < 7) {
@@ -1101,8 +1131,9 @@ function addLines(lines, sr) {
 		var semiColon = /;/g;
 		var min = /\\'/g;
 		var sec = /\\"/g;
+		var lineItems, line;
 		for (i=0; i<lineArr.length; i++){
-			var lineItems = lineArr[i].split("|");
+			lineItems = lineArr[i].split("|");
 			drawGraphicsLayer = new GraphicsLayer();
 			drawGraphicsLayer.id = "drawgraphics"+drawGraphicsCounter;
 			drawGraphicsCount.push(drawGraphicsLayer.id);
@@ -1126,7 +1157,7 @@ function addLines(lines, sr) {
 			var paths = [];
 			// Add each path
 			var pos = 5;
-			var line = new Polyline(sr);
+			line = new Polyline(sr);
 			for (j=0; j<lineItems[4]; j++) { // get each path
 				var numPoints = lineItems[pos++];
 				for (k=0; k<numPoints; k++) { // get each point
@@ -1134,7 +1165,7 @@ function addLines(lines, sr) {
 					points.push(parseFloat(lineItems[pos++]));
 					points.push(parseFloat(lineItems[pos++]));
 					paths.push(points);
-					points = null
+					points = null;
 				}
 				line.addPath(paths);
 				paths = null;
@@ -1173,8 +1204,9 @@ function addPolys(polys,sr){
 		var semiColon = /;/g;
 		var min = /\\'/g;
 		var sec = /\\"/g;
+		var polyItems, poly;
 		for (i=0; i<polyArr.length; i++){
-			var polyItems = polyArr[i].split("|");
+			polyItems = polyArr[i].split("|");
 			drawGraphicsLayer = new GraphicsLayer();
 			drawGraphicsLayer.id = "drawgraphics"+drawGraphicsCounter;
 			drawGraphicsCount.push(drawGraphicsLayer.id);
@@ -1214,7 +1246,7 @@ function addPolys(polys,sr){
 			var rings = [];
 			// Add each ring
 			var pos = 7;
-			var poly = new Polygon(sr);
+			poly = new Polygon(sr);
 			for (j=0; j<polyItems[6]; j++) { // get each ring
 				var numPoints = polyItems[pos++];
 				for (k=0; k<numPoints; k++) { // get each point
@@ -1262,8 +1294,9 @@ function addRects(rects,sr){
 		var semiColon = /;/g;
 		var min = /\\'/g;
 		var sec = /\\"/g;
+		var poly,polyItems;
 		for (i=0; i<polyArr.length; i++){
-			var polyItems = polyArr[i].split("|");
+			polyItems = polyArr[i].split("|");
 			drawGraphicsLayer = new GraphicsLayer();
 			drawGraphicsLayer.id = "drawgraphics"+drawGraphicsCounter;
 			drawGraphicsCount.push(drawGraphicsLayer.id);
@@ -1314,7 +1347,7 @@ function addRects(rects,sr){
 			}
 			// Has all 5 points
 			else{
-				var poly = new Polygon(sr);
+				poly = new Polygon(sr);
 				for (j=0; j<5; j++) { 
 					points = [];
 					points.push(parseFloat(polyItems[pos++]));
@@ -1353,10 +1386,13 @@ function addLabels(labels,sr){
 	// &text=x|y|text|font|font size|color|bold as t or f|italic as t or f|underline as t or f
 	// font, color, bold, italic, and underline are not used in this version. They default to Helvetica, black, bold
 	require (["esri/graphic","esri/layers/GraphicsLayer","esri/geometry/Point"], function (Graphic, GraphicsLayer, Point) {
-	
+		var semiColon = /;/g;
+		var min = /\\'/g;
+		var sec = /\\"/g;
 		var textArr = labels.split(",");
+		var point, textItems, labelPoint;
 		for (i=0; i<textArr.length; i++){
-			var textItems = textArr[i].split("|");
+			textItems = textArr[i].split("|");
 			drawTextGraphicsLayer = new GraphicsLayer();
 			drawTextGraphicsLayer.id = "drawtextgraphics"+drawTextGraphicsCounter;
 			drawTextGraphicsCount.push(drawTextGraphicsLayer.id);
@@ -1364,9 +1400,10 @@ function addLabels(labels,sr){
 			document.getElementById("clearText").style.visibility = "visible";
 			
 			var fontsize = textItems[4];
+			textItems[2]=textItems[2].replace(semiColon,",").replace(min,"'").replace(sec,"\"");
 			var label = decodeURIComponent(textItems[2]);
-			var point = new Point(parseFloat(textItems[0]), parseFloat(textItems[1]), sr);
-			var labelPoint = new Graphic(point);
+			point = new Point(parseFloat(textItems[0]), parseFloat(textItems[1]), sr);
+			labelPoint = new Graphic(point);
 			addLabel(labelPoint, label, drawTextGraphicsLayer, fontsize);
 			map.addLayer(drawTextGraphicsLayer);
 			//console.log("added label: "+label+" fontsize="+fontsize+" x="+textItems[0]+" y="+textItems[1]);
