@@ -196,16 +196,16 @@
 	   	<folder label="Public Lands">
 			<!-- CPW Properties -->
 			<layer label="CPW Public Access Properties">
-		     	<id>96</id>
-	    	  	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+		     	<id>3</id>
+	    	  	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
            		<geometry>polygon</geometry>
 		      	<fields>PropName</fields>
 		      	<displaynames>CPW Property Name</displaynames>
 	   		</layer>
 			<!-- COMaP v10 -->
 			<layer label="Land Management (COMaP v10)">
-		    	<id>97</id>
-	    	  	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+		    	<id>4</id>
+	    	  	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/CHA_AssetReport_Data/MapServer/</url>
            		<geometry>polygon</geometry>
 		      	<fields>NAME,MANAGER</fields>
 		      	<displaynames>Property Name,Land Manager</displaynames>
