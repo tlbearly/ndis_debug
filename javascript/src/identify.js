@@ -272,8 +272,8 @@ function readSettingsWidget() {
                                 else
                                     identifyLayers[identifyGroups[f]][label].displaynames = layer[i].getElementsByTagName("displaynames")[0].childNodes[0].nodeValue.split(",");
 
-                                // Add Bighorn Sheep and Mountain Goat GMUs
-                                if (label == "Big Game GMU") {
+                                // Add ability to identify sheep and goat GMUs. 4-18-18 change label to Big Game GMU Boundaries for use with AssetReport_Data mapservice
+	                              if (label == "Big Game GMU Boundaries") {
                                     identifyLayers[identifyGroups[f]]["Bighorn GMU"] = new Object();
                                     identifyLayers[identifyGroups[f]]["Bighorn GMU"].url = settings.sheepUrl.slice(0, settings.sheepUrl.length - 2);
                                     identifyLayers[identifyGroups[f]]["Bighorn GMU"].id = settings.sheepUrl.slice(settings.sheepUrl.length - 1);
