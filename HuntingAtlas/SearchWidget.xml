@@ -100,7 +100,7 @@
 	<layers>
 		<layer>
 			<name>CPW public access properties</name>
-			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/99</url>
+			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/3</url>
 			<expression>UPPER(PropName) LIKE UPPER('%[value]%')</expression>
 			<graphicalexpression></graphicalexpression>
 			<searchfield>PropName</searchfield>
@@ -164,7 +164,7 @@
 		</layer>
 		<layer>
 			<name>USGS topo map quadrangle</name>
-			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/103</url>
+			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/6</url>
 			<expression>UPPER(QUADNAME) LIKE UPPER('%[value]%')</expression>
 			<graphicalexpression></graphicalexpression>
 			<searchfield>QUADNAME</searchfield>
