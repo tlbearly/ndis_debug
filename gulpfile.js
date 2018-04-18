@@ -6,9 +6,11 @@
 // npm install --save-dev gulp-concat
 // npm install pump
 //
-// To minify run: gulp filename
+// To minify run: gulp filenameD (desktop) or filenameM (mobile) from the debug directory.
 // For example: gulp search
 // Will minify wwwroot/javascript/search.js and wwwroot/javascriptM/search.js
+// Example 2 merge all js files into one: gulp js
+// Will minify all debug/src/javascript files into ../javascript/libs_ver#.##.js
 var gulp = require('gulp');
 var uglify = require('gulp-uglify');
 var concat = require('gulp-concat');
@@ -65,7 +67,7 @@ gulp.task('js', function(err) {
             './javascript/src/utilFuncs.js',
             './javascript/src/xmlUtils.js'
         ])
-        .pipe(concat('libs.' + ver + '.js')),
+        .pipe(concat('libs_' + ver + '.js')),
         uglify(),
         gulp.dest('../javascript')
     ], err);
@@ -117,7 +119,7 @@ gulp.task('findPlaceD', function(err) {
 });
 
 // desktop gmu
-gulp.task('gmu', function(err) {
+gulp.task('gmuD', function(err) {
     pump([
         gulp.src('./javascript/src/gmu.js'),
         uglify(),
@@ -145,7 +147,7 @@ gulp.task('hb1298D', function(err) {
 });
 
 // desktop mapLink
-gulp.task('mapLink', function(err) {
+gulp.task('mapLinkD', function(err) {
     pump([
         gulp.src('./javascript/src/mapLink.js'),
         uglify(),
@@ -172,7 +174,7 @@ gulp.task('readConfigD', function(err) {
 });
 
 // desktop resourceReport
-gulp.task('resourceReport', function(err) {
+gulp.task('resourceReportD', function(err) {
     pump([
         gulp.src('./javascript/src/resourceReport.js'),
         uglify(),
@@ -236,13 +238,13 @@ gulp.task('jsM', function(err) {
             './javascriptM/src/wayPoints.js',
             './javascriptM/src/xmlUtils.js'
         ])
-        .pipe(concat('libs.' + ver + '.js')),
+        .pipe(concat('libs_' + ver + '.js')),
         uglify(),
         gulp.dest('../javascriptM')
     ], err);
 });
 
-gulp.task('Bookmark', function(err) {
+gulp.task('BookmarkM', function(err) {
     pump([
         gulp.src('./javascriptM/src/Bookmark.js'),
         uglify(),
@@ -274,7 +276,7 @@ gulp.task('findPlaceM', function(err) {
     ], err);
 });
 
-gulp.task('geo', function(err) {
+gulp.task('geoM', function(err) {
     pump([
         gulp.src('./javascriptM/src/geo.js'),
         uglify(),
@@ -282,7 +284,7 @@ gulp.task('geo', function(err) {
     ], err);
 });
 
-gulp.task('graphicFuncs', function(err) {
+gulp.task('graphicFuncsM', function(err) {
     pump([
         gulp.src('./javascriptM/src/graphicFuncs.js'),
         uglify(),
@@ -298,7 +300,7 @@ gulp.task('hb1298M', function(err) {
     ], err);
 });
 
-gulp.task('HelpWin', function(err) {
+gulp.task('HelpWinM', function(err) {
     pump([
         gulp.src('./javascriptM/src/HelpWin.js'),
         uglify(),
@@ -330,7 +332,7 @@ gulp.task('searchM', function(err) {
     ], err);
 });
 
-gulp.task('swipe', function(err) {
+gulp.task('swipeM', function(err) {
     pump([
         gulp.src('./javascriptM/src/swipe.js'),
         uglify(),
@@ -346,7 +348,7 @@ gulp.task('utilFuncsM', function(err) {
     ], err);
 });
 
-gulp.task('wayPoints', function(err) {
+gulp.task('wayPointsM', function(err) {
     pump([
         gulp.src('./javascriptM/src/wayPoints.js'),
         uglify(),
