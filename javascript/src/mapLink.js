@@ -144,7 +144,6 @@ function mlGetText() {
 		else url = "&text=";
 		var str = layer.symbol.text.replace(singleQuote,"\\%27").replace(doubleQuote,"\\%22").replace(/,/g,";");
 		url += parseInt(layer.geometry.x) + "|"	+ parseInt(layer.geometry.y) + "|" + str + "|"	+ "0|" + parseInt(layer.symbol.font.size) + "|0|t|f|f";
-		//+ layer.symbol.text.replace(singleQuote,"\\%27").replace(doubleQuote,"\\%22") + "|"
 	}
 	return url;
 }
