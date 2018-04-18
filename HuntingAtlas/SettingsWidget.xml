@@ -77,6 +77,7 @@
 //			displaynames = Comma delimited list of display names for the above fields.  Include hypertext link display text.
 //			vis_id = Required if id_vis_only is set to true for the folder. The layer id number in the mapservice of the 
 //				layer in the map to check if it is visible. Here id (above) would be the data layer id.
+//        NOTE does not work on multi scale threshhold layers like GMU, campgrounds, field offices, etc.
 //			vis_url = Required if id_vis_only is set to true for the folder. The layer url for the mapservice of the 
 //				layer in the map to check if it is visible. Here url (above) would be the data layer url.
 //
@@ -118,7 +119,7 @@
 	<use_map_link>true</use_map_link>
 	<use_get_extent>false</use_get_extent>
 	<use_gmus>true</use_gmus>
-	<gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/78</gmu_url>
+	<gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/2</gmu_url>
 	<gmu_field>GMUID</gmu_field>
 	<sheep_gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/79</sheep_gmu_url>
 	<sheep_gmu_field>BSGMU</sheep_gmu_field>
@@ -130,19 +131,39 @@
 	<elevation_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/CHA_Elevation/MapServer</elevation_url>
 	
 	<tree>
-		<folder label="GMU and Land Management" id_vis_only="true">
+	<folder label="Test ID Visible Layers Only" id_vis_only="true">
 			<!-- CPW Properties -->
 			<layer label="CPW Public Access Properties">
-		     	<!--id>99</id-->
 				<id>3</id>
-				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
-	    	  	<!--url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url-->
-           		<vis_id>99</vis_id>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
+        <vis_id>99</vis_id>
 				<vis_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</vis_url>
-           		<geometry>polygon</geometry>
-		      	<fields>PropName</fields>
-		      	<displaynames>CPW Property Name</displaynames>
-	   		</layer>
+        <geometry>polygon</geometry>
+		    <fields>PropName</fields>
+		   	<displaynames>CPW Property Name</displaynames>
+	   	</layer>
+			<!-- COMaP v8 -->
+			<layer label="Land Management (COMaP v10)">
+		   	<id>4</id>
+	     	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
+				<vis_id>100</vis_id>
+	     	<vis_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</vis_url>
+      	<geometry>polygon</geometry>
+		   	<fields>NAME,MANAGER</fields>
+		   	<displaynames>Property Name,Land Manager</displaynames>
+	   	</layer>
+		</folder>
+
+
+		<folder label="GMU and Land Management">
+			<!-- CPW Properties -->
+			<layer label="CPW Public Access Properties">
+				<id>3</id>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
+        <geometry>polygon</geometry>
+		    <fields>PropName</fields>
+		   	<displaynames>CPW Property Name</displaynames>
+	   	</layer>
 			<!-- WIA Small Game ONLY -->
 			<!--
 			<layer label="Small Game ONLY">
@@ -165,102 +186,98 @@
 			-->
 			<!-- COMaP v8 -->
 			<layer label="Land Management (COMaP v10)">
-		    	<id>4</id>
-	    	  	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
-				<vis_id>100</vis_id>
-	    	  	<vis_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</vis_url>
-           		<geometry>polygon</geometry>
-		      	<fields>NAME,MANAGER</fields>
-		      	<displaynames>Property Name,Land Manager</displaynames>
-	   		</layer>
-			<!-- GMU -->
-			<layer label="Big Game GMU">
+		   	<id>4</id>
+	     	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
+      	<geometry>polygon</geometry>
+		   	<fields>NAME,MANAGER</fields>
+		   	<displaynames>Property Name,Land Manager</displaynames>
+	   	</layer>
+			<!-- GMU      NOTE: cannot use vis_id with GMU -->
+			<layer label="Big Game GMU Boundaries">
 				<id>2</id>
-	    	  	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
-	    		<vis_id>78</vis_id>
-	    		<vis_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</vis_url>
-	        	<geometry>polygon</geometry>
-		      	<fields>GMUID</fields>
-	    	  	<displaynames>GMU Number</displaynames>
-	   		</layer>	
+	     	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
+	     	<geometry>polygon</geometry>
+		   	<fields>GMUID</fields>
+	     	<displaynames>GMU Number</displaynames>
+	   	</layer>	
 		</folder>
 		
 		<folder label="Contact Info">
 			<layer label="Contact Info">
-	    		<id>1</id>
-	    		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
-	        	<geometry>polygon</geometry>
-		      	<fields>COUNTYNAME,CDOW_Area,CDOW_AWM,CDOW_FOName,CDOW_FOAddress,CDOW_FOCity,CDOW_FOPhone,CDOW_District,CDOW_DWM</fields>
-	    	  	<displaynames>County,CPW Area,Area Manager,Office Name,Address,City,Phone,CPW District,District Manager</displaynames>
-	   		</layer>
-	   	</folder>
+	    	<id>1</id>
+	    	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
+	      <geometry>polygon</geometry>
+		    <fields>COUNTYNAME,CDOW_Area,CDOW_AWM,CDOW_FOName,CDOW_FOAddress,CDOW_FOCity,CDOW_FOPhone,CDOW_District,CDOW_DWM</fields>
+	    	<displaynames>County,CPW Area,Area Manager,Office Name,Address,City,Phone,CPW District,District Manager</displaynames>
+	   	</layer>
+	  </folder>
 	   	
-	   	<folder label="Hunter Resources">
+	  <folder label="Hunter Resources">
 			<desc>Hunter resources include: campgrounds, license agents, hospitals and sherrif's offices, field offices, welcome centers, and chamber of commerce.</desc>
 			<!-- Campground  -->
 			<layer label="Campground">
-	    	 	<id>47</id>
-	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
-	           	<geometry>point</geometry>
-		      	<fields>Name,Manager,CGPropertyName,CGReservable,URL1</fields>
-	    	  	<displaynames>Name,Manager,Property Name,Reservable,More Information</displaynames>
-	   		</layer>	
+	    	<id>47</id>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+				<geometry>point</geometry>
+				<fields>Name,Manager,CGPropertyName,CGReservable,URL1</fields>
+				<displaynames>Name,Manager,Property Name,Reservable,More Information</displaynames>
+	   	</layer>	
 			<!-- Emergency -->
 			<layer label="Emergency">
-	      		<id>25</id>
-	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
-           		<geometry>point</geometry>
-	      		<fields>Name,Address,City,Phone</fields>
-	      		<displaynames>Name,Address,City,Phone</displaynames>
-	   		</layer>
+				<id>25</id>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+				<geometry>point</geometry>
+				<fields>Name,Address,City,Phone</fields>
+				<displaynames>Name,Address,City,Phone</displaynames>
+	   	</layer>
 			<!-- Field Office -->
 			<layer label="Field Office">
-	      		<id>14</id>
-	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
-           		<geometry>point</geometry>
-	      		<fields>Name,Address,City,Phone</fields>
-	      		<displaynames>Name,Address,City,Phone</displaynames>
-	   		</layer>
+				<id>14</id>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+				<geometry>point</geometry>
+				<fields>Name,Address,City,Phone</fields>
+				<displaynames>Name,Address,City,Phone</displaynames>
+	   	</layer>
 			<!-- Chamber of Commerce or Welcome Center -->
 			<layer label="Chamber of Commerce or Welcome Center">
-	      		<id>36</id>
-	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
-           		<geometry>point</geometry>
-	      		<fields>Name,Address,City,Phone</fields>
-	      		<displaynames>Name,Address,City,Phone</displaynames>
-	   		</layer>
+				<id>36</id>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+				<geometry>point</geometry>
+				<fields>Name,Address,City,Phone</fields>
+				<displaynames>Name,Address,City,Phone</displaynames>
+	   	</layer>
 			<!-- License Agent  -->
 			<layer label="License Agent">
-	      		<id>3</id>
-	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
-           		<geometry>point</geometry>
-	      		<fields>Name,Address,City,Phone</fields>
-	      		<displaynames>Name,Address,City,Phone</displaynames>
-	   		</layer>
+				<id>3</id>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+				<geometry>point</geometry>
+				<fields>Name,Address,City,Phone</fields>
+				<displaynames>Name,Address,City,Phone</displaynames>
+	   	</layer>
 		</folder>
 		
 		<folder label="Field Map Finder">
 			<layer label="Forest Service map">
-	    		<id>102</id>
-	    		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
-	        	<geometry>polygon</geometry>
-		      	<fields>MapName,URL</fields>
-	    	  	<displaynames>USFS Map Name,USFS Map Link</displaynames>
-	   		</layer>
+				<id>5</id>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
+				<geometry>polygon</geometry>
+				<fields>MapName,URL</fields>
+				<displaynames>USFS Map Name,USFS Map Link</displaynames>
+	   	</layer>
 			<layer label="USGS Topo Quad">
-	    		<id>103</id>
-	    		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
-	        	<geometry>polygon</geometry>
-		      	<fields>QUADNAME</fields>
-	    	  	<displaynames>USGS Quad Name</displaynames>
-	   		</layer> 
+	    	<id>6</id>
+	    	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
+				<geometry>polygon</geometry>
+				<fields>QUADNAME</fields>
+				<displaynames>USGS Quad Name</displaynames>
+	   	</layer> 
 			<layer label="BLM/USGS 100K map">
-	    		<id>104</id>
-	    		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
-	        	<geometry>polygon</geometry>
-		      	<fields>QUAD_NAME</fields>
-	    	  	<displaynames>BLM or USGS 100K Map Name</displaynames>
-	   		</layer>
+	    	<id>7</id>
+	    	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
+				<geometry>polygon</geometry>
+				<fields>QUAD_NAME</fields>
+				<displaynames>BLM or USGS 100K Map Name</displaynames>
+	   	</layer>
 	   	</folder>
 	</tree>
 </configuration>
