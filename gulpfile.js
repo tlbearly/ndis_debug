@@ -7,7 +7,7 @@
 // npm install pump
 //
 // To minify run: gulp filenameD (desktop) or filenameM (mobile) from the debug directory.
-// For example: gulp search
+// For example: gulp searchD
 // Will minify wwwroot/javascript/search.js and wwwroot/javascriptM/search.js
 // Example 2 merge all js files into one: gulp js
 // Will minify all debug/src/javascript files into ../javascript/libs_ver#.##.js
