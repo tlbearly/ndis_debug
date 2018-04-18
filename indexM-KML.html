@@ -1,0 +1,851 @@
+<!DOCTYPE HTML>
+<?php
+// Force browser, ISP, etc. to refresh their cache for this file.
+// Date in the past
+header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+// always modified
+header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+// HTTP/1.1
+header("Cache-Control: no-store, no-cache, must-revalidate");
+header("Cache-Control: post-check=0, pre-check=0", false);
+// HTTP/1.0
+header("Pragma: no-cache");
+?>
+    <html>
+
+    <head>
+        <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+        <meta content="utf-8" http-equiv="encoding">
+        <!--meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no"/-->
+        <!-- Safari iOS apps only -->
+        <!-- Sets whether a web application runs in full-screen mode when the user has added it to their home screen -->
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <!-- black-translucent the clock and battery overlay -->
+        <!-- Chrome for Android runs in full scrren mode when added to home screen -->
+        <meta name="mobile-web-app-capable" content="yes">
+        <!-- defines standalone web app for Chrome. The manifest.json file must be in this directory. -->
+        <link rel="manifest" href="manifest.json">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+        <!-- icon in browser tab -->
+        <link rel="shortcut icon" href="assets/images/favicon.png" />
+        <link rel="icon" type="image/png" href="assets/images/favicon.png" />
+        <link rel="apple-touch-icon" href="assets/images/cpwseal.png" />
+        <link rel="apple-touch-icon" href="assets/images/cpwlogo_48x48.png" sizes="57x57" />
+        <link rel="apple-touch-icon" href="assets/images/cpwseal.png" sizes="114x114" />
+        <link rel="apple-touch-startup-image" href="assets/images/cpwseal.png" sizes="114x114" />
+        <!-- supposed to show the icon on startup, but does nothing! -->
+        <link rel="apple-touch-startup-image" href="assets/images/cpwseal.png" sizes="320x460" media="(max-device-width: 480px) and not (-webkit-min-device-pixel-ratio: 2)" />
+        <link rel="apple-touch-startup-image" href="assets/images/cpwseal.png" sizes="640x920" media="(max-device-width: 480px) and (-webkit-min-device-pixel-ratio: 2)" />
+        <link rel="apple-touch-startup-image" href="assets/images/cpwseal.png" sizes="768x1004" media="screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation:portrait)" />
+        <link rel="apple-touch-startup-image" href="assets/images/cpwseal.png" sizes="1024x748" media="screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation:landscape)" />
+
+        <!-- CSS files -->
+        <!-- When update esri version download css files also. Put in directory matching the version -->
+        <link rel="stylesheet" type="text/css" href="assets/css/3.23/iphone.css" />
+        <!--Download from: https://js.arcgis.com/3.23compact/dojox/mobile/themes/iphone/iphone.css"/-->
+        <link rel="stylesheet" type="text/css" href="assets/css/3.23/esri.css" />
+        <!--Download from: https://js.arcgis.com/3.23/esri/css/esri.css" /-->
+        <link rel="stylesheet" type="text/css" href="assets/css/3.23/image.css" />
+        <!--Download from: https://js.arcgis.com/3.23compact/dojox/image/resources/image.css"-->  
+        <link rel="stylesheet" href="javascriptM/toc/build/agsjs/css/agsjs.css" />
+        <!-- Available themes: claro, tundra, soria, and nihilo.-->
+        <!-- Feature Search combo box styles -->
+        <link rel="stylesheet" type="text/css" href="assets/css/3.23/soria.css" />
+        <!--Download from: https://js.arcgis.com/3.23/dijit/themes/soria/soria.css"/-->
+        <script type="text/javascript">
+            // agsjs is for legend/layerlist
+            // dojo-firebug and dojo-debug-messages = true is for debugging-->
+            // VERSION add next line to dojoConfig to update version.
+            // cacheBust: "v=3.3",
+            var dojoConfig = {
+                // FOR DEBUGGING
+                //cacheBust: Date.now(),
+                //packages: [
+                //	{ name: "javascript", location: location.pathname.replace(/\/[^/]+$/, "")+ "/javascriptM/src" },
+                //	{ name: "agsjs", location: location.pathname.replace(/\/[^/]+$/, "")+ "/javascriptM/toc/build/agsjs" },
+                //	{ name: "jsPDF", location: location.pathname.replace(/\/[^/]+$/, "")+ "/jsPDF" }
+                //],
+                //has: {
+                //	"dojo-debug-messages": true
+                //}
+                // Version for Bookmarks, HelpWin, graphicFuncs
+                cacheBust: "v=3.6b",
+                packages: [{
+                    name: "javascript",
+                    location: location.pathname.replace(/\/[^/]+$/, "") + "/javascriptM/src"
+                }, {
+                    name: "agsjs",
+                    location: location.pathname.replace(/\/[^/]+$/, "") + "/javascriptM/toc/src/agsjs"
+                }, {
+                    name: "jsPDF",
+                    location: location.pathname.replace(/\/[^/]+$/, "") + "/jsPDF"
+                }],
+                has: {
+                    "dojo-debug-messages": false
+                }
+            };
+        </script>
+        <!-- Load our javascript. If last parameter is true it will load asyncronously. Else the script is fetched and executed immediately. -->
+        <script src="https://js.arcgis.com/3.23compact"></script>
+        <!-- Load external javascript files here. -->
+        <!--link rel="stylesheet" href="assets/css/layoutM.css?v=3.11"></script>
+		<script type="text/javascript" src="javascriptM/geo.js?v=3.11"></script>
+		<script type="text/javascript" src="javascriptM/disclaimer.js?v=3.11"></script>
+		<script type="text/javascript" src="javascriptM/errorBox.js?v=3.11"></script>
+		<script type="text/javascript" src="javascriptM/findPlace.js?v=3.11"></script>
+		<script type="text/javascript" src="javascriptM/src/identify.js?v=3.11"></script>
+		<script type="text/javascript" src="javascriptM/readConfig.js?v=3.12"></script>
+		<script type="text/javascript" src="javascriptM/search.js?v=3.11"></script>
+		<script type="text/javascript" src="javascriptM/swipe.js?v=3.11"></script>
+		<script type="text/javascript" src="javascriptM/utilFuncs.js?v=3.11"></script>
+		<script type="text/javascript" src="javascriptM/src/wayPoints.js?v=3.11"></script>
+		<script type="text/javascript" src="javascriptM/xmlUtils.js?v=3.11"></script-->
+        <script>
+            /* For DEBUGGING */
+            ///*
+            var jsVer = Date.now();
+            var path = "javascriptM/src";
+            document.write('<link rel="stylesheet" href="assets/css/layoutM.css?v=' + jsVer + '"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/geo.js?v=' + jsVer + '"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/disclaimer.js?v=' + jsVer + '"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/errorBox.js?v=' + jsVer + '"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/findPlace.js?v=' + jsVer + '"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/identify.js?v=' + jsVer + '"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/search.js?v=' + jsVer + '"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/swipe.js?v=' + jsVer + '"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/utilFuncs.js?v=' + jsVer + '"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/wayPoints.js?v=' + jsVer + '"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/xmlUtils.js?v=' + jsVer + '"><\/script>');
+            //*/
+        </script>
+        <!--script type="text/javascript" src="javascriptM/hb1298.js?v=3.1"></script-->
+        <script type="text/javascript" src="jsPDF/dist/jspdf.debug.js?v=3.2"></script>
+        <!-- Used by hb1298.js. This file is needed for saveAs funciton to save to disk -->
+
+        <!--script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCnamSJ8X7vZxYVby_V52kuveWx1jXx2SQ"></script><!-- for google maps elevation data. Used by Identify -->
+        <!--script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script-->
+        <!-- for google maps elevation data. Used by Identify -->
+
+        <script>
+            // Globals
+            var ndisVer = Date.now(); // for xml files
+            var queryObj;
+            var map, mapLayers = [],
+                legendLayers = [];
+            var initExtent, wkid;
+            var geometryService, geometryService2;
+            var myFindService;
+            // Initialize Widgets when clicked on in the menu
+            var searchFlag = false,
+                geoFlag = false,
+                tocFlag = false,
+                basemapFlag = false,
+                ptsFlag = false,
+                hb1298Flag = false,
+                wayPtFlag = false;
+            var gmu = "Big Game GMU";
+            // for multiple httprequests. Used in identify.js and resourceReport.js
+            var index;
+            var XMLHttpRequestObjects = []; // holds database call object
+            var dragging = false;
+            var drawing = false;
+            var measuring = false;
+            var infoWindowPopup;
+            var linkPopup;
+            var app;
+            var settings;
+            var mapBasemap = "streets";
+
+            // Calculate the widest width on the mobile device
+            //var maxPhoneSize = window.innerHeight || document.body.clientHeight;
+            //var phoneWidth = window.innerWidth || document.body.clientWidth;
+            //if (maxPhoneSize < phoneWidth) maxPhoneSize = phoneWidth;
+
+            require([
+                    "dojox/mobile/parser",
+                    "esri/config",
+                    "dojo/io-query",
+                    "dojox/mobile",
+                    "dojox/mobile/Button",
+                    "dojox/mobile/compat",
+                    "dojox/mobile/ContentPane",
+                    "dojox/mobile/SimpleDialog",
+                    "dojox/mobile/Heading",
+                    "dojox/mobile/Overlay",
+                    "dojox/mobile/Switch",
+                    "dojox/mobile/EdgeToEdgeList",
+                    "dojox/mobile/ListItem",
+                    "dojox/mobile/ToolBarButton",
+                    "dijit/registry",
+                    "dojo/domReady!"
+                ],
+                function(parser, esriConfig, ioquery) {
+                    // If not loaded as secure redirect to secure url
+                    if (window.location.href.indexOf("https") < 0) {
+                        var str = window.location.href;
+                        window.location = "https" + str.substring(4);
+                    }
+                    parser.parse();
+                    queryObj = ioquery.queryToObject(document.location.search.substr((document.location.search[0] === "?" ? 1 : 0)));
+                    app = queryObj.app;
+                    if (!app)
+                        app = "HuntingAtlas";
+                    else if ((app.toLowerCase() != "huntingatlas") &&
+                    (app.toLowerCase() != "fishingatlas") &&
+                    (app.toLowerCase() != "propertyfinder") &&
+                    (app.toLowerCase() != "stockingrestrictions")){
+                        app = "HuntingAtlas";
+                        alert("Application name not found. Defaulting to Hunting Atlas.","Notice");
+                    }
+                    // Sanitize user input. Protect against XSS attacks.
+                    // test for XSS attack. Pattern contains allowed characters. [^ ] means match any character that is not
+                    // in the is set. \ escapes characters used by regex like .-'"|\
+                    var regexp;
+                    // For labels allow ' " for degrees minutes seconds
+                    // Points
+                    if (queryObj.point){
+                        queryObj.point = queryObj.point.replace(/~/g, " "); // for email from mobile app
+                        regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.point)) alert("Illegal characters were removed from the points to load which were specified on the URL.","Warning");
+                        regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_*()])/g;
+                        queryObj.point=queryObj.point.replace(regexp,""); // clean it
+                    }
+                    // Lines
+                    if (queryObj.line){
+                        regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.line)) alert("Illegal characters were removed from the lines to load which were specified on the URL.","Warning");
+                        regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g;
+                        queryObj.line=queryObj.line.replace(regexp,""); // clean it
+                    }
+
+                    // Polygons
+                    if (queryObj.poly){
+                        regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.poly)) alert("Illegal characters were removed from the shapes (polygons) to load which were specified on the URL.","Warning");
+                        regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g;
+                        queryObj.poly=queryObj.poly.replace(regexp,""); // clean it
+                    }
+
+                    // Rectangles
+                    if (queryObj.rect){
+                        regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.rect)) alert("Illegal characters were removed from the rectangles to load which were specified on the URL.","Warning");
+                        regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g;
+                        queryObj.rect=queryObj.rect.replace(regexp,""); // clean it
+                    }
+                    
+                    // Text
+                    if (queryObj.text){
+                        regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.text)) alert("Illegal characters were removed from the labels to load which were specified on the URL.","Warning");
+                        regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g;
+                        queryObj.text=queryObj.text.replace(regexp,""); // clean it
+                    }
+
+                    // Layer
+                    if (queryObj.layer){
+                        queryObj.layer = queryObj.layer.replace(/~/g, " "); // for email from mobile app
+                        regexp=/([^a-zA-Z0-9 \-\|,\._()])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.layer)) alert("Illegal characters were removed from the layers to load which were specified on the URL.","Warning");
+                        //regexp=/([^a-zA-Z0-9 \-,\._()])/g; // Used if testing for \\ above
+                        queryObj.layer=queryObj.layer.replace(regexp,""); // clean it
+                    }
+
+                    // keyword
+                    if (queryObj.keyword){
+                        regexp=/([^a-zA-Z0-9 \-\._()])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.keyword)) alert("Illegal characters were removed from the keywords to load which were specified on the URL.","Warning");
+                        //regexp=/([^a-zA-Z0-9 \-\._()])/g; // Used if testing for \\ above
+                        queryObj.keyword=queryObj.keyword.replace(regexp,""); // clean it
+                    }
+
+                    // value
+                    if (queryObj.value){
+                        regexp=/([^a-zA-Z0-9 \-\',\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.value)) alert("Illegal characters were removed from the values to load which were specified on the URL.","Warning");
+                        regexp=/([^a-zA-Z0-9 \-\',\.!_*()])/g;
+                        queryObj.value=queryObj.value.replace(regexp,""); // clean it
+                    }
+
+                    // label
+                    if (queryObj.label){
+                        regexp=/([^a-zA-Z0-9 \-\',\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.label)) alert("Illegal characters were removed from the labels to load which were specified on the URL.","Warning");
+                        regexp=/([^a-zA-Z0-9 \-\',\.!_*()])/g;
+                        queryObj.label=queryObj.label.replace(regexp,""); // clean it
+                    }
+
+                    // map
+                    if (queryObj.map){
+                        regexp=/([^a-zA-Z0-9 \-,\._():\/])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.map)) alert("Illegal characters were removed from the map to load which were specified on the URL.","Warning");
+                        //regexp=/([^a-zA-Z0-9 \-\=,\._():\/])/g; // Used if testing for \\ above
+                        queryObj.map=queryObj.map.replace(regexp,""); // clean it
+                    }
+
+                    // map
+                    if (queryObj.field){
+                        regexp=/([^a-zA-Z0-9 \-_])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.field)) alert("Illegal characters were removed from the field to load which were specified on the URL.","Warning");
+                        //regexp=/([^a-zA-Z0-9 \-\=,\._():\/])/g; // Used if testing for \\ above
+                        queryObj.field=queryObj.field.replace(regexp,""); // clean it
+                    }
+
+                    // projection Only allow integers.
+                    if (queryObj.prj && isNaN(queryObj.prj)) {
+                        queryObj.prj = 102100;
+                        alert("Problem reading map projection from the URL, defaulting to WGS84.","Warning");
+                    }
+
+                    // Extent
+                    if (queryObj.extent){
+                        regexp=/([^0-9 \-,\.])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.extent)) alert("Illegal characters were removed from the map extent to load which were specified on the URL.","Warning");
+                        queryObj.extent=queryObj.extent.replace(regexp,""); // clean it
+                    }
+
+                    // Place
+                    if (queryObj.place){
+                        regexp=/([^a-zA-Z0-9 \-\',\.!_*():\\])/g; // allow \ for the test (\' \") but remove it for the clean, : used in degree, min, sec point
+                        if (regexp.test(queryObj.place)) alert("Illegal characters were removed from the places to load which were specified on the URL.","Warning");
+                        regexp=/([^a-zA-Z0-9 \-\',\.!_*():])/g;
+                        queryObj.place=queryObj.place.replace(regexp,""); // clean it
+                    }
+
+                    esriConfig.defaults.io.proxyUrl = "/proxy/DotNet/proxy.ashx";
+                    esriConfig.defaults.io.alwaysUseProxy = false;
+                    document.dojoClick = false; // fix Android graphics layer not recognizing click
+                    //esri.config.defaults.io.timeout = 180000; // increase timeout for printing from 60 seconds (60,000) to 3 minutes
+
+                    // scroll up after keyboard is closed to keep page from scrolling off of the screen and losing the header bar!
+                    document.addEventListener('focusout', function(e) {
+                        window.scrollTo(0, 0)
+                    });
+                    // in javascriptM/readConfig.js
+                    createMap();
+
+                    // Initialize menu swipe left
+                    swipedetect(document.getElementById("swipeleft"), function() {
+                        closeMenu();
+                    });
+                });
+            //onorientationchange doesn't always fire in a timely manner in Android so check for both orientationchange and resize
+            var supportsOrientationChange = "onorientationchange" in window,
+                orientationEvent = supportsOrientationChange ? "orientationchange" : "resize";
+            window.addEventListener(orientationEvent, function() {
+                orientationChanged();
+            }, false);
+
+            function orientationChanged() {
+                if (map) {
+                    map.reposition();
+                    map.resize();
+                }
+            }
+
+            // Initialize Basemaps& open dialog
+            function openBasemaps() {
+                // readConfig.js also call initBasemaps when load basemap from URL
+                // _loadBookmarks in Bookmark.js also calls initBasemaps
+                if (!basemapFlag) {
+                    initBasemaps();
+                    basemapFlag = true;
+                }
+                slideRight(document.getElementById("basemapPane"));
+                //document.getElementById("basemapPane").style.display="block";
+            }
+
+            // Initialize TOC & open dialog
+            function openTOC() {
+                // show toc window
+                slideRight(document.getElementById("tocPane"));
+                //document.getElementById("tocPane").style.display="block";
+                // _loadBookmarks in Bookmark.js also calls initTOC
+                if (!tocFlag) {
+                    require(["dojo/_base/lang"], function(lang) {
+                        window.setTimeout(lang.hitch(this, "initTOC"), 400);
+                    });
+                    tocFlag = true;
+                }
+            }
+
+            // Initialize Feature Search & open dialog
+            function openSearch() {
+                if (!searchFlag) {
+                    searchInit();
+                    searchFlag = true;
+                }
+                slideRight(document.getElementById("searchPane"));
+                //document.getElementById("searchPane").style.display="block";
+            }
+
+            // Initialize Way Points & open dialog
+            function openWayPts() {
+                if (!wayPtFlag) {
+                    wayPointInit();
+                    wayPtFlag = true;
+                }
+                slideRight(document.getElementById("wayPtsPane"));
+                //document.getElementById("wayPtsPane").style.display="block";
+            }
+
+            // Initialize Location
+            function openLocation() {
+                //if (!geoFlag){
+                init_geo();
+                //	geoFlag=true;
+                //}
+                //slideRight(document.getElementById("locationPane"));
+                //document.getElementById("locationPane").style.display="block";
+            }
+
+            function hideDisclaimer(event) {
+                event.stopImmediatePropagation();
+                require(['dijit/registry'], function(registry) {
+                    registry.byId('disclaimerDialog').hide();
+                });
+            }
+
+            // Initialize Bookmark
+            //function openBookmark(){
+            //	slideRight(document.getElementById("bookmarkPane"));
+            //document.getElementById("bookmarkPane").style.display="block";
+            //}
+
+            // Initialize HB1298
+            function openHB1298() {
+                slideRight(document.getElementById("hb1298Pane"));
+                if (!hb1298Flag) {
+                    HB1298init();
+                    hb1298Flag = true;
+                }
+                //document.getElementById("hb1298Pane").style.display="block";
+            }
+
+            function openLinks() {
+                // add link to email current map
+                require(["javascript/graphicFuncs", "dojo/dom-construct"], function(graphicFuncs, domConstruct) {
+                    var theLink;
+                    //var singleQuote = /'/g;
+                    //var doubleQuote = /"/g;
+                    var url = encodeURIComponent(graphicFuncs.getMapLink()).replace(/%20/g, "~").replace(/%0D/g, "%0D%0A"); // replace spaces with tildas
+                    if (url.length > 1024)
+                        theLink = "NOTE: This map link is very long so it may not be able to display all of the way points. Here is the map link:%0D%0A%0D%0A" + url;
+                    else
+                        theLink = url;
+                    var emailLink = domConstruct.create("span", {
+                        id: "emaillink",
+                        innerHTML: '<p class="link"><a href="mailto:?subject=Link to ' + app + ' map&body=' +
+                            'Here is a link to the Colorado Parks and Wildlife ' + app + ' with my custom view and way points.%0D%0A%0D%0A' +
+                            theLink + '"><img src="assets/images/i_mail.png"/>Email link to map</a></p>'
+                    });
+                    domConstruct.place(emailLink, "emaillink", "replace");
+                });
+
+                slideRight(document.getElementById("linksPane"));
+                //document.getElementById("linksPane").style.display="block";
+            }
+
+            function openMenu() {
+                //document.getElementById("menuView").style.left=0;
+                //document.getElementById("menuView").style.display="block";
+                // Clear Title & Description
+                document.getElementById("wayPtInputTitle").value = "";
+                document.getElementById("wayPtInputDesc").value = "";
+                slideRight(document.getElementById("menuView"));
+                document.getElementById('swipeleft').style.display = 'block';
+            }
+
+            function closeMenu() {
+                //document.getElementById("menuView").style.display="none";
+                slideLeft(document.getElementById("menuView"));
+                document.getElementById('swipeleft').style.display = 'none';
+            }
+
+            function slideRight(node) {
+                node.style.left = "-9000px"; // make sure it is offscreen before we show it
+                node.style.display = "block";
+                //var nodeStyle=window.getComputedStyle(node);
+                //var i = -1*(parseInt(nodeStyle.width)-10);
+                var i = -1 * (node.offsetWidth - 10);
+                node.style.left = i + "px";
+                var delay = 15,
+                    inc = 10;
+                var t1 = setInterval(function() {
+                    i += inc;
+                    if (i >= 0) {
+                        node.style.left = "0px";
+                        clearTimeout(t1);
+                    } else node.style.left = i + "px";
+                }, delay);
+            }
+
+            function slideLeft(node) {
+                //var nodeStyle=window.getComputedStyle(node);
+                //var amt = -1*(parseInt(nodeStyle.width)+10);
+                var amt = -1 * (node.offsetWidth + 10);
+                var i = 0;
+                var delay = 15,
+                    inc = 10;
+                var t1 = setInterval(function() {
+                    i -= inc;
+                    node.style.left = i + "px";
+                    if (i <= amt) {
+                        clearTimeout(t1);
+                        node.style.left = "-9000px"; // Move it way offscreen. Rotating phone was causing it to partially overlap menu.
+                    }
+                }, delay);
+            }
+        </script>
+    </head>
+
+    <body class="soria">
+        <noscript>You must have javascript enabled to run this site. Here are the <a href="http://www.enable-javascript.com/" target="_blank">
+ instructions how to enable JavaScript in your web browser</a>.</noscript>
+        <!-- Map -->
+        <div id="mapView">
+            <h1 id="webmapTitle" data-dojo-type="dojox/mobile/Heading">
+                <span data-dojo-type="dojox/mobile/ToolBarButton" data-dojo-props='icon:"assets/images/menu.png"' style="float:left;" onclick="openMenu();"></span>
+                <span data-dojo-type="dojox/mobile/ToolBarButton" data-dojo-props='icon:"mblDomButtonWhiteSearch"' style="float:right;" onclick="document.getElementById('findPlace').style.display='block'"></span>
+            </h1>
+            <div class="mapcontent">
+                <img id="loading" alt="loading icon" src="assets/images/loading.gif" style="top:50%;position:absolute; right:50%; z-index:100;display:block;" />
+                <div id="mapDiv"></div>
+            </div>
+
+            <!-- Footer -->
+            <!--h1 id="footer" data-dojo-type="dojox/mobile/Heading" style="position:absolute;bottom:0;display:none;">Application Footer Bar</h1-->
+        </div>
+
+        <!-- Disclaimer -->
+        <div data-dojo-type="dojox/mobile/SimpleDialog" id="disclaimerDialog" class="discContainer" style="display:none;">
+            <h1 data-dojo-type="dojox/mobile/Heading" data-dojo-props='fixed:"top", label:"Disclaimer"' style="border-radius:5px;background-color: whitesmoke;color:rgb(191, 197, 203);background-image: none;">
+                <span data-dojo-type="dojox/mobile/ToolBarButton" style="float:right;" onclick="hideDisclaimer">Agree</span>
+            </h1>
+            <div class="discContent mblSimpleDialogText">
+                <div id="disclaimerContent"></div>
+                <p>NOTE: The browser back button is not recommended for this site.</p>
+                <p><label><input id="showDisclaimer" type="checkbox" class="checkBoxButton" onClick="setCookie('noDisclaimer','1')" />
+			  Do not show again. (This is stored in a cookie in your browser history.)</label>
+                </p>
+                <p align="center">
+                    <button data-dojo-type="dojox/mobile/Button" type="button" onclick="require(['dijit/registry'],function(registry){registry.byId('disclaimerDialog').hide(); drawing=false;});">Agree</button>
+                    <button data-dojo-type="dojox/mobile/Button" type="button" onclick="loadPage('http://cpw.state.co.us/'); drawing=false;">Disagree</button>
+                </p>
+            </div>
+        </div>
+
+        <!-- Menu -->
+        <!-- Adjust height of menu in assets/css/layerM.css -->
+        <div id="swipeleft" style="position:absolute;top:0;left:0;width:100%;height:100%;background-color: rgba(50,50,50,.5);display:none;z-index:41;"></div>
+        <div id="menuView">
+            <h1 data-dojo-type="dojox/mobile/Heading" data-dojo-props='fixed:"top", label:"Menu"' style="background-color: whitesmoke;color:rgb(191, 197, 203);background-image: none;">
+                <span data-dojo-type="dojox/mobile/ToolBarButton" data-dojo-props='icon:"assets/images/leftarrow.png"' onclick="closeMenu()"></span>
+            </h1>
+
+            <div class="menuPane">
+                <!-- Layers/Legend Menu -->
+                <h3 data-dojo-type="dojox/mobile/RoundRectCategory" style="text-align:center;margin:10px 0 10px 0;"> Map Layers &amp; Legend</h3>
+                <ul data-dojo-type="dojox/mobile/EdgeToEdgeList">
+                    <li data-dojo-type="dojox/mobile/ListItem" data-dojo-props='icon:"assets/images/Legend32.png"'><a class="mblAccordionTitleAnchor" href="javascript:openTOC()">Layers &amp; Legend</a></li>
+                    <li data-dojo-type="dojox/mobile/ListItem" data-dojo-props='icon:"assets/images/i_layers.png"'><a class="mblAccordionTitleAnchor" href="javascript:openBasemaps()">Basemaps</a></li>
+                </ul>
+
+                <!-- Tools Menu -->
+                <h3 data-dojo-type="dojox/mobile/RoundRectCategory" style="text-align:center;margin:10px 0 10px 0;">Tools</h3>
+                <ul id="toolsMenu" data-dojo-type="dojox/mobile/EdgeToEdgeList">
+                    <!--li id="showHB1298" style="display:none" data-dojo-type="dojox/mobile/ListItem" data-dojo-props='icon:"assets/images/i_bookmark3.png"'><a class="mblAccordionTitleAnchor" href="javascript:openHB1298()">HB1298 Report</a></li>
+			<li data-dojo-type="dojox/mobile/ListItem" data-dojo-props='icon:"assets/images/i_search.png"'>
+				<a class="mblAccordionTitleAnchor" href="javascript:openSearch()">Feature Search</a>
+				<span id="searchRemoveBtn" style="visibility:hidden" class="measureClear">Clear</span>
+			</li>
+			<li data-dojo-type="dojox/mobile/ListItem" data-dojo-props='icon:"assets/images/ptmedblue.png"'><a class="mblAccordionTitleAnchor" href="javascript:openWayPts()">Way Points</a></li>
+			<li data-dojo-type="dojox/mobile/ListItem" data-dojo-props='icon:"assets/images/i_measure.png"'>
+				<span id="lengthBtn" class="mblAccordionTitleAnchor">Measure</span>
+				<span id="removeLengthBtn" style="visibility:hidden" class="measureClear">Clear</span>
+			</li>
+			<li data-dojo-type="dojox/mobile/ListItem" data-dojo-props='icon:"assets/images/i_bookmark.png"'><a class="mblAccordionTitleAnchor" href="javascript:openBookmark()">Bookmark</a></li>
+			<li id="showLocation" data-dojo-type="dojox/mobile/ListItem" data-dojo-props='icon:"assets/images/bluedot.png", rightText:"Off"'><a class="mblAccordionTitleAnchor" href="javascript:openLocation()">Location</a></li>
+			<li data-dojo-type="dojox/mobile/ListItem" data-dojo-props='icon:"assets/images/i_link.png"'><a class="mblAccordionTitleAnchor" href="javascript:openLinks()">Links</a></li-->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Find a Place -->
+        <div id="findPlace">
+            <h1 data-dojo-type="dojox.mobile.Heading">
+                <span class="findPlaceBtn" onclick="gotoLocation()"></span>
+                <input id="findCombo" />
+                <span id="findClear" class="findBtnClear" title="Remove last highlight/push pin from map" onclick="removeSearchItem()">Clear</span>
+                <span id="findClose" data-dojo-type="dojox/mobile/ToolBarButton" style="float:right;">X</span>
+            </h1>
+        </div>
+
+        <!-- TOC -->
+        <div id="tocPane" data-dojo-type="dojox/mobile/ContentPane" class="scrollPane">
+            <h1 data-dojo-type="dojox/mobile/Heading" data-dojo-props='fixed:"top", label:"Layers &amp; Legend"' style="background-color: whitesmoke;color:rgb(191, 197, 203);background-image: none;">
+                <span data-dojo-type="dojox/mobile/ToolBarButton" data-dojo-props='icon:"assets/images/leftarrow.png"' onclick="closeMenu();slideLeft(document.getElementById('tocPane'));"></span>
+                <span data-dojo-type="dojox/mobile/ToolBarButton" alt='help button' style='float:right;' data-dojo-props='icon:"assets/images/helpBtn.png"' onclick="tocHelp.show()"></span>
+            </h1>
+            <div class="scrollContainer">
+                <img id="tocLoading" alt="loading icon" src="assets/images/loading.gif" style="top:50%;background-color:white;position:absolute; right:50%; z-index:100;display:none;" />
+                <div id="tocDiv" class="scrollContent"></div>
+            </div>
+        </div>
+
+        <!-- Basemaps -->
+        <div id="basemapPane" data-dojo-type="dojox/mobile/ContentPane" class="scrollPane">
+            <h1 data-dojo-type="dojox/mobile/Heading" data-dojo-props='fixed:"top", label:"Basemaps"' style="background-color: whitesmoke;color:rgb(191, 197, 203);background-image: none;">
+                <span data-dojo-type="dojox/mobile/ToolBarButton" data-dojo-props='icon:"assets/images/leftarrow.png"' onclick="closeMenu();slideLeft(document.getElementById('basemapPane'));"></span>
+                <span data-dojo-type="dojox/mobile/ToolBarButton" alt='help button' style='float:right;' data-dojo-props='icon:"assets/images/helpBtn.png"' onclick="basemapHelp.show()"></span>
+            </h1>
+            <div class="scrollContainer">
+                <div data-dojo-type="dojox/mobile/ContentPane" class="scrollContent">
+                    <!--basemap only works in a content pane -->
+                    <!-- Bookmarks uses basemapLoading.style.display == none to tell when the basemaps have completed loading. Do not change the style to none! -->
+                    <img id="basemapLoading" alt="loading icon" src="assets/images/loading.gif" style="top:50vh;background-color:white;position:absolute; right:50%; z-index:100;display:block;" />
+                    <br/>
+                    <div id="galleryDiv"></div>
+                </div>
+            </div>
+            <br/><br/>
+        </div>
+
+        <!-- HB1298 REPORT -->
+        <div id="hb1298Pane" data-dojo-type="dojox/mobile/ContentPane" class="scrollPane">
+            <h1 data-dojo-type="dojox/mobile/Heading" data-dojo-props='fixed:"top", label:"HB1298 Report"' style="background-color: whitesmoke;color:rgb(191, 197, 203);background-image: none;">
+                <span data-dojo-type="dojox/mobile/ToolBarButton" data-dojo-props='icon:"assets/images/leftarrow.png"' onclick="slideLeft(document.getElementById('hb1298Pane'));"></span>
+            </h1>
+            <div class="scrollContainer">
+                <div id="hb1298_tc"></div>
+            </div>
+        </div>
+        <!-- Feature Search -->
+        <div id="searchPane" data-dojo-type="dojox/mobile/ContentPane" class="scrollPane">
+            <h1 data-dojo-type="dojox/mobile/Heading" data-dojo-props='fixed:"top", label:"Feature Search"' style="background-color: whitesmoke;color:rgb(191, 197, 203);background-image: none;">
+                <span data-dojo-type="dojox/mobile/ToolBarButton" data-dojo-props='icon:"assets/images/leftarrow.png"' onclick="slideLeft(document.getElementById('searchPane'));"></span>
+                <span data-dojo-type="dojox/mobile/ToolBarButton" alt='help button' style='float:right;' data-dojo-props='icon:"assets/images/helpBtn.png"' onclick="searchHelp.show()"></span>
+            </h1>
+            <div class="scrollContainer">
+                <div data-dojo-type="dojox/mobile/ContentPane" class="scrollContent"> <img id="searchLoadingImg" alt="loading icon" src="assets/images/loading.gif" style="margin-top:70px;background-color:white;position:absolute; right:50%; z-index:100;display:none;" />
+                    <span>Search for a feature type by name.</span><br/><br/>
+                    <label for="featureType">Feature type: </label><input id="featureType" /><br/><br/>
+                    <form>
+                        <div id="searchInput1">
+                            <label id="searchLabel" for="searchText">Search for: </label><br/><input id="searchText" />
+                        </div>
+                        <div id="searchInput2" style="display:none;">
+                            <label id="townLabel" for="searchTwn" style="float:left">Township: </label><input id="searchTwn" type="number" pattern="[0-9]*" size="4" style="top:-10px;width:40px;position:relative;left:26px;float:left;" />
+                            <div id="nsSw" class="mblItemSwitch" data-dojo-type="dojox/mobile/Switch" leftLabel="N" rightLabel="S" value="on" style="left:50px;"></div>
+                            <br/><br/>
+                            <label id="rangeLabel" for="searchRng" style="float:left">Range: </label><input id="searchRng" type="number" pattern="[0-9]*" size="4" style="top:-10px;width:40px;position:relative;left:50px;float:left;" />
+                            <div id="ewSw" class="mblItemSwitch" data-dojo-type="dojox/mobile/Switch" leftLabel="W" rightLabel="E" value="on" style="left:70px;"></div>
+                            <br/><br/>
+                            <label id="sectionLabel" for="searchSec" style="float:left">Section: </label><input id="searchSec" /><br/>
+                        </div>
+                        <p align="center">
+                            <!--button id="searchBtn" data-dojo-type="dojox/mobile/Button" title="search for selected features" role="presentation">Search</button-->
+                            <button id="searchBtn" class="mblButton">Search</button>
+                        </p>
+                        <br/><br/><br/><br/><br/>
+                    </form>
+                    <!--div id="searchMsg" style="display:none;margin-left:10px;">Loading all features, please wait...</div>	
+				<div id="searchTools" style="display:none;margin-left:10px;">Features found: <span id="searchFound"></span>
+					<img id="searchCloseBtn" title='close table' style="position:absolute;right:20px" src="assets/images/w_collapse_vertical.png" onClick="document.getElementById('searchGrid').style.display='none';document.getElementById('searchCloseBtn').style.display='none';document.getElementById('searchOpenBtn').style.display='inline-block'"/>
+					<img id="searchOpenBtn" title='open table' style="position:absolute;right:20px" src="assets/images/w_expand_vertical.png" onClick="document.getElementById('searchGrid').style.display='block';document.getElementById('searchCloseBtn').style.display='inline-block';document.getElementById('searchOpenBtn').style.display='none'" style="display:none"/>
+					<img id="searchGridHelp" title='table help' style="position:absolute;right:3px;" src="assets/images/w_help.png" onClick="featureSearchGridHelpDialog.show()"/>
+					<br/><br/></div>
+				<div id="searchGrid" title="Click on a feature to zoom to it."></div-->
+                </div>
+            </div>
+        </div>
+
+        <!-- Way Points -->
+        <div id="wayPtsPane" data-dojo-type="dojox/mobile/ContentPane" class="scrollPane">
+            <h1 data-dojo-type="dojox/mobile/Heading" data-dojo-props='fixed:"top", label:"Way Points"' style="background-color: whitesmoke;color:rgb(191, 197, 203);background-image: none;">
+                <span data-dojo-type="dojox/mobile/ToolBarButton" data-dojo-props='icon:"assets/images/leftarrow.png"' onclick="slideLeft(document.getElementById('wayPtsPane'));"></span>
+                <span data-dojo-type="dojox/mobile/ToolBarButton" alt='help button' style='float:right;' data-dojo-props='icon:"assets/images/helpBtn.png"' onclick="wayPointHelp.show()"></span>
+            </h1>
+            <div id="wpMapClick" style="display:block;margin-bottom:10px;padding:5px;height:calc(100vh - 140px);-moz-calc(100vh - 140px);-webkit-calc(100vh - 140px);overflow:auto;">
+                <div data-dojo-type="dojox/mobile/ContentPane" class="scrollContent">
+                    <form id="wayPtForm">
+                        <h3>Add Way Point by Clicking Map</h3>
+                        <label for="pointStyleDiv">Style: </label>
+                        <div id="pointStyleDiv"></div><br/><br/>
+                        <input id="wayPtInputTitle" maxlength="25" style='width:initial;' required=true placeholder="Label" type="text"></input><br/>
+                        <textarea id="wayPtInputDesc" type="text" onkeyup='javascript:resizeTextBox(this)' maxlength="200" style="height: 80px; resize:none;" placeholder="Description"></textarea>
+                        <p align="center"><input id="wayPtBtn" type="submit" class="mblButton" value="Add Way Point" /></p>
+                    </form>
+                </div>
+            </div>
+            <div id="wpKML" style="display:none;margin-bottom:10px;padding:5px;height:calc(100vh - 140px);-moz-calc(100vh - 140px);-webkit-calc(100vh - 140px);overflow:auto;">
+                <style>
+                    td,
+                    th {
+                        border-bottom: 1px solid #476999;
+                        padding: 5px 0;
+                    }
+                    
+                    table {
+                        border-collapse: collapse;
+                    }
+                </style>
+                <h3>Add Way Points from KML</h3>
+                <input id="kmlFile" type='url' style="width:95%;float:left;margin-right:10px;" required=true placeholder="URL to KML or KMZ file"></input><br/><br/>
+                <input id="kmlLabel" type='text' style="width:95%;float:left;margin-right:10px;" required=true placeholder="Label"></input><br/><br/>
+                <p align="center">
+                    <button data-dojo-type="dojox/mobile/Button" type="button" onclick="loadKml(document.getElementById('kmlFile').value,document.getElementById('kmlLabel').value);" class="mblButton">Add</button>&nbsp;&nbsp;&nbsp;
+                    <button data-dojo-type="dojox/mobile/Button" type="button" onclick="document.getElementById('kmlFile').value='';document.getElementById('kmlLabel').value='';" class="mblButton">Reset</button>
+                </p>
+                <table id="kmlList" style="table-layout:fixed;width:100%;">
+                    <tbody>
+                        <tr>
+                            <th style="width:40px;overflow:visible;"></th>
+                            <th style="width:calc(100% - 80px);-moz-calc(100% - 80px);-webkit-calc(100% - 80px);padding-bottom:0;overflow:visible;">My KML Files List</th>
+                            <th style="width:40px"></th>
+                        </tr>
+                        <tr>
+                            <td><input id="SampleKMLFile" type="checkbox" class="checkBoxButton" onclick="kmlListClickHandler('https://dl.dropboxusercontent.com/u/2142726/esrijs-samples/Wyoming.kml',this.parentNode.parentNode.rowIndex,this.checked)"></td>
+                            <td style="overflow-x:scroll">Sample KML File<br/><span style="white-space:nowrap;font-size:small">https://dl.dropboxusercontent.com/u/2142726/esrijs-samples/Wyoming.kml</span></td>
+                            <td><img src="assets/images/w_close_red.png" style="cursor: pointer; position: relative; float: right; right: 10px; height: 30px;" onclick="if(document.getElementById('SampleKMLFile').checked)hideKml(this.parentNode.parentNode.rowIndex);deleteRow(this.parentNode.parentNode);"
+                                /></td>
+                        </tr>
+                        <tr>
+                            <td><input id="Sample2" type="checkbox" class="checkBoxButton" onclick="kmlListClickHandler('http://ndis-staging.nrel.colostate.edu/test/rmnp.kmz',this.parentNode.parentNode.rowIndex,this.checked);"></td>
+                            <td style="overflow-x:scroll">Sample 2<br/><span style="white-space:nowrap;font-size:small">http://ndis-staging.nrel.colostate.edu/test/rmnp.kmz</span></td>
+                            <td><img src="assets/images/w_close_red.png" style="cursor: pointer; position: relative; float: right; right: 10px; height: 30px;" onclick="if(document.getElementById('Sample2').checked)hideKml(this.parentNode.parentNode.rowIndex);deleteRow(this.parentNode.parentNode);"
+                                /></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div align="center" class="footerBar">
+                <!--div style="position:relative;overflow:visible;width:255px;"-->
+                <div style="position:relative;overflow:visible;width:170px;">
+                    <button id="wpMapClickBtn" data-dojo-type="dojox/mobile/Button" class="buttonBarSelected" style="font-size:x-small;" type="button" onclick="javascript:showWPMapClick()">
+				<img src="assets/images/ptlgblue.png" style="width:20px;height:20px;vertical-align:top;"/><br/>Map Click
+			</button>
+                    <button id="wpKMLBtn" data-dojo-type="dojox/mobile/Button" class="buttonBar" onclick="javascript:showWPkml();">
+				<img src="assets/images/i_extent.png" style="width:20px;height:20px;vertical-align:top;"/><br/>KML - TESTING with WayPointsKML
+			</button>
+                    <!--button  id="kmlBtn" data-dojo-type="dojox/mobile/Button" class="buttonBar" type="button" 
+				data-dojo-attach-event="click: _showKml">
+				<img src="assets/images/i_extent.png" style="width:20px;height:20px;vertical-align:top;"/><br/>KML
+			</button-->
+                </div>
+            </div>
+        </div>
+
+        <!-- Bookmark >
+	<div id="bookmarkPane" data-dojo-type="dojox/mobile/ContentPane" class="scrollPane">
+		<h1 data-dojo-type="dojox/mobile/Heading" data-dojo-props='fixed:"top", label:"Bookmark"' style="background-color: whitesmoke;color:rgb(191, 197, 203);background-image: none;">
+			<span data-dojo-type="dojox/mobile/ToolBarButton" data-dojo-props='icon:"assets/images/leftarrow.png"' onclick="slideLeft(document.getElementById('bookmarkPane'));"></span>
+		</h1>
+		<div class="scrollContainer">
+			<div data-dojo-type="dojox/mobile/ContentPane" class="scrollContent">
+				To save your current way points and map extent in a bookmark:
+				<ol>
+				<li> Press 'Create Bookmark' button below.</li>
+				<li> Wait for the page to reload.</li>
+				<li> Use your browser's settings to add the bookmark.</li>
+				</ol>
+				<!-- getBookmark is in wayPoints.js -->
+        <!--p align="center"><button  data-dojo-type="dojox/mobile/Button" role="presentation" type="button" onClick="getBookmark()" title="bookmark page">Create Bookmark</button></p>
+				<span style="font-style:italic">Note: Bookmarks can only be created in your browser (Chrome, Safari, etc.). If you started this app from an icon on the home screen, it will run in 
+				fullscreen mode and the settings icon will be hidden.</span>
+			</div>
+		</div>
+	</div-->
+
+        <!-- Links -->
+        <div id="linksPane" data-dojo-type="dojox/mobile/ContentPane" class="scrollPane">
+            <h1 data-dojo-type="dojox/mobile/Heading" data-dojo-props='fixed:"top", label:"Links"' style="background-color: whitesmoke;color:rgb(191, 197, 203);background-image: none;">
+                <span data-dojo-type="dojox/mobile/ToolBarButton" data-dojo-props='icon:"assets/images/leftarrow.png"' onclick="slideLeft(document.getElementById('linksPane'));"></span>
+            </h1>
+            <div class="scrollContainer">
+                Links will open in a new window.<br/>
+                <div id="links" data-dojo-type="dojox/mobile/ContentPane" class="scrollContent"></div>
+            </div>
+        </div>
+
+        <!-- Error Box -->
+        <div id="errorMsgBox" data-dojo-type="dojox/mobile/Overlay" style="min-height:25px;max-height:375px;overflow-y:auto;padding-top:5px;border-top:1px solid grey;background-image:linear-gradient(to bottom, #fff 0%, #fff 100%);webkit-gradient(linear, left top, left bottom, from(#fff), to(#fff));">
+            <div data-dojo-type="dojox/mobile/ContentPane" style="margin:5px;text-align:left;">
+                <div id="errorMsg"></div>
+                <div id="errorXbtn" style="float:right;display:none;position:absolute;right:1px;top:3px;">
+                    <a href="javascript:closeAlert();"><img src="https://js.arcgis.com/3.23compact/esri/dijit/images/whitex.png" class="btn" /></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Location Help -->
+        <!--style="display:none;position:absolute;top:0;left:0;right:10px;bottom:10px;height:100%;width:100%;z-index:50;overflow:hidden;"-->
+        <div id="locationHelp" data-dojo-type="dojox/mobile/ContentPane" class="scrollPane">
+            <h1 data-dojo-type="dojox.mobile.Heading" data-dojo-props='fixed:"top", label:"Current Location Help"'>
+                <span data-dojo-type="dojox/mobile/ToolBarButton" data-dojo-props='icon:"assets/images/leftarrow.png"' onclick="slideLeft(document.getElementById('locationHelp'));"></span>
+            </h1>
+            <div class="scrollContainer">
+                <!--style="width:95%;height:100%;overflow:auto;padding:10px;"-->
+                <div data-dojo-type="dojox/mobile/ContentPane" class="scrollContent">
+                    If current location is not working try the following:
+                    <h3>Step 1: Turn on location services</h3>
+                    Make sure GPS/Location Service is turned on in your phone's settings.<br/>
+                    <h3>Step 2: Try going outside</h3>
+                    <h3>Step3: Reset location settings</h3>
+                    The first time you turn on Current Location you will be asked if you want to give the map access to your location. You can reset this choice by:<br/><br/> For Chrome browsers:<br/>
+                    <ol>
+                        <li>Touch the menu icon in the top-right corner of the screen.</li>
+                        <li>Touch <strong>Settings>Content Settings>Website Settings</strong> or <strong>Settings>Site settings>Location</strong>.</li>
+                        <li>Find
+                            <script>
+                                document.write(document.location.host)
+                            </script>.</li>
+                        <li>Allow location access.</li>
+                        <li>Reload the Atlas in Chrome and allow location access on the message that shows up.</li>
+                    </ol>
+                    For Safari browsers:<br/>
+                    <ol>
+                        <li>Goto your home screen.</li>
+                        <li>Touch <strong>Settings>Privacy>Location Services</strong></li>
+                        <li>Slide Location Services on.</li>
+                        <li>Reload Atlas in Safari and allow location access on the message that shows up.</li>
+                    </ol>
+                    <!--h3>Step 4: Secure Site</h3>
+			Make sure you accessed this site with "https://". As of April 2016, geolocation requires a secure site.-->
+                </div>
+            </div>
+        </div>
+        <script>
+            /* Add Google Analytics Stats */
+            (function(i, s, o, g, r, a, m) {
+                i['GoogleAnalyticsObject'] = r;
+                i[r] = i[r] || function() {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+                a = s.createElement(o),
+                    m = s.getElementsByTagName(o)[0];
+                a.async = 1;
+                a.src = g;
+                m.parentNode.insertBefore(a, m)
+            })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+            /* Create the ID for tracking and pass the app name for reporting */
+            ga('create', 'UA-102394177-2', 'auto');
+            /* Custom Dimension Value to pass app name. Set this up in Google Analytics in Admin/Property/Custom Definitions/Custom Dimension/New Custom Dimension/
+            	give it a variable name to use on the reports, save it, view it again and it will generate the javascript below. */
+            var theApp;
+            if (document.location.search == "") theApp = "huntingatlas";
+            else {
+                var end = document.location.search.indexOf('&');
+                if (end == -1) end = document.location.search.length;
+                theApp = document.location.search.substring(5, end).toLowerCase();
+            }
+            ga('set', 'dimension1', theApp);
+            ga('send', 'pageview');
+            /* End Google Analytics Stats */
+        </script>
+    </body>
+
+    </html>
