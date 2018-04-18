@@ -152,9 +152,9 @@ function readConfig() {
 				var regexp;
 				if (!queryObj.prj || queryObj.prj == "")
 					sr = new SpatialReference(102100);
-				else {
+				else
 					sr = new SpatialReference(parseInt(queryObj.prj));
-				}
+
 				//----------------------------
 				//        Add points
 				//----------------------------
@@ -829,7 +829,11 @@ function readConfig() {
 			else
 				document.getElementById('xycoords_combo').value = xycoords_format;
 			var queryObj = {};
-			queryObj = ioquery.queryToObject(document.location.search.substr((document.location.search[0] === "?" ? 1 : 0)));
+			// preserve new lines in way point definitions
+			var location = document.location.search.replace(/\%0D/g,"newline");
+			queryObj = ioquery.queryToObject(location.substr((location[0] === "?" ? 1 : 0)));
+			//queryObj = ioquery.queryToObject(document.location.search.substr((document.location.search[0] === "?" ? 1 : 0)));
+			
 			// Sanitize user input. Protect against XSS attacks.
 			// test for XSS attack. Pattern contains allowed characters. [^ ] means match any character that is not
 			// in the is set. \ escapes characters used by regex like .-'"|\
@@ -837,10 +841,12 @@ function readConfig() {
 			// For labels allow ' " for degrees minutes seconds
 			// Points
 			if (queryObj.point){
+				queryObj.point = queryObj.point.replace(/~/g, " "); // for email from mobile app
 				regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
 				if (regexp.test(queryObj.point)) alert("Illegal characters were removed from the points to load which were specified on the URL.","Warning");
 				regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_*()])/g;
 				queryObj.point=queryObj.point.replace(regexp,""); // clean it
+				queryObj.point = queryObj.point.replace(/newline/g,"\n"); // preserve new line characters in point description used on mobile
 			}
 
 			// Lines
@@ -877,6 +883,7 @@ function readConfig() {
 
 			// Layer
 			if (queryObj.layer){
+				queryObj.layer = queryObj.layer.replace(/~/g, " "); // for email from mobile app
 				regexp=/([^a-zA-Z0-9 \-\|,\._()])/g; // allow \ for the test (\' \") but remove it for the clean
 				if (regexp.test(queryObj.layer)) alert("Illegal characters were removed from the layers to load which were specified on the URL.","Warning");
 				//regexp=/([^a-zA-Z0-9 \-,\._()])/g; // Used if testing for \\ above
@@ -1212,18 +1219,10 @@ function readConfig() {
 					// Zoom to extent on startup if specified on url
 					if (queryObj.extent && queryObj.extent != "") {
 						var extArr = [];
-						
 						if (Object.prototype.toString.call(queryObj.extent) === '[object Array]')
 							extArr = queryObj.extent[0].split(",");
 						else
 							extArr = queryObj.extent.split(",");
-						// Check for XSS attach. Make sure all extent values are numbers
-						for (var i=0; i<4; i++){
-							if (isNaN(extArr[i])){
-								extArr[i] = 0;
-								alert("Problem reading map extent from the URL. This link is corrupted.","Warning");
-							}
-						}
 						var prj;
 						if (queryObj.prj && queryObj.prj != ""){
 							prj = queryObj.prj;
