@@ -57,7 +57,7 @@
 	  function readSettingsWidget() {
 	      // clear settings on infoWindow hide
 	      map.infoWindow.on("hide", function(event) {
-	          map.infoWindow.setTitle("");
+			  map.infoWindow.setTitle("");
 	      });
 
 	      // Read the SettingsWidget.xml file
@@ -214,7 +214,7 @@
 
 	                      // Read the layer tags for each group
 	                      var layer = folder[f].getElementsByTagName("layer");
-	                      identifyLayers[identifyGroups[f]] = new Object();
+	                      identifyLayers[identifyGroups[f]] = {};
 	                      // Description
 	                      if (folder[f].getElementsByTagName("desc")[0])
 	                          identifyLayers[identifyGroups[f]].desc = folder[f].getElementsByTagName("desc")[0].firstChild.nodeValue;
@@ -231,7 +231,7 @@
 	                              if (!layer[i].getElementsByTagName("vis_url")[0] || !layer[i].getElementsByTagName("vis_id")[0])
 	                                  alert("Error in " + app + "/SettingsWidget.xml. When vis_id_only is set in a folder, every layer in the folder must have a vis_id and vis_url tag for the layer that is in the map to check if it is visible or not. Missing vis_url and vis_id tags in folder: " + identifyGroups[f] + ".", "Data Error");
 	                          }
-	                          identifyLayers[identifyGroups[f]][label] = new Object();
+	                          identifyLayers[identifyGroups[f]][label] = {};
 
 	                          // Create list of ids for this layer
 	                          var found = false;
@@ -304,7 +304,7 @@
 	                              else
 	                                  identifyLayers[identifyGroups[f]][label].position = 0;
 	                              if (!layer[i].getElementsByTagName("database")[0])
-	                                  alert("Error in " + app + "/SettingsWidget.xml. Missing database in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error")
+	                                  alert("Error in " + app + "/SettingsWidget.xml. Missing database in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
 	                              else
 	                                  identifyLayers[identifyGroups[f]][label].database = layer[i].getElementsByTagName("database")[0].childNodes[0].nodeValue;
 
@@ -341,15 +341,15 @@
 	                                  alert("Error in " + app + "/SettingsWidget.xml. Missing displaynames in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
 	                              else
 	                                  identifyLayers[identifyGroups[f]][label].displaynames = layer[i].getElementsByTagName("displaynames")[0].childNodes[0].nodeValue.split(",");
-	                              // Add ability to identify sheep and goat GMUs
-	                              if (label == "Big Game GMU") {
-	                                  identifyLayers[identifyGroups[f]]["Bighorn GMU"] = new Object();
+	                              // Add ability to identify sheep and goat GMUs. 4-18-18 change label to Big Game GMU Boundaries for use with AssetReport_Data mapservice
+	                              if (label == "Big Game GMU Boundaries") {
+	                                  identifyLayers[identifyGroups[f]]["Bighorn GMU"] = {};
 	                                  identifyLayers[identifyGroups[f]]["Bighorn GMU"].url = settings.sheepUrl.slice(0, settings.sheepUrl.length - 2);
 	                                  identifyLayers[identifyGroups[f]]["Bighorn GMU"].id = settings.sheepUrl.slice(settings.sheepUrl.length - 1);
 	                                  identifyLayers[identifyGroups[f]]["Bighorn GMU"].geometry = "polygon";
 	                                  identifyLayers[identifyGroups[f]]["Bighorn GMU"].fields = [settings.sheepField];
 	                                  identifyLayers[identifyGroups[f]]["Bighorn GMU"].displaynames = ["GMU Number"];
-	                                  identifyLayers[identifyGroups[f]]["Goat GMU"] = new Object();
+	                                  identifyLayers[identifyGroups[f]]["Goat GMU"] = {};
 	                                  identifyLayers[identifyGroups[f]]["Goat GMU"].url = settings.goatUrl.slice(0, settings.goatUrl.length - 2);
 	                                  identifyLayers[identifyGroups[f]]["Goat GMU"].id = settings.goatUrl.slice(settings.goatUrl.length - 1);
 	                                  identifyLayers[identifyGroups[f]]["Goat GMU"].geometry = "polygon";
@@ -400,17 +400,21 @@
 
 	      require(["dojo/dom-construct", "dojo/query", "dojo/dom", "dojo/on", "dojo/domReady!"], function(domConstruct, query, dom, on) {
 	          clickPoint = getScreenClick(evt); //evt.mapPoint;
-	          // if the info window is already showing clear the title, so that it will load the new point.
-	          if (map.infoWindow.isShowing && lastTitle == map.infoWindow._title.innerHTML) {
-	              map.infoWindow.hide();
-	              if (navigator.userAgent.indexOf('Android') != -1) evt.stopImmediatePropagation();
-	              map.emit("click", { bubbles: true, cancelable: true, Event: evt });
-	              return;
-	          }
+			  // if the info window is already showing clear the title, so that it will load the new point.
+			  if (map.infoWindow.isShowing && !map.infoWindow.wayPt && lastTitle == map.infoWindow._title.innerHTML){
+					map.infoWindow.hide();
+					if (navigator.userAgent.indexOf('Android') != -1) evt.stopImmediatePropagation();
+					map.emit("click", { bubbles: true, cancelable: true, Event: evt });
+					return;
+			  }
 	          // For Android, don't show the infoWindow twice. If this is a way point it is only called once.
 	          else if ((navigator.userAgent.indexOf('Android') != -1) && (map.infoWindow._title.innerHTML == "" ||
 	                  map.infoWindow._title.innerHTML == "No Information")) evt.stopImmediatePropagation();
 
+			  // reset Way Point flag 4-9-18 fixes bug of info window not showing when click on two way points with same name or same way point in a row.
+			  // set wayPt to true in wayPoints.js when a way point graphic is clicked on.
+			  map.infoWindow.wayPt = false;
+			  
 	          // Called for each map click 
 	          numDatabaseCalls = 0;
 	          processedDatabaseCalls = 0;
@@ -443,7 +447,7 @@
 	                  // wait 1/2 a second for screen to draw
 	                  setTimeout(resizeTextBox(document.getElementById("wayPtDesc")), 500);
 	              }, false);
-	              lastTitle = map.infoWindow._title.innerHTML;
+				  lastTitle = map.infoWindow._title.innerHTML;
 	          }
 	          // did not click on a way point
 	          else {
@@ -454,7 +458,7 @@
 	              // remove way point from drop down list if it exists
 	              if (idGroupCombo.getOptions("Way Point")) {
 	                  idGroupCombo.removeOption("Way Point");
-	              }
+				  }
 	          }
 	          dom.byId("identifyPoint").innerHTML = "Loading lat, long...";
 	          if (elevation_url) {
@@ -676,11 +680,11 @@
 	              else if (results[i][1][j].layerName.indexOf("Land Management") != -1 && results[i][1][j].feature.attributes[results[i][1][j].displayFieldName] == "")
 	                  title = results[i][1][j].feature.attributes["MANAGER"];
 	              else if (results[i][1][j].layerName.indexOf("Mule Deer") > -1) title = "Mule Deer Ranges";
-	              else if (results[i][1][j].layerName.indexOf("Elk") > -1) title = "Elk Ranges";
+				  else if (results[i][1][j].layerName.indexOf("Elk") > -1) title = "Elk Ranges";
 	              else title = results[i][1][j].feature.attributes[results[i][1][j].displayFieldName];
 
 	              map.infoWindow.setTitle(title);
-	              lastTitle = title;
+				  lastTitle = title;
 
 	              // Set info Content Header
 	              /*var dropdown="<span id='idGroupDiv' class='showingDropDown'></span>";
@@ -781,7 +785,7 @@
 	                                                              }
 	                                                          }
 	                                                      }
-	                                                      tmpStr += "</div><br/>"
+	                                                      tmpStr += "</div><br/>";
 	                                                      processedDatabaseCalls++;
 	                                                      // don't add it twice, but add it to the features geometry array
 	                                                      if (str.indexOf(tmpStr) == -1) {
@@ -818,7 +822,7 @@
 	                                                      displayInfoWindow();
 	                                                  }
 	                                              }
-	                                          }
+	                                          };
 	                                      }(index);
 	                                      XMLHttpRequestObjects[index].send();
 	                                  } catch (error) {
@@ -985,8 +989,9 @@
 	                  var geoPt;
 	                  /*if (registry.byId("settings_xy_proj").value === "dd"){*/
 	                  geoPt = webMercatorUtils.webMercatorToGeographic(clickPoint);
-	                  dom.byId("identifyPoint").innerHTML = "Lat Long: " + geoPt.y.toFixed(5) + " N, " + geoPt.x.toFixed(5) + " W";;
-	                  /*}
+	                  dom.byId("identifyPoint").innerHTML = "Lat Long: " + geoPt.y.toFixed(5) + " N, " + geoPt.x.toFixed(5) + " W";
+					 
+					  /*}
 	                  else if (registry.byId("settings_xy_proj").value === "dms"){
 	                  	geoPt = mappoint_to_dms(clickPoint,true);
 	                  	dom.byId("identifyPoint").innerHTML = "Map clicked at (X/Y): " + geoPt[0] + " N, " + geoPt[1]+" W</br>&nbsp;&nbsp;&nbsp;&nbsp;Lat/Long Degrees, Min, Sec";
@@ -1266,7 +1271,7 @@
 	                  str = "<div><p style='font-style:italic;top:-15px;position:relative;'>" + identifyLayers[identifyGroup].desc + "</p>No " + visible + identifyGroup + " at this point.<br/><br/></div>";
 	                  groupContent[identifyGroup] = str; // cache content
 	              } else {
-	                  str = "<br/><div>No " + visible + identifyGroup + " at this point.<br/><br/></div>"
+	                  str = "<br/><div>No " + visible + identifyGroup + " at this point.<br/><br/></div>";
 	                  groupContent[identifyGroup] = str; // cache content
 	              }
 	              map.infoWindow.setContent(str);
