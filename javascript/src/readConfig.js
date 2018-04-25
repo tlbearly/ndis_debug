@@ -842,42 +842,42 @@ function readConfig() {
 			// Points
 			if (queryObj.point){
 				queryObj.point = queryObj.point.replace(/~/g, " "); // for email from mobile app
-				regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+				regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
 				if (regexp.test(queryObj.point)) alert("Illegal characters were removed from way point labels.","Warning");
-				regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_*()])/g;
+				regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_\*()])/g;
 				queryObj.point=queryObj.point.replace(regexp,""); // clean it
 				queryObj.point = queryObj.point.replace(/newline/g,"\n"); // preserve new line characters in point description used on mobile
 			}
 
 			// Lines
 			if (queryObj.line){
-				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
 				if (regexp.test(queryObj.line)) alert("Illegal characters were removed from the line labels.","Warning");
-				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g;
+				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
 				queryObj.line=queryObj.line.replace(regexp,""); // clean it
 			}
 
 			// Polygons
 			if (queryObj.poly){
-				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
 				if (regexp.test(queryObj.poly)) alert("Illegal characters were removed from the shape (polygon) labels.","Warning");
-				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g;
+				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
 				queryObj.poly=queryObj.poly.replace(regexp,""); // clean it
 			}
 
 			// Rectangles
 			if (queryObj.rect){
-				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
 				if (regexp.test(queryObj.rect)) alert("Illegal characters were removed from the rectangle labels.","Warning");
-				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g;
+				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
 				queryObj.rect=queryObj.rect.replace(regexp,""); // clean it
 			}
 			
 			// Text
 			if (queryObj.text){
-				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
 				if (regexp.test(queryObj.text)) alert("Illegal characters were removed from the point labels.","Warning");
-				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g;
+				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
 				queryObj.text=queryObj.text.replace(regexp,""); // clean it
 			}
 
@@ -900,17 +900,17 @@ function readConfig() {
 
 			// value
 			if (queryObj.value){
-				regexp=/([^a-zA-Z0-9 \-\',\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+				regexp=/([^a-zA-Z0-9 \-\',\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
 				if (regexp.test(queryObj.value)) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
-				regexp=/([^a-zA-Z0-9 \-\',\.!_*()])/g;
+				regexp=/([^a-zA-Z0-9 \-\',\.!_\*()])/g;
 				queryObj.value=queryObj.value.replace(regexp,""); // clean it
 			}
 
 			// label
 			if (queryObj.label){
-				regexp=/([^a-zA-Z0-9 \-\',\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+				regexp=/([^a-zA-Z0-9 \-\',\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
 				if (regexp.test(queryObj.label)) alert("Illegal characters were found on the URL. Point labels may not load properly.","Warning");
-				regexp=/([^a-zA-Z0-9 \-\',\.!_*()])/g;
+				regexp=/([^a-zA-Z0-9 \-\',\.!_\*()])/g;
 				queryObj.label=queryObj.label.replace(regexp,""); // clean it
 			}
 
