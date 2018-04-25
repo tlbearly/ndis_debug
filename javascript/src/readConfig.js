@@ -828,8 +828,8 @@ function readConfig() {
 				document.getElementById('xycoords_combo').value = "dms";
 			else
 				document.getElementById('xycoords_combo').value = xycoords_format;
-			var queryObj = {};
-			// preserve new lines in way point definitions
+			
+			// preserve new lines in way point descriptions (For future changes, if we decide to add them like the Mobile version.)
 			var location = document.location.search.replace(/\%0D/g,"newline");
 			queryObj = ioquery.queryToObject(location.substr((location[0] === "?" ? 1 : 0)));
 			//queryObj = ioquery.queryToObject(document.location.search.substr((document.location.search[0] === "?" ? 1 : 0)));
@@ -843,7 +843,7 @@ function readConfig() {
 			if (queryObj.point){
 				queryObj.point = queryObj.point.replace(/~/g, " "); // for email from mobile app
 				regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
-				if (regexp.test(queryObj.point)) alert("Illegal characters were removed from the points to load which were specified on the URL.","Warning");
+				if (regexp.test(queryObj.point)) alert("Illegal characters were removed from way point labels.","Warning");
 				regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_*()])/g;
 				queryObj.point=queryObj.point.replace(regexp,""); // clean it
 				queryObj.point = queryObj.point.replace(/newline/g,"\n"); // preserve new line characters in point description used on mobile
@@ -852,7 +852,7 @@ function readConfig() {
 			// Lines
 			if (queryObj.line){
 				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
-				if (regexp.test(queryObj.line)) alert("Illegal characters were removed from the lines to load which were specified on the URL.","Warning");
+				if (regexp.test(queryObj.line)) alert("Illegal characters were removed from the line labels.","Warning");
 				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g;
 				queryObj.line=queryObj.line.replace(regexp,""); // clean it
 			}
@@ -860,7 +860,7 @@ function readConfig() {
 			// Polygons
 			if (queryObj.poly){
 				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
-				if (regexp.test(queryObj.poly)) alert("Illegal characters were removed from the shapes (polygons) to load which were specified on the URL.","Warning");
+				if (regexp.test(queryObj.poly)) alert("Illegal characters were removed from the shape (polygon) labels.","Warning");
 				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g;
 				queryObj.poly=queryObj.poly.replace(regexp,""); // clean it
 			}
@@ -868,7 +868,7 @@ function readConfig() {
 			// Rectangles
 			if (queryObj.rect){
 				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
-				if (regexp.test(queryObj.rect)) alert("Illegal characters were removed from the rectangles to load which were specified on the URL.","Warning");
+				if (regexp.test(queryObj.rect)) alert("Illegal characters were removed from the rectangle labels.","Warning");
 				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g;
 				queryObj.rect=queryObj.rect.replace(regexp,""); // clean it
 			}
@@ -876,7 +876,7 @@ function readConfig() {
 			// Text
 			if (queryObj.text){
 				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
-				if (regexp.test(queryObj.text)) alert("Illegal characters were removed from the labels to load which were specified on the URL.","Warning");
+				if (regexp.test(queryObj.text)) alert("Illegal characters were removed from the point labels.","Warning");
 				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g;
 				queryObj.text=queryObj.text.replace(regexp,""); // clean it
 			}
@@ -885,7 +885,7 @@ function readConfig() {
 			if (queryObj.layer){
 				queryObj.layer = queryObj.layer.replace(/~/g, " "); // for email from mobile app
 				regexp=/([^a-zA-Z0-9 \-\|,\._()])/g; // allow \ for the test (\' \") but remove it for the clean
-				if (regexp.test(queryObj.layer)) alert("Illegal characters were removed from the layers to load which were specified on the URL.","Warning");
+				if (regexp.test(queryObj.layer)) alert("Illegal characters were found on the URL. Layers may not load properly.","Warning");
 				//regexp=/([^a-zA-Z0-9 \-,\._()])/g; // Used if testing for \\ above
 				queryObj.layer=queryObj.layer.replace(regexp,""); // clean it
 			}
@@ -893,7 +893,7 @@ function readConfig() {
 			// keyword
 			if (queryObj.keyword){
 				regexp=/([^a-zA-Z0-9 \-\._()])/g; // allow \ for the test (\' \") but remove it for the clean
-				if (regexp.test(queryObj.keyword)) alert("Illegal characters were removed from the keywords to load which were specified on the URL.","Warning");
+				if (regexp.test(queryObj.keyword)) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
 				//regexp=/([^a-zA-Z0-9 \-\._()])/g; // Used if testing for \\ above
 				queryObj.keyword=queryObj.keyword.replace(regexp,""); // clean it
 			}
@@ -901,7 +901,7 @@ function readConfig() {
 			// value
 			if (queryObj.value){
 				regexp=/([^a-zA-Z0-9 \-\',\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
-				if (regexp.test(queryObj.value)) alert("Illegal characters were removed from the values to load which were specified on the URL.","Warning");
+				if (regexp.test(queryObj.value)) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
 				regexp=/([^a-zA-Z0-9 \-\',\.!_*()])/g;
 				queryObj.value=queryObj.value.replace(regexp,""); // clean it
 			}
@@ -909,7 +909,7 @@ function readConfig() {
 			// label
 			if (queryObj.label){
 				regexp=/([^a-zA-Z0-9 \-\',\.!_*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
-				if (regexp.test(queryObj.label)) alert("Illegal characters were removed from the labels to load which were specified on the URL.","Warning");
+				if (regexp.test(queryObj.label)) alert("Illegal characters were found on the URL. Point labels may not load properly.","Warning");
 				regexp=/([^a-zA-Z0-9 \-\',\.!_*()])/g;
 				queryObj.label=queryObj.label.replace(regexp,""); // clean it
 			}
@@ -917,15 +917,15 @@ function readConfig() {
 			// map
 			if (queryObj.map){
 				regexp=/([^a-zA-Z0-9 \-,\._():\/])/g; // allow \ for the test (\' \") but remove it for the clean
-				if (regexp.test(queryObj.map)) alert("Illegal characters were removed from the map to load which were specified on the URL.","Warning");
+				if (regexp.test(queryObj.map)) alert("Illegal characters were found on the URL. Map may not load properly.","Warning");
 				//regexp=/([^a-zA-Z0-9 \-\=,\._():\/])/g; // Used if testing for \\ above
 				queryObj.map=queryObj.map.replace(regexp,""); // clean it
 			}
 
-			// map
+			// field
 			if (queryObj.field){
 				regexp=/([^a-zA-Z0-9 \-_])/g; // allow \ for the test (\' \") but remove it for the clean
-				if (regexp.test(queryObj.field)) alert("Illegal characters were removed from the field to load which were specified on the URL.","Warning");
+				if (regexp.test(queryObj.field)) alert("Illegal characters were found on the URL. Map may not load properly.","Warning");
 				//regexp=/([^a-zA-Z0-9 \-\=,\._():\/])/g; // Used if testing for \\ above
 				queryObj.field=queryObj.field.replace(regexp,""); // clean it
 			}
@@ -939,29 +939,18 @@ function readConfig() {
 			// Extent
 			if (queryObj.extent){
 				regexp=/([^0-9 \-,\.])/g; // allow \ for the test (\' \") but remove it for the clean
-				if (regexp.test(queryObj.extent)) alert("Illegal characters were removed from the map extent to load which were specified on the URL.","Warning");
+				if (regexp.test(queryObj.extent)) alert("Illegal characters were found on the URL. Map extent may not load properly.","Warning");
 				queryObj.extent=queryObj.extent.replace(regexp,""); // clean it
 			}
 
 			// Place
 			if (queryObj.place){
 				regexp=/([^a-zA-Z0-9 \-\',\.!_*():\\])/g; // allow \ for the test (\' \") but remove it for the clean, : used in degree, min, sec point
-				if (regexp.test(queryObj.place)) alert("Illegal characters were removed from the places to load which were specified on the URL.","Warning");
+				if (regexp.test(queryObj.place)) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
 				regexp=/([^a-zA-Z0-9 \-\',\.!_*():])/g;
 				queryObj.place=queryObj.place.replace(regexp,""); // clean it
 			}
 
-			// app
-			app = encodeURIComponent(queryObj.app);
-			if (!app)
-				app = "HuntingAtlas";
-			else if ((app.toLowerCase() != "huntingatlas") &&
-			(app.toLowerCase() != "fishingatlas") &&
-			(app.toLowerCase() != "propertyfinder") &&
-			(app.toLowerCase() != "stockingrestrictions")){
-				app = "HuntingAtlas";
-				alert("Application name not found. Defaulting to Hunting Atlas.","Notice");
-			}
 			document.getElementById("mapDescFile").href = app + "/definitions.html";
 			var xmlhttp = createXMLhttpRequest();
 			var configFile = app + "/config.xml?v=" + ndisVer;
