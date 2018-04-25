@@ -187,28 +187,28 @@
 			<layer label="Contact Info">
 	    		<id>1</id>
 	    		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
-	        	<geometry>polygon</geometry>
-		      	<fields>COUNTYNAME,CDOW_Area,CDOW_AWM,CDOW_FOName,CDOW_FOAddress,CDOW_FOCity,CDOW_FOPhone,CDOW_District,CDOW_DWM</fields>
-	    	  	<displaynames>County,CPW Area,Area Manager,Office Name,Address,City,Phone,CPW District,District Manager</displaynames>
+	       	<geometry>polygon</geometry>
+		     	<fields>COUNTYNAME,CDOW_Area,CDOW_AWM,CDOW_FOName,CDOW_FOAddress,CDOW_FOCity,CDOW_FOPhone,CDOW_District,CDOW_DWM</fields>
+	    	 	<displaynames>County,CPW Area,Area Manager,Office Name,Address,City,Phone,CPW District,District Manager</displaynames>
 	   		</layer>
 	   	</folder>
 	   	
 	   	<folder label="Public Lands">
-			<!-- CPW Properties -->
-			<layer label="CPW Public Access Properties">
+				<!-- CPW Properties -->
+				<layer label="CPW Public Access Properties">
 		     	<id>3</id>
-	    	  	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
-           		<geometry>polygon</geometry>
-		      	<fields>PropName</fields>
-		      	<displaynames>CPW Property Name</displaynames>
+	    	 	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
+        	<geometry>polygon</geometry>
+		     	<fields>PropName</fields>
+		     	<displaynames>CPW Property Name</displaynames>
 	   		</layer>
-			<!-- COMaP v10 -->
-			<layer label="Land Management (COMaP v10)">
+				<!-- COMaP v10 -->
+				<layer label="Land Management (COMaP v10)">
 		    	<id>4</id>
-	    	  	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/CHA_AssetReport_Data/MapServer/</url>
-           		<geometry>polygon</geometry>
-		      	<fields>NAME,MANAGER</fields>
-		      	<displaynames>Property Name,Land Manager</displaynames>
+	    	 	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
+        	<geometry>polygon</geometry>
+		     	<fields>NAME,MANAGER</fields>
+		     	<displaynames>Property Name,Land Manager</displaynames>
 	   		</layer>
 		</folder>
 		
