@@ -68,14 +68,115 @@ define([
 			this._setBookmarks();
 		 },
 		
+		_loadKml: function(){
+			// if user enters a URL to a kml or kmz file load it into the map and convert to our graphics and add bookmark
+			require(["esri/layers/KMLLayer","esri/geometry/webMercatorUtils","esri/graphicsUtils","dojo/_base/array","esri/symbols/SimpleLineSymbol",
+				"esri/symbols/SimpleMarkerSymbol","dojo/_base/Color"], function (KMLLayer,webMercatorUtils,graphicsUtils,array,SimpleLineSymbol,SimpleMarkerSymbol,Color) {
+				showLoading();
+				esri.config.defaults.io.proxyUrl = "/proxy/DotNet/proxy.ashx";
+				esriConfig.defaults.io.alwaysUseProxy = false;
+				// test file: http://www.wpc.ncep.noaa.gov/kml/qpf/QPF24hr_Day1_main.kml
+				// test file: https://dl.dropboxusercontent.com/u/2142726/esrijs-samples/Wyoming.kml
+				var url = document.getElementById("kmlFile").value;
+				var kmlExtent=null;
+				var kmlLayer = new KMLLayer(url);
+				map.addLayer(kmlLayer);
+				closeMenu();
+				slideLeft(document.getElementById('bookmarkPane'));
+				
+				/*var layers = kmlLayer.getLayers();
+				array.forEach(layers, function(layer){
+					if (layer.declaredClass === "esri.layers.FeatureLayer") {
+					}
+					else if (layer.declaredClass === "esri.layers.MapImageLayer") {
+					}
+				});*/
+				
+				/*var attr = kmlLayer.getAttributionData().then(function(value){
+					alert("in get attributes");
+				},function(err){alert(err.message,"Error");});*/
+				var kmlCreated=kmlLayer.on("load", function(evt){	
+					kmlCreated.remove();
+					
+					//var kmlLoaded = map.on("layer-add-result",function(evt){
+						console.log (evt.layer.id);
+						
+						// Add graphics to drawGraphicsCount array
+						/*var layer=evt.layer;
+						if (layer.id.indexOf("graphicsLayer") == 0){
+							var lyrExtent=graphicsUtils.graphicsExtent(layer.graphics);
+							//if (layer.geometryType == "esriGeometryPoint") {
+								//var name="",desc="";
+// get extent for the point
+var point = layer.geometry.point;
+var toleranceInPixel=50;
+								//calculate map coords represented per pixel
+var pixelWidth = map.extent.getWidth() / map.width;
+
+//calculate map coords for tolerance in pixel
+var toleraceInMapCoords = toleranceInPixel * pixelWidth;
+
+//calculate & return computed extent
+lyrExtent = new esri.geometry.Extent( point.x – toleraceInMapCoords,
+point.y – toleraceInMapCoords,
+point.x + toleraceInMapCoords,
+point.y + toleraceInMapCoords,
+map.spatialReference ); }
+								
+								/*array.forEach(layer.graphics,function(g){
+									var symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE,7,new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([0,0,200]), 1),new Color([0,0,255,0.6]));
+									addPoint(g.geometry,g.attributes.name,g.attributes.description,symbol);
+									alert("loaded point "+g.attributes.name);
+								});*/
+							//}
+							/*if (lyrExtent) (kmlExtent) ? kmlExtent.union(lyrExtent): kmlExtent = lyrExtent;
+					
+							// Zoom to extent of all layers 
+							if (kmlExtent) map.setExtent(kmlExtent);
+							hideLoading();
+						}*/
+					//});
+					
+					
+						
+					
+					// Zoom to extent of all layers 
+					var kmlExtent=null, layers = kmlLayer.getLayers();  
+					var lyrExtent=null;
+					if (layers[0].folders)
+						console.log("Folders="+layers[0].folders.length);
+					if (layers[0].graphics)
+						console.log("Graphics="+layers[0].graphics.length);
+					dojo.forEach(layers, function(lyr) {  
+						if ( lyr.graphics && lyr.graphics.length > 0 ) {
+							if (lyr.graphics[0].geometry.spatialReference.wkid == 4326)
+								lyrExtent = webMercatorUtils.geographicToWebMercator(graphicsUtils.graphicsExtent(lyr.graphics) ); 
+							else if (lyr.graphics[0].geometry.spatialReference.wkid == 102100)
+								lyrExtent = graphicsUtils.graphicsExtent(lyr.graphics);
+							//***************** to do *******************
+							else alert("need to convert spatial reference");
+							if (lyrExtent) (kmlExtent) ? kmlExtent.union(lyrExtent): kmlExtent = lyrExtent;
+						}  
+					});
+					if (kmlExtent) map.setExtent(kmlExtent);
+					hideLoading();
+				});
+				kmlLayer.on("error", function(e){
+					hideLoading();
+					alert(e.error.message,"Warning");
+				});
+				
+			});			
+		},
+		
 		_hideAll: function(){
 			// hide all bookmark panels and reset all buttons to none selected.
 			document.getElementById("addBookmark").style.display="none";
 			document.getElementById("addBrowserBookmark").style.display="none";
-			document.getElementById("uploadKml").style.display="none";
+			//document.getElementById("uploadKml").style.display="none";
 			document.getElementById("bmBtn").className="buttonBar";
 			document.getElementById("brBtn").className="buttonBar";
-			document.getElementById("kmlBtn").className="buttonBar";
+			//document.getElementById("kmlBtn").className="buttonBar";
 		},
 		
 		_showAddBookmark: function(){
@@ -83,15 +184,15 @@ define([
 			document.getElementById("addBookmark").style.display="block";
 			document.getElementById("bmBtn").className="buttonBarSelected";
 			bmHelp.setContent('This tool allows you to save the current map view including: way points, selected map layers, and base map layer in your <b>browser\'s local storage</b>. '+
-				'If you delete your browser history be sure to uncheck <b>\"cookies & other site data\"</b> to keep your bookmarks. The disadvantage to this is that you can never '+
-				'clear your cookies without losing all of your bookmarks. Also, Safari on mobile recently removed the option to uncheck cookies so it always deletes all of your cookies, '+
-				'therefore clearing history will delete all of your saved bookmarks. There is a limit of 5mb that can be stored per website domain. '+
-				'<br/><br/><strong>Add a Bookmark: </strong>Enter a label for your boomark and press the Add button.'+
-				'<br/><br/><strong>Load a Bookmark: </strong>Click on the label or <img style="vertical-align:middle; height:30px;" src="assets/images/i_bookmark.png"/> button to load a bookmark.'+
-				'<br/><br/><strong>Remove a Bookmark: </strong>Clicking on the <img style="vertical-align:middle" src="assets/images/w_close_red.png"/> button will delete a bookmark.'+
-				'<br/><br/><strong>Email a Bookmark</strong>: If you would like to email the current map use "Email Link" '+
-				'located in Links in the main menu.  Good for a limited number of Way Points.'+
-				'<br/><br/>');
+					'If you delete your browser history be sure to uncheck <b>\"cookies & other site data\"</b> to keep your bookmarks. The disadvantage to this is that you can never '+
+					'clear your cookies without losing all of your bookmarks. Also, Safari on mobile recently removed the option to uncheck cookies, therefore clearing history will delete all '+
+					'of your saved bookmarks. There is a limit of 5mb that can be stored per website domain. '+
+					'<br/><br/><strong>Add a Bookmark: </strong>Enter a label for your boomark and press the Add button.'+
+					'<br/><br/><strong>Load a Bookmark: </strong>Click on the label or <img style="vertical-align:middle; height:30px;" src="assets/images/i_bookmark.png"/> button to load a bookmark.'+
+					'<br/><br/><strong>Remove a Bookmark: </strong>Clicking on the <img style="vertical-align:middle" src="assets/images/w_close_red.png"/> button will delete a bookmark.'+
+					'<br/><br/><strong>Email a Bookmark</strong>: If you would like to email the current map use "Email Link" '+
+					'located in Links in the main menu.  Good for a limited number of Way Points.'+
+					'<br/><br/>');
 		},
 		
 		_showBrowserBookmark: function(){
@@ -101,13 +202,13 @@ define([
 			bmHelp.setContent(this.defaultHelp);
 		},
 		
-		_showKml: function(){
+		/*_showKml: function(){
 			this._hideAll();
 			document.getElementById("uploadKml").style.display="block";
 			document.getElementById("kmlBtn").className="buttonBarSelected";
 			bmHelp.setContent("This tool allows you to add graphics from a KML or KMZ file on a publicly shared URL. The layers will be added to the map and can be tapped on "+
 				" to display more information. Note: These graphics are not saved when you bookmark the current map.");
-		},
+		},*/
 		
 		_setBookmarks: function() {
 			// read local storage and add bookmark links to widget
@@ -234,8 +335,8 @@ define([
 				this.bookmarkName.blur();
 				document.body.focus();
 				//this.bmTabs.selectChild(this.bmListPane);
-			} catch (e) {
-				alert("Error in javascript/bookmark.js _addBookmark() " + e.message, "Code Error", e);
+			} catch (err) {
+				alert("Error in javascript/bookmark.js _addBookmark() " + err.message, "Code Error",err);
 			}
 		},
 		_loadBasemapsToc: function(cfg, bm) {
@@ -325,11 +426,12 @@ define([
 					if (value.length == 1)
 						return;
 					
+					var pos;
 					var sr = new SpatialReference(map.spatialReference);
 					for (var m = 1; m < value.length; m++) {
 						if (value[m].indexOf("layer=") > -1) {
 							var basemapGallery = registry.byId("basemapGallery");
-							var pos = value[m].indexOf("|");
+							pos = value[m].indexOf("|");
 							var basemap = value[m].substring(6, pos);
 							var title;
 							
@@ -358,12 +460,12 @@ define([
 							var layersArr = value[m].substring(pos + 1).split(",");
 							var layer = map.getLayersVisibleAtScale();
 							gmu = "Big Game GMU";
-							var n;
+							var n,v;
 							var num = new Array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
-							var layerArr;
+							var layerArr,i;
 							for (var j = 0; j < layer.length; j++) {
 								var found = false;
-								for (var i = 0; i < layersArr.length; i++) {
+								for (i = 0; i < layersArr.length; i++) {
 									layerArr = layersArr[i].split("|");
 									if (layer[j].id.indexOf("graphics") > -1) {
 										found = true;
@@ -378,7 +480,7 @@ define([
 									layer[j].hide();
 							}
 							for (i = 0; i < layersArr.length; i++) {
-								var layerArr = layersArr[i].split("|");
+								layerArr = layersArr[i].split("|");
 								for (j = 0; j < layer.length; j++) {
 									if (layer[j].id == layerArr[0]) {
 										layer[j].setOpacity(parseFloat(layerArr[1]));
@@ -398,7 +500,7 @@ define([
 											var layerInfos = [];
 											layerInfos = layer[j].layerInfos;
 											if (layer[j].id == "Hunter Reference") {
-												for (var v = 0; v < visLayers.length; v++) {
+												for (v = 0; v < visLayers.length; v++) {
 													if (layerInfos[visLayers[v]].name.substr(layerInfos[visLayers[v]].name.length - 3, 3).indexOf("GMU") > -1) {
 														gmu = layerInfos[visLayers[v]].name;
 														break;
@@ -437,12 +539,12 @@ define([
 												} else {
 													layerInfos[k].visible = false;
 												}
-												var pos = visLayers.indexOf(layerInfos[k].id);
+												pos = visLayers.indexOf(layerInfos[k].id);
 												if (pos > -1 && layerInfos[k].subLayerIds)
 													visLayers.splice(pos, 1);
 											}
 											layer[j].setVisibleLayers(visLayers.sort(function (a, b) {
-													return a - b
+													return a - b;
 												}), false);
 											layer[j].refresh();
 											visLayers = null;
