@@ -167,12 +167,12 @@ function loadBookmark(cfg) {
 					var layersArr = value[m].substring(pos + 1).split(",");
 					var layer = map.getLayersVisibleAtScale();
 					gmu = "Big Game GMU";
-					var n;
+					var n,i;
 					var num = new Array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 					var layerArr;
 					for (var j = 0; j < layer.length; j++) {
 						var found = false;
-						for (var i = 0; i < layersArr.length; i++) {
+						for (i = 0; i < layersArr.length; i++) {
 							layerArr = layersArr[i].split("|");
 							if (layer[j].id.indexOf("graphics") > -1) {
 								found = true;
@@ -187,7 +187,7 @@ function loadBookmark(cfg) {
 							layer[j].hide();
 					}
 					for (i = 0; i < layersArr.length; i++) {
-						var layerArr = layersArr[i].split("|");
+						layerArr = layersArr[i].split("|");
 						for (j = 0; j < layer.length; j++) {
 							if (layer[j].id == layerArr[0]) {
 								layer[j].setOpacity(parseFloat(layerArr[1]));
@@ -207,8 +207,9 @@ function loadBookmark(cfg) {
 										visLayers[k] = visLayers[k] | 0;
 									var layerInfos = [];
 									layerInfos = layer[j].layerInfos;
+									var v;
 									if (layer[j].id == "Hunter Reference") {
-										for (var v = 0; v < visLayers.length; v++) {
+										for (v = 0; v < visLayers.length; v++) {
 											if (layerInfos[visLayers[v]].name.substr(layerInfos[visLayers[v]].name.length - 3, 3).indexOf("GMU") > -1) {
 												gmu = layerInfos[visLayers[v]].name;
 												break;
@@ -247,12 +248,12 @@ function loadBookmark(cfg) {
 										} else {
 											layerInfos[k].visible = false;
 										}
-										var pos = visLayers.indexOf(layerInfos[k].id);
-										if (pos > -1 && layerInfos[k].subLayerIds)
-											visLayers.splice(pos, 1);
+										var pos1 = visLayers.indexOf(layerInfos[k].id);
+										if (pos1 > -1 && layerInfos[k].subLayerIds)
+											visLayers.splice(pos1, 1);
 									}
 									layer[j].setVisibleLayers(visLayers.sort(function (a, b) {
-											return a - b
+											return a - b;
 										}), false);
 									layer[j].refresh();
 									visLayers = null;
