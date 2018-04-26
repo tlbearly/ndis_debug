@@ -443,9 +443,11 @@
 	              var supportsOrientationChange = "onorientationchange" in window,
 	                  orientationEvent = supportsOrientationChange ? "orientationchange" : "resize";
 	              window.addEventListener(orientationEvent, function() {
-	                  showLoading();
+					if (document.getElementById("wayPtDesc")){  
+					  showLoading();
 	                  // wait 1/2 a second for screen to draw
-	                  setTimeout(resizeTextBox(document.getElementById("wayPtDesc")), 500);
+					  setTimeout(resizeTextBox(document.getElementById("wayPtDesc")), 500);
+					}
 	              }, false);
 				  lastTitle = map.infoWindow._title.innerHTML;
 	          }
@@ -490,7 +492,7 @@
 	          if (groupContent[identifyGroup]) {
 	              map.infoWindow.setContent(groupContent[identifyGroup]);
 	              // Adjust the height of the Way Point description text box to fit the text.
-	              if (identifyGroup == "Way Point")
+	              if (identifyGroup == "Way Point" && document.getElementById("wayPtDesc"))
 	                  resizeTextBox(document.getElementById('wayPtDesc'));
 	              getIdentifyFooter();
 	              hideLoading("");
@@ -624,6 +626,18 @@
 
 	      require(["dojo/_base/array"], function(array) {
 	          try {
+				function findGroupInResults(results) {
+					for (i = 0; i < results.length; i++) {
+						if (results[i][1] && results[i][1].length > 0) {
+							for (j = 0; j < results[i][1].length; j++) {
+								if (identifyLayers[identifyGroup][results[i][1][j].layerName]) {
+									notfound = false;
+									return;
+								}
+							}
+						}
+					}
+				}
 	              if (!results) {
 	                  alert("Error in identify.js/handleQueryResults. IdentifyTask returned null.", "Data Error");
 	                  return;
@@ -651,18 +665,6 @@
 	              var notfound = true;
 	              var i, j;
 
-	              function findGroupInResults(results) {
-	                  for (i = 0; i < results.length; i++) {
-	                      if (results[i][1] && results[i][1].length > 0) {
-	                          for (j = 0; j < results[i][1].length; j++) {
-	                              if (identifyLayers[identifyGroup][results[i][1][j].layerName]) {
-	                                  notfound = false;
-	                                  return;
-	                              }
-	                          }
-	                      }
-	                  }
-	              }
 	              findGroupInResults(results);
 	              if (notfound) title = "No " + identifyGroup;
 	              else if (results[i][1][j].displayFieldName == "WATERCODE") {
@@ -753,7 +755,7 @@
 	                                                                  for (j = 0; j < identifyLayers[identifyGroup][r.layerName].one2one_fields.length; j++) {
 	                                                                      if (xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][r.layerName].one2one_fields[j]).length > 0) {
 	                                                                          var one2one_field = xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][r.layerName].one2one_fields[j])[0];
-	                                                                          if ((one2one_field.getElementsByTagName("linkname").length > 0) && (one2one_field[h].getElementsByTagName("linkurl").length > 0)) {
+	                                                                          if ((one2one_field.getElementsByTagName("linkname").length > 0) && (one2one_field.getElementsByTagName("linkurl").length > 0)) {
 	                                                                              tmpStr += identifyLayers[identifyGroup][r.layerName].one2one_display[j] + ": ";
 	                                                                              tmpStr += "<a href='" + one2one_field.getElementsByTagName("linkurl")[0].firstChild.nodeValue + "'>" + one2one_field.getElementsByTagName("linkname")[0].firstChild.nodeValue + "</a>";
 	                                                                              tmpStr += "<br/>";
@@ -1217,7 +1219,7 @@
 	          function(domConstruct, query, domClass, registry) {
 	              map.infoWindow.setContent(groupContent[identifyGroup]);
 	              // Display Way Point, drop down with way point, display arrows if more than one way point at this location can scroll throught using buttons: < >
-	              if (identifyGroup == "Way Point") {
+	              if (identifyGroup == "Way Point" && document.getElementById("wayPtDesc")) {
 	                  // Adjust the height of the Way Point description text box to fit the text.
 	                  resizeTextBox(document.getElementById('wayPtDesc'));
 	                  //query("div.esriMobileNavigationItem.center", map.domNode)[0].style.display="none";
