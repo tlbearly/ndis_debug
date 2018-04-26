@@ -11,7 +11,7 @@ header("Cache-Control: post-check=0, pre-check=0", false);
 // HTTP/1.0
 header("Pragma: no-cache");
 ?>
-    <html>
+<html>
 
     <head>
         <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
@@ -91,16 +91,16 @@ header("Pragma: no-cache");
         <script src="https://js.arcgis.com/3.23compact"></script>
         <!-- Load external javascript files here. -->
         <!--link rel="stylesheet" href="assets/css/layoutM.css?v=3.11"></script>
-		<script type="text/javascript" src="javascriptM/geo.js?v=3.11"></script>
+		<script type="text/javascript" src="javascriptM/geo.js?v=3.13"></script>
 		<script type="text/javascript" src="javascriptM/disclaimer.js?v=3.11"></script>
 		<script type="text/javascript" src="javascriptM/errorBox.js?v=3.11"></script>
 		<script type="text/javascript" src="javascriptM/findPlace.js?v=3.11"></script>
-		<script type="text/javascript" src="javascriptM/src/identify.js?v=3.11"></script>
-		<script type="text/javascript" src="javascriptM/readConfig.js?v=3.12"></script>
+		<script type="text/javascript" src="javascriptM/identify.js?v=3.17a"></script>
+		<script type="text/javascript" src="javascriptM/readConfig.js?v=3.17a"></script>
 		<script type="text/javascript" src="javascriptM/search.js?v=3.11"></script>
 		<script type="text/javascript" src="javascriptM/swipe.js?v=3.11"></script>
 		<script type="text/javascript" src="javascriptM/utilFuncs.js?v=3.11"></script>
-		<script type="text/javascript" src="javascriptM/src/wayPoints.js?v=3.11"></script>
+		<script type="text/javascript" src="javascriptM/wayPoints.js?v=3.17"></script>
 		<script type="text/javascript" src="javascriptM/xmlUtils.js?v=3.11"></script-->
         <script>
             /* For DEBUGGING */
@@ -189,8 +189,11 @@ header("Pragma: no-cache");
                         window.location = "https" + str.substring(4);
                     }
                     parser.parse();
-                    queryObj = ioquery.queryToObject(document.location.search.substr((document.location.search[0] === "?" ? 1 : 0)));
-                    app = queryObj.app;
+
+                    // preserve new lines in way point definitions
+                    var location = document.location.search.replace(/\%0D/g,"newline");
+                    queryObj = ioquery.queryToObject(location.substr((location[0] === "?" ? 1 : 0)));
+                    app = encodeURIComponent(queryObj.app);
                     if (!app)
                         app = "HuntingAtlas";
                     else if ((app.toLowerCase() != "huntingatlas") &&
@@ -199,7 +202,122 @@ header("Pragma: no-cache");
                     (app.toLowerCase() != "stockingrestrictions")){
                         app = "HuntingAtlas";
                         alert("Application name not found. Defaulting to Hunting Atlas.","Notice");
-			        }
+                    }
+                    // Sanitize user input. Protect against XSS attacks.
+                    // test for XSS attack. Pattern contains allowed characters. [^ ] means match any character that is not
+                    // in the is set. \ escapes characters used by regex like .-'"|\
+                    var regexp;
+                    // For labels allow ' " for degrees minutes seconds
+                    // Points
+                    if (queryObj.point){
+                        queryObj.point = queryObj.point.replace(/~/g, " "); // for email from mobile app
+                        regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.point)) alert("Illegal characters were removed from way point labels.","Warning");
+                        regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_\*()])/g;
+                        queryObj.point=queryObj.point.replace(regexp,""); // clean it
+                        queryObj.point = queryObj.point.replace(/newline/g,"\n"); // preserve new line characters
+                    }
+                    // Lines
+                    if (queryObj.line){
+                        regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.line)) alert("Illegal characters were removed from the line labels.","Warning");
+                        regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
+                        queryObj.line=queryObj.line.replace(regexp,""); // clean it
+                    }
+
+                    // Polygons
+                    if (queryObj.poly){
+                        regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.poly)) alert("Illegal characters were removed from the shape (polygon) labels.","Warning");
+                        regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
+                        queryObj.poly=queryObj.poly.replace(regexp,""); // clean it
+                    }
+
+                    // Rectangles
+                    if (queryObj.rect){
+                        regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.rect)) alert("Illegal characters were removed from the rectangle labels.","Warning");
+                        regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
+                        queryObj.rect=queryObj.rect.replace(regexp,""); // clean it
+                    }
+                    
+                    // Text
+                    if (queryObj.text){
+                        regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.text)) alert("Illegal characters were removed from the point labels.","Warning");
+                        regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
+                        queryObj.text=queryObj.text.replace(regexp,""); // clean it
+                    }
+
+                    // Layer
+                    if (queryObj.layer){
+                        queryObj.layer = queryObj.layer.replace(/~/g, " "); // for email from mobile app
+                        regexp=/([^a-zA-Z0-9 \-\|,\._()])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.layer)) alert("Illegal characters were found on the URL. Layers may not load properly.","Warning");
+                        //regexp=/([^a-zA-Z0-9 \-,\._()])/g; // Used if testing for \\ above
+                        queryObj.layer=queryObj.layer.replace(regexp,""); // clean it
+                    }
+
+                    // keyword
+                    if (queryObj.keyword){
+                        regexp=/([^a-zA-Z0-9 \-\._()])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.keyword)) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
+                        //regexp=/([^a-zA-Z0-9 \-\._()])/g; // Used if testing for \\ above
+                        queryObj.keyword=queryObj.keyword.replace(regexp,""); // clean it
+                    }
+
+                    // value
+                    if (queryObj.value){
+                        regexp=/([^a-zA-Z0-9 \-\',\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.value)) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
+                        regexp=/([^a-zA-Z0-9 \-\',\.!_\*()])/g;
+                        queryObj.value=queryObj.value.replace(regexp,""); // clean it
+                    }
+
+                    // label
+                    if (queryObj.label){
+                        regexp=/([^a-zA-Z0-9 \-\',\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.label)) alert("Illegal characters were found on the URL. Point labels may not load properly.","Warning");
+                        regexp=/([^a-zA-Z0-9 \-\',\.!_\*()])/g;
+                        queryObj.label=queryObj.label.replace(regexp,""); // clean it
+                    }
+
+                    // map
+                    if (queryObj.map){
+                        regexp=/([^a-zA-Z0-9 \-,\._():\/])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.map)) alert("Illegal characters were found on the URL. Map may not load properly.","Warning");
+                        //regexp=/([^a-zA-Z0-9 \-\=,\._():\/])/g; // Used if testing for \\ above
+                        queryObj.map=queryObj.map.replace(regexp,""); // clean it
+                    }
+
+                    // field
+                    if (queryObj.field){
+                        regexp=/([^a-zA-Z0-9 \-_])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.field)) alert("Illegal characters were found on the URL. Map may not load properly.","Warning");
+                        //regexp=/([^a-zA-Z0-9 \-\=,\._():\/])/g; // Used if testing for \\ above
+                        queryObj.field=queryObj.field.replace(regexp,""); // clean it
+                    }
+
+                    // projection Only allow integers.
+                    if (queryObj.prj && isNaN(queryObj.prj)) {
+                        queryObj.prj = 102100;
+                        alert("Problem reading map projection from the URL, defaulting to WGS84.","Warning");
+                    }
+
+                    // Extent
+                    if (queryObj.extent){
+                        regexp=/([^0-9 \-,\.])/g; // allow \ for the test (\' \") but remove it for the clean
+                        if (regexp.test(queryObj.extent)) alert("Illegal characters were found on the URL. Map extent may not load properly.","Warning");
+                        queryObj.extent=queryObj.extent.replace(regexp,""); // clean it
+                    }
+
+                    // Place
+                    if (queryObj.place){
+                        regexp=/([^a-zA-Z0-9 \-\',\.!_\*():\\])/g; // allow \ for the test (\' \") but remove it for the clean, : used in degree, min, sec point
+                        if (regexp.test(queryObj.place)) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
+                        regexp=/([^a-zA-Z0-9 \-\',\.!_\*():])/g;
+                        queryObj.place=queryObj.place.replace(regexp,""); // clean it
+                    }
 
                     esriConfig.defaults.io.proxyUrl = "/proxy/DotNet/proxy.ashx";
                     esriConfig.defaults.io.alwaysUseProxy = false;
@@ -365,7 +483,8 @@ header("Pragma: no-cache");
                     if (i >= 0) {
                         node.style.left = "0px";
                         clearTimeout(t1);
-                    } else node.style.left = i + "px";
+                    } 
+					else node.style.left = i + "px";
                 }, delay);
             }
 
@@ -555,72 +674,14 @@ header("Pragma: no-cache");
                 <span data-dojo-type="dojox/mobile/ToolBarButton" data-dojo-props='icon:"assets/images/leftarrow.png"' onclick="slideLeft(document.getElementById('wayPtsPane'));"></span>
                 <span data-dojo-type="dojox/mobile/ToolBarButton" alt='help button' style='float:right;' data-dojo-props='icon:"assets/images/helpBtn.png"' onclick="wayPointHelp.show()"></span>
             </h1>
-            <div id="wpMapClick" style="display:block;margin-bottom:10px;padding:5px;height:calc(100vh - 140px);-moz-calc(100vh - 140px);-webkit-calc(100vh - 140px);overflow:auto;">
-                <div data-dojo-type="dojox/mobile/ContentPane" class="scrollContent">
-                    <form id="wayPtForm">
-                        <h3>Add Way Point by Clicking Map</h3>
-                        <label for="pointStyleDiv">Style: </label>
-                        <div id="pointStyleDiv"></div><br/><br/>
-                        <input id="wayPtInputTitle" maxlength="25" style='width:initial;' required=true placeholder="Label" type="text"></input><br/>
-                        <textarea id="wayPtInputDesc" type="text" onkeyup='javascript:resizeTextBox(this)' maxlength="200" style="height: 80px; resize:none;" placeholder="Description"></textarea>
-                        <p align="center"><input id="wayPtBtn" type="submit" class="mblButton" value="Add Way Point" /></p>
-                    </form>
-                </div>
-            </div>
-            <div id="wpKML" style="display:none;margin-bottom:10px;padding:5px;height:calc(100vh - 140px);-moz-calc(100vh - 140px);-webkit-calc(100vh - 140px);overflow:auto;">
-                <style>
-                    td,
-                    th {
-                        border-bottom: 1px solid #476999;
-                        padding: 5px 0;
-                    }
-                    
-                    table {
-                        border-collapse: collapse;
-                    }
-                </style>
-                <h3>Add Way Points from KML</h3>
-                <input id="kmlFile" type='url' style="width:95%;float:left;margin-right:10px;" required=true placeholder="URL to KML or KMZ file"></input><br/><br/>
-                <input id="kmlLabel" type='text' style="width:95%;float:left;margin-right:10px;" required=true placeholder="Label"></input><br/><br/>
-                <p align="center">
-                    <button data-dojo-type="dojox/mobile/Button" type="button" onclick="loadKml(document.getElementById('kmlFile').value,document.getElementById('kmlLabel').value);" class="mblButton">Add</button>&nbsp;&nbsp;&nbsp;
-                    <button data-dojo-type="dojox/mobile/Button" type="button" onclick="document.getElementById('kmlFile').value='';document.getElementById('kmlLabel').value='';" class="mblButton">Reset</button>
-                </p>
-                <table id="kmlList" style="table-layout:fixed;width:100%;">
-                    <tbody>
-                        <tr>
-                            <th style="width:40px;overflow:visible;"></th>
-                            <th style="width:calc(100% - 80px);-moz-calc(100% - 80px);-webkit-calc(100% - 80px);padding-bottom:0;overflow:visible;">My KML Files List</th>
-                            <th style="width:40px"></th>
-                        </tr>
-                        <tr>
-                            <td><input id="SampleKMLFile" type="checkbox" class="checkBoxButton" onclick="kmlListClickHandler('https://dl.dropboxusercontent.com/u/2142726/esrijs-samples/Wyoming.kml',this.parentNode.parentNode.rowIndex,this.checked)"></td>
-                            <td style="overflow-x:scroll">Sample KML File<br/><span style="white-space:nowrap;font-size:small">https://dl.dropboxusercontent.com/u/2142726/esrijs-samples/Wyoming.kml</span></td>
-                            <td><img src="assets/images/w_close_red.png" style="cursor: pointer; position: relative; float: right; right: 10px; height: 30px;" onclick="if(document.getElementById('SampleKMLFile').checked)hideKml(this.parentNode.parentNode.rowIndex);deleteRow(this.parentNode.parentNode);"
-                                /></td>
-                        </tr>
-                        <tr>
-                            <td><input id="Sample2" type="checkbox" class="checkBoxButton" onclick="kmlListClickHandler('http://ndis-staging.nrel.colostate.edu/test/rmnp.kmz',this.parentNode.parentNode.rowIndex,this.checked);"></td>
-                            <td style="overflow-x:scroll">Sample 2<br/><span style="white-space:nowrap;font-size:small">http://ndis-staging.nrel.colostate.edu/test/rmnp.kmz</span></td>
-                            <td><img src="assets/images/w_close_red.png" style="cursor: pointer; position: relative; float: right; right: 10px; height: 30px;" onclick="if(document.getElementById('Sample2').checked)hideKml(this.parentNode.parentNode.rowIndex);deleteRow(this.parentNode.parentNode);"
-                                /></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div align="center" class="footerBar">
-                <!--div style="position:relative;overflow:visible;width:255px;"-->
-                <div style="position:relative;overflow:visible;width:170px;">
-                    <button id="wpMapClickBtn" data-dojo-type="dojox/mobile/Button" class="buttonBarSelected" style="font-size:x-small;" type="button" onclick="javascript:showWPMapClick()">
-				<img src="assets/images/ptlgblue.png" style="width:20px;height:20px;vertical-align:top;"/><br/>Map Click
-			</button>
-                    <button id="wpKMLBtn" data-dojo-type="dojox/mobile/Button" class="buttonBar" onclick="javascript:showWPkml();">
-				<img src="assets/images/i_extent.png" style="width:20px;height:20px;vertical-align:top;"/><br/>KML - TESTING with WayPointsKML
-			</button>
-                    <!--button  id="kmlBtn" data-dojo-type="dojox/mobile/Button" class="buttonBar" type="button" 
-				data-dojo-attach-event="click: _showKml">
-				<img src="assets/images/i_extent.png" style="width:20px;height:20px;vertical-align:top;"/><br/>KML
-			</button-->
+            <div class="scrollContainer">
+				<div data-dojo-type="dojox/mobile/ContentPane" class="scrollContent">
+					<form id="wayPtForm">											  
+						<label for="pointStyleDiv">Style: </label><div id="pointStyleDiv"></div><br/><br/>											
+						<input id="wayPtInputTitle" maxlength="50" style='width:250px;max-width:96%;' required=true placeholder="Label" type="text"></input><br/>
+						<textarea id="wayPtInputDesc" type="text" onkeyup='javascript:resizeTextBox(this)' maxlength="200" style="height: 80px; width:96%; resize:none;" placeholder="Description"></textarea>
+						<p align="center"><input id="wayPtBtn" type="submit" class="mblButton" value="Add Way Point"/></p>
+					</form>              
                 </div>
             </div>
         </div>
