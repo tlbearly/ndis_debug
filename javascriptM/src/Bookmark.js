@@ -78,6 +78,8 @@ define([
 				// test file: http://www.wpc.ncep.noaa.gov/kml/qpf/QPF24hr_Day1_main.kml
 				// test file: https://dl.dropboxusercontent.com/u/2142726/esrijs-samples/Wyoming.kml
 				var url = document.getElementById("kmlFile").value;
+				regexp=/([^a-zA-Z0-9 \/:&\?$\-\'=,;+\.!_\*()])/g;
+        url=url.replace(regexp,""); // clean it
 				var kmlExtent=null;
 				var kmlLayer = new KMLLayer(url);
 				map.addLayer(kmlLayer);
@@ -286,6 +288,9 @@ map.spatialReference ); }
 				var str;
 				var bmNames = getCookie("bm_" + app.toLowerCase());
 				var name = this.bookmarkName.value;
+				// clean from XSS attacks
+				regexp=/([^a-zA-Z0-9 \-\.!_()])/g;
+				name = name.replace(regexp,"");
 				if (name == "") {
 					alert("Must give the bookmark a name.", "Note");
 					return;
@@ -410,6 +415,9 @@ map.spatialReference ); }
 				require(["esri/geometry/Extent", "esri/SpatialReference","dojo/dom","dijit/registry","javascript/graphicFuncs"], function (Extent, SpatialReference,dom,registry,graphicFuncs) {
 					cfg = cfg.replace(/\$/g, ";");
 					var value = cfg.split("&");
+					// clean from XSS attacks
+					var regexp=/([^0-9 \-,\.])/g;
+					value[0] = value[0].replace(regexp,"");
 					var extArr = value[0].split(",");
 					var ext;
 					ext = new Extent({
@@ -430,6 +438,9 @@ map.spatialReference ); }
 					var sr = new SpatialReference(map.spatialReference);
 					for (var m = 1; m < value.length; m++) {
 						if (value[m].indexOf("layer=") > -1) {
+							// clean from XSS attacks
+							regexp=/([^a-zA-Z0-9 =\-\|,\._()])/g;
+							value[m] = value[m].replace(regexp,"");
 							var basemapGallery = registry.byId("basemapGallery");
 							pos = value[m].indexOf("|");
 							var basemap = value[m].substring(6, pos);
@@ -554,11 +565,19 @@ map.spatialReference ); }
 							}
 						} else if (value[m].indexOf("point=") > -1){
 							require(["javascript/graphicFuncs"],function(graphicFuncs){
+								// clean from XSS attacks
+								regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_\*()])/g;
+								value[m] = value[m].replace(regexp,"");
 								graphicFuncs.addPoints(value[m].substring(6), sr);
 							});
 						}
-						else if (typeof addHB1298Points === "function" && value[m].indexOf("hb1298=") > -1)
+						else if (typeof addHB1298Points === "function" && value[m].indexOf("hb1298=") > -1){
+							// clean from XSS attacks
+							regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_\*()])/g;
+							value[m] = value[m].replace(regexp,"");
 							addHB1298Points(value[m].substring(7));
+						}
+						// if add these need to clean from xss attacks. See indexM.html for regexp
 						//else if (value[m].indexOf("line=") > -1)
 						//	addLines(value[m].substring(5), sr);
 						//else if (value[m].indexOf("poly=") > -1)
