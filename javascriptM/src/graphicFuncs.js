@@ -44,6 +44,7 @@ define([
 				if (map.getLayer(drawGraphicsCount[i]).graphics[id]) {
 					if (id==2) layer = map.getLayer(drawGraphicsCount[i]).title;
 					else layer = map.getLayer(drawGraphicsCount[i]).graphics[id].symbol.text;
+					layer = layer.replace(/``/g,"\%22").replace(/`/g,"\%27"); // Singe and doubleQuotes are not allowed in the title for the way point popup because it uses javascript to create it.
 					url +=  "|" +layer.replace(singleQuote,"\%27").replace(doubleQuote,"\%22").replace(/,/g,";").replace(/\n/g,"\%0D").replace(/\?/g,"\%3F");
 					//+ "|"+ "0|" + parseInt(layer.symbol.font.size) + "|0|t|f|f";
 				}
@@ -52,6 +53,7 @@ define([
 				if (map.getLayer(drawGraphicsCount[i]).desc){
 					var desc = map.getLayer(drawGraphicsCount[i]).desc;
 					if (desc[desc.length-1] == ".") desc += " "; //add space to end of description because email chokes on ".,new way point..."
+					desc =desc.replace(/``/g,"\%22").replace(/`/g,"\%27"); // Singe and doubleQuotes are not allowed in the title for the way point popup because it uses javascript to create it.
 					url += "|" + desc.replace(singleQuote,"\%27").replace(doubleQuote,"\%22").replace(/,/g,";").replace(/\n/g,"\%0D").replace(/\?/g,"\%3F");
 				}
 			}
@@ -198,11 +200,11 @@ define([
 						}
 						symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, size, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, outlineColor, 1), ptColor);
 						if (pointItems.length > 4)
-							label = pointItems[4].replace(semiColon, ",").replace(min, "'").replace(sec, "\"");
+							label = pointItems[4].replace(semiColon, ",").replace(sec, "``").replace(min, "`");  //replace(min, "'").replace(sec, "\"");
 						else
 							label = "Way Point";
 						if (pointItems.length > 5)
-							desc = pointItems[5].replace(semiColon, ",").replace(min, "'").replace(sec, "\"");
+							desc = pointItems[5].replace(semiColon, ",").replace(sec, "``").replace(min, "`"); //replace(min, "'").replace(sec, "\"");
 						else
 							desc = "";
 						point = new Point(parseFloat(pointItems[2]), parseFloat(pointItems[3]), new SpatialReference({
