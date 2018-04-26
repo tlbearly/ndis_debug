@@ -31,8 +31,7 @@ define([
 				if (rgb[0] == 255) ptColor = "r";
 				else if (rgb[1] == 255) ptColor = "g";
 				else if (rgb[2] == 255) ptColor = "b";
-				url += size+"|"+ptColor+"|"+parseInt(layer.geometry.x) + "|"
-					+ parseInt(layer.geometry.y);
+				url += size+"|"+ptColor+"|"+parseInt(layer.geometry.x) + "|" + parseInt(layer.geometry.y);
 				// old point format. Too long!!
 				//url += "circle|" +layer.symbol.size+ "|" +rgb[0]+";"+rgb[1]+";"+rgb[2]+ "|0.6|h" + layer.symbol.outline.color.toHex().substr(1)+"|1|"
 				//	+ parseInt(layer.geometry.x) + "|"
@@ -136,7 +135,7 @@ define([
 								id = layer[i].layerInfos[id].parentLayerId;
 							}
 							// sort visible layers
-							layer[i].visibleLayers = layer[i].visibleLayers.sort(function(a,b){return a-b})
+							layer[i].visibleLayers = layer[i].visibleLayers.sort(function(a,b){return a-b;});
 						}
 					}
 
@@ -175,9 +174,10 @@ define([
 				desc,
 				size,
 				ptColor,
-				outlineColor;
+				outlineColor,
+				pointItems;
 				for (i = 0; i < pointArr.length; i++) {
-					var pointItems = pointArr[i].split("|");
+					pointItems = pointArr[i].split("|");
 					if (pointItems.length >= 4 && pointItems.length < 7) {
 						if (pointItems[0] == "s")
 							size = 7;
@@ -272,8 +272,8 @@ define([
 			if (typeof getHB1298Points === "function") {
 				var hb1298pts = getHB1298Points();
 				if (hb1298pts && hb1298pts != "") url += hb1298pts;
-			};
+			}
 			return url;
 		}
-	}
+	};
 });
