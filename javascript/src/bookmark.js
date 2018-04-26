@@ -46,6 +46,9 @@ function addBookmark() {
 		require(["dojo/dom","dijit/registry"], function(dom,registry){
 			var bmNames = getCookie("bm_" + app.toLowerCase());
 			var name = dom.byId("bookmarkName").value;
+			// clean from XSS attacks
+			regexp=/([^a-zA-Z0-9 \-\.!_()])/g;
+			name = name.replace(regexp,"");
 			if (name == "") {
 				alert("Must give the bookmark a name.", "Note");
 				return;
@@ -112,6 +115,9 @@ function loadBookmark(cfg) {
 		require(["esri/geometry/Extent", "esri/SpatialReference","dojo/dom","dijit/registry"], function (Extent, SpatialReference,dom,registry) {
 			cfg = cfg.replace(/\$/g, ";");
 			var value = cfg.split("&");
+			// clean from XSS attacks
+			var regexp=/([^0-9 \-,\.])/g;
+			value[0] = value[0].replace(regexp,"");
 			var extArr = value[0].split(",");
 			var ext;
 			ext = new Extent({
@@ -130,6 +136,9 @@ function loadBookmark(cfg) {
 			var sr = new SpatialReference(map.spatialReference);
 			for (var m = 1; m < value.length; m++) {
 				if (value[m].indexOf("layer=") > -1) {
+					// clean from XSS attacks
+					regexp=/([^a-zA-Z0-9 =\-\|,\._()])/g;
+					value[m] = value[m].replace(regexp,"");
 					var pos = value[m].indexOf("|");
 					var basemap = value[m].substring(6, pos);
 					var title;
@@ -251,18 +260,42 @@ function loadBookmark(cfg) {
 							}
 						}
 					}
-				} else if (value[m].indexOf("point=") > -1)
+				} else if (value[m].indexOf("point=") > -1){
+					// clean from XSS attacks
+					regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_\*()])/g;
+					value[m] = value[m].replace(regexp,"");
 					addPoints(value[m].substring(6), sr);
-				else if (typeof addHB1298Points === "function" && value[m].indexOf("hb1298=") > -1)
+				}
+				else if (typeof addHB1298Points === "function" && value[m].indexOf("hb1298=") > -1){
+					// clean from XSS attacks
+					regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_\*()])/g;
+					value[m] = value[m].replace(regexp,"");
 					addHB1298Points(value[m].substring(7));
-				else if (value[m].indexOf("line=") > -1)
+				}
+				else if (value[m].indexOf("line=") > -1){
+					// clean from XSS attacks
+					regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_\*()])/g;
+					value[m] = value[m].replace(regexp,"");
 					addLines(value[m].substring(5), sr);
-				else if (value[m].indexOf("poly=") > -1)
+				}
+				else if (value[m].indexOf("poly=") > -1){
+					// clean from XSS attacks
+					regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
+					value[m] = value[m].replace(regexp,"");
 					addPolys(value[m].substring(5), sr);
-				else if (value[m].indexOf("rect=") > -1)
+				}
+				else if (value[m].indexOf("rect=") > -1){
+					// clean from XSS attacks
+					regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
+					value[m] = value[m].replace(regexp,"");
 					addRects(value[m].substring(5), sr);
-				else if (value[m].indexOf("text=") > -1)
+				}
+				else if (value[m].indexOf("text=") > -1){
+					// clean from XSS attacks
+					regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
+					value[m] = value[m].replace(regexp,"");
 					addLabels(value[m].substring(5), sr);
+				}
 			}
 			var toc = registry.byId("tocDiv");
 			toc.refresh();
