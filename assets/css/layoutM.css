@@ -759,39 +759,49 @@
 	.footerBar{
 		background-color:#dde2e9;
 		overflow:auto;
-		position:relative;
-		bottom:0px;
+		position:absolute;
+		top:0px;
 		webkit-overflow-scrolling:touch;
 		width:100%;
 	}
 	.buttonBar {
 		width:85px;
 		height:65px!important;
-		margin:0;
-		padding:6px;
+		margin:10px 0 0 0;
+		padding:0px;
 		float:left;
-		border-radius:0!important;
+		border-radius:10px 10px 0 0!important;
 		/* Keep Safari from rounding corners */
-		-webkit-appearance: none;
-		-webkit-border-radius: 0;
+		/*-webkit-appearance: none;*/
+		-webkit-border-radius: 10px 10px 0 0!important;;
 		font-weight:bold;
 		line-height:normal;
+		background-color: #efefef;
+		background-image: none;
+		border: 2px outset #ccc;
+		border-bottom: 1px solid #ccc;
 	}
 	.buttonBarSelected {
 		width:85px;
 		height:65px!important;
-		margin:0;
-		padding:6px;
+		margin:10px 0 0 0;
+		padding:0px;
 		float:left;
-		border-radius:0;
+		border-radius:10px 10px 0 0!important;;
 		/* Keep Safari from rounding corners */
-		-webkit-appearance: none;
-		-webkit-border-radius: 0;
+		/*-webkit-appearance: none;*/
+		-webkit-border-radius: 10px 10px 0 0!important;;
 		font-weight:bold;
 		line-height:normal;
-		border-style: inset;
-		background-image: linear-gradient(to bottom, #b1badf 0%, #8ea4c1 40%, #6d84a2 60%, #4a6c9b 100%)!important;
+		border: 2px inset #ccc;
+		border-bottom: none;
+		background-image: none; /*linear-gradient(to bottom, #b1badf 0%, #8ea4c1 40%, #6d84a2 60%, #4a6c9b 100%)!important;*/
+		background-color: #fff;
 		/*linear-gradient(to bottom, #7a9de9 0%, #f8f8f8 40%, #eeeeee 60%, #ccc 100%);*/
+	}
+	#addBookmark, #addBrowserBookmark{
+		position: relative;
+		top: 100px;
 	}
 	
 	input:-moz-focus-inner {
