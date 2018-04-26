@@ -125,6 +125,7 @@ header("Pragma: no-cache");
                 //	location.href = "indexM.html"+document.location.search;
                 // Global Variables
                 var ndisVer = Date.now(); // for xml files
+                var queryObj = {};
                 var geometryService; // set in readConfig.js from geometryservice tag in config.xml
                 var printServiceUrl; // set in readConfig.js from printservice tag in config.xml
                 var printGeoServiceUrl; // set in readConfig.js from printservice tag in config.xml
@@ -189,6 +190,7 @@ header("Pragma: no-cache");
                         "dojo/parser",
                         "esri/config",
                         "dojo/dom",
+                        "dojo/io-query",
                         "dijit/form/CheckBox",
                         "dijit/form/RadioButton",
                         "dijit/form/Form",
@@ -202,13 +204,31 @@ header("Pragma: no-cache");
                         "dojox/layout/ResizeHandle",
                         "dojo/domReady!"
                     ],
-                    function(parser, esriConfig, dom, CheckBox) {
+                    function(parser, esriConfig, dom, ioquery, CheckBox) {
                         // If not loaded as secure redirect to secure url
                         if (window.location.href.indexOf("https") < 0) {
                             var str = window.location.href;
                             window.location = "https" + str.substring(4);
                         }
                         parser.parse();
+                        
+                        /****************************************/
+						/*      Set allowed APP NAMES here      */
+                        /****************************************/
+                        // Protect against XSS attacks
+						// preserve new lines in way point descriptions (For future changes, if we decide to add them like the Mobile version.)
+						var location = document.location.search.replace(/\%0D/g,"newline");
+						queryObj = ioquery.queryToObject(location.substr((location[0] === "?" ? 1 : 0)));
+                        app = encodeURIComponent(queryObj.app);
+                        if (!app)
+                            app = "HuntingAtlas";
+                        else if ((app.toLowerCase() != "huntingatlas") &&
+                        (app.toLowerCase() != "fishingatlas") &&
+                        (app.toLowerCase() != "propertyfinder") &&
+                        (app.toLowerCase() != "stockingrestrictions")){
+                            app = "HuntingAtlas";
+                            alert("Application name not found. Defaulting to Hunting Atlas.","Notice");
+                        }
                         // create a map and add layers
                         loading = dom.byId("loadingImg"); //loading image. id
                         // set up cross domain permissions
