@@ -5,296 +5,30 @@ var drawGraphicsCount = [], lenGraphicsCount = []; // store names of graphics la
 var drawGraphicsCounter = 0, lenGraphicsCounter = 0;
 var drawGraphicsLayer,lenGraphicsLayer;
 var labelPoint;
-var wayPtMaxScale = 4622324;
+var wayPtMaxScale = 4622324.434309; // check if current scale > than this then zoom in to this
+//var wayPtMaxZoomTo = 2311162; // if zoomed out too far to see way point, zoom in to this scale
 var wayPointHelp=null;
-wayPtClick=false;
 
 function wayPointInit(){
 	// Way Point Help Window
 	require(["dojo/_base/window","javascript/HelpWin"],function(win,HelpWin){
+		// Add to help later: ' Bookmark also allows uploading and downloading kml or kmz files with the '+
+		//		'current way points and map extent. These can be created in google maps.'+
 		wayPointHelp = new HelpWin({
 			label: "Way Point Help",
-			content: ''
+			content: 'Allows clicking on the map to add way points with a label and description. Way points '+
+				'will only show up when you are zoomed in. If needed, the map will automatically zoom in to let you see '+
+				'the new way point you are adding. Once a way point is added, you may click on it to see the description, '+
+				'to edit the label or description, or to delete it. In Bookmark (on the main menu) you can save your way '+
+				'points in your browser\'s bookmarks or cache.'+
+				'<br/><br/>'
 		});
 		win.body().appendChild(wayPointHelp.domNode);
 		wayPointHelp.startup();
-		showWPMapClick();
 	});
 }
-
-function showWPMapClick(){
-	document.getElementById('wpMapClick').style.display='block';
-	document.getElementById('wpKML').style.display='none';
-	document.getElementById('wpMapClickBtn').className='buttonBarSelected';
-	document.getElementById('wpKMLBtn').className='buttonBar';
-	wayPointHelp.setContent('Add a Way Point by clicking on the map.<br/><br/>Way points must have a label and can also '+
-		'have an optional description. Way points will only show up when you are zoomed in. If needed, the map will automatically zoom in to let you see '+
-		'the new way point you are adding. You may adjust the map view by pinching or swiping.<br/><br/>'+
-		'<strong>Identifying the Way Point:</strong> Once a way point is added, you may click on it to see the description, '+
-		'to edit the label or description, or to delete it.<br/><br/>'+
-		'<strong>Bookmarking a Way Point: </strong>In Bookmark (on the main menu) you can save your way '+
-		'points in your browser\'s cache.<br/><br/>');		
-}
-function showWPkml(){
-	document.getElementById('wpMapClick').style.display='none';
-	document.getElementById('wpKML').style.display='block';
-	document.getElementById('wpMapClickBtn').className='buttonBar';
-	document.getElementById('wpKMLBtn').className='buttonBarSelected';
-	wayPointHelp.setContent('Add Way Points and other graphics from a map you created in MyGoogleMaps, Google Earth, or '+
-		'similar program.<br/><br/><strong>Obtaining a KML/KMZ URL:</strong> Export this map to a KML or KMZ (compressed KML) file '+
-		'and download it to your computer. Then upload it to '+
-		'a publicly shared drive such as:<br/><ul><li>Dropbox</li><li>OneDrive by Microsoft</li><li>Google Drive</li><li>Box</li>'+
-		'<li>Apple iCloud Drive</li><li>Amazon Cloud Drive</li></ul><a href="https://www.cnet.com/how-to/onedrive-dropbox-google-drive-and-box-which-cloud-storage-service-is-right-for-you/" '+
-		'target="_blank">Link to article that discusses each of these.</a> '+
-		'Create a shared link to the KML or KMZ file and copy the URL to this app\'s textbox labeled <strong>\''+
-		'URL to KML or KMZ file\'.</strong><br/><br>Enter a label for this KML/KMZ file. Press the Add button and it will add the data to the '+app+
-		' map and also add it to the <strong>\'My KML Files List\'</strong>. See example below:<br/><br/>'+
-		'<table style="table-layout:fixed;width:100%;"><tbody>'+
-		'	<tr>'+
-		'		<th style="width:40px;overflow:visible;"></th>'+
-		'		<th style="width:calc(100% - 80px);-moz-calc(100% - 80px);text-align:center;-webkit-calc(100% - 80px);">My KML Files List</th>'+
-		'		<th style="width:40px"></th>'+
-		'	</tr>'+
-		'	<tr>'+
-		'		<td><input type="checkbox" checked class="checkBoxButton"></td>'+
-		'		<td style="overflow-x:scroll">Favorite Places<br/><span style="white-space:nowrap;font-size:small">https://dl.dropboxusercontent.com/u/2142726/esrijs-samples/Wyoming.kml</span></td>'+
-		'		<td><img src="assets/images/w_close_red.png" style="cursor: pointer; position: relative; float: right; right: 10px; height: 30px;"/></td>'+
-		'	</tr></tbody></table>'+
-		'<br/><br/><input type="checkbox" checked class="checkBoxButton"> will show or hide this KML data in the map.<br/><br/>'+
-		'<img src="assets/images/w_close_red.png" style="vertical-align:middle;height:30px"/> will remove the KML data from the list and from the map.<br/><br/>'+
-		'<strong>My KML Files List</strong> will be stored in your browser '+
-		'local storage (like a cookie) so when you visit this site again it will be displayed again. However, if you clear your browser history and clear cookies it will '+
-		'be deleted.</br><br/><strong>Bookmarking KML Data: </strong>When you create a Bookmark, the URL of any currently visible KML data will be saved '+
-		'with the bookmark. So as long as you have not removed the KML/KMZ file from the publicly shared drive, it will be available to display in this app.<br/><br/>'+
-		'<strong>Identifying KML Data: </strong>When you click on a way point or graphic from the KML file, it will show any pictures or descriptions that you have added.');
-}
-function loadKml(url,label){
-	// if user enters a URL to a KML or KMZ file add it to the KML List and call showKml to load it into the map.
-	// Error checking
-	if (document.getElementById("kmlFile").value == "") {
-		alert ("URL must not be blank.","");
-		return;
-	}
-	if (document.getElementById("kmlLabel").value == "") {
-		alert ("Label must not be blank.","");
-		return;
-	}
-	var noSpLabel = label.replace(/ +/g,"");
-	if (document.getElementById(noSpLabel)) {
-		alert ("That Label has already been used.","");
-			return;
-	}
-	document.getElementById("kmlFile").value = "";
-	document.getElementById("kmlLabel").value = "";
-		
-	// Add a row to the KML list
-	var kmlList = document.getElementById("kmlList");
-	var row = kmlList.insertRow(1);
-	var col1 = row.insertCell(0); 
-	var col2 = row.insertCell(1);
-	var col3 = row.insertCell(2);
-	
-	safeURL=encodeURI(url);
-	col1.innerHTML = '<input id=\''+noSpLabel+'\' type="checkbox" class="checkBoxButton" checked onclick="kmlListClickHandler(\''+safeURL+'\',this.parentNode.parentNode.rowIndex,this.checked)">';
-	col2.innerHTML = label+'<br/><span style="white-space:nowrap;font-size:small">'+safeURL+'</span>';
-	col2.style.overflowX = "scroll";
-	// Remove this KML from the map and delete it from the list
-	col3.innerHTML ='<img src="assets/images/w_close_red.png" style="cursor: pointer; position: relative; float: right; right: 10px; height: 30px;" '+
-		'onclick="if(document.getElementById(\''+noSpLabel+'\').checked)hideKml(this.parentNode.parentNode.rowIndex);deleteRow(this.parentNode.parentNode);"/>';
-	
-	showKml(url,1);
-}
-function deleteRow(row){
-	// Remove a row from the My KML Files List
-	// row: the row node
-	// Called by: X button in a row in My KML Files List Table, or showKml error routine
-    document.getElementById("kmlList").deleteRow(row.rowIndex);
-	closeMenu();
-}
-function kmlListClickHandler(url,index,checked){
-	// Click Handler for checkbox in My KML Files Table
-	// url: url of the KML file
-	// index: the index of the table row
-	// checked: whether this row's checkbox was checked
-	
-	closeMenu();
-	// Display KML on map
-	if (checked) showKml(url,index);
-	// Remove KML from map
-	else {
-		for (var i=3; i<arguments.length; i++)
-			map.removeLayer(map.getLayer(arguments[i]));
-		removeLayerNamesFromTable(index);
-	}
-}
-function hideKml(index){
-	// Removes the given KML from the map
-	// index: is not used but makes it easier to parse in removeLayerNamesFromTable
-	if (arguments){
-		for (var i=1; i<arguments.length; i++)
-			map.removeLayer(map.getLayer(arguments[i]));
-	}
-}
-function removeLayerNamesFromTable(index) {
-		// if row exists remove graphics & layer names from checkbox and X button
-		// remove layer names from checkbox
-		var id = document.getElementById("kmlList").rows[index].cells[0].childNodes[0].attributes["id"].nodeValue;
-		var checked = document.getElementById(id).checked; // is this checkbox checked? Replacing the innerHTML sets this to false.
-		var pos1 = document.getElementById("kmlList").rows[index].cells[0].innerHTML.indexOf("this.checked")+12;
-		var pos2 = document.getElementById("kmlList").rows[index].cells[0].innerHTML.lastIndexOf(")");
-		var str = document.getElementById("kmlList").rows[index].cells[0].innerHTML.substring(0,pos1) +
-			document.getElementById("kmlList").rows[index].cells[0].innerHTML.substring(pos2);
-		document.getElementById("kmlList").rows[index].cells[0].innerHTML = str;
-		if (checked) document.getElementById(id).checked = true; // reset the checkbox to checked if it was at the start
-		else document.getElementById(id).checked = false;
-		
-		// remove layer names from X button
-		pos1 = document.getElementById("kmlList").rows[index].cells[2].innerHTML.indexOf("hideKml(")+8;
-		pos2 = document.getElementById("kmlList").rows[index].cells[2].innerHTML.indexOf(");deleteRow");
-		str = document.getElementById("kmlList").rows[index].cells[2].innerHTML.substring(0,pos1) + index +
-			document.getElementById("kmlList").rows[index].cells[2].innerHTML.substring(pos2);
-		document.getElementById("kmlList").rows[index].cells[2].innerHTML = str;
-		pos1=null;
-		pos2=null;
-		str=null;
-}
-function addLayerNamesToTable(layer,index){
-	// Add layer name to click event for checkbox and X button in KML Files List so that we can remove it from the map.
-	// Make sure it has not already been added. Seems to call this multiple times for the same layer
-	if (document.getElementById("kmlList").rows[index].cells[0].innerHTML.indexOf(layer) == -1){
-		var id = document.getElementById("kmlList").rows[index].cells[0].childNodes[0].attributes["id"].nodeValue;
-		var checked = document.getElementById(id).checked; // is this checkbox checked? Replacing the innerHTML sets this to false.
-		// Add layer name to click event for checkbox in KML Files List so that we can remove it from the map when unchecked.
-		var str = document.getElementById("kmlList").rows[index].cells[0].innerHTML;
-		var pos=str.lastIndexOf(")");
-		var newClickEvent = str.substr(0,pos) + ",'" +layer + "'"+str.substr(pos);
-		document.getElementById("kmlList").rows[index].cells[0].innerHTML = newClickEvent;
-		if (checked) document.getElementById(id).checked = true; // reset the checkbox to checked if it was at the start
-		else document.getElementById(id).checked = false;
-		
-		// Add layer name to click event for X icon in KML Files List so that we can remove it from the map and the list.
-		str = document.getElementById("kmlList").rows[index].cells[2].innerHTML;
-		pos=str.indexOf(");deleteRow");
-		newClickEvent = str.substr(0,pos) + ",'" +layer +"'";
-		newClickEvent += str.substr(pos);
-		document.getElementById("kmlList").rows[index].cells[2].innerHTML = newClickEvent;
-	}
-}
-function showKml(theUrl,theIndex){
-	// Shows the given KML on the map. The layer names that were added to the map from this KML file are added to the click handlers for
-	// the checkbox and X button for this row of the My KML Files List table.
-	showLoading();
-	var url = theUrl;
-	var index = theIndex;
-	require(["esri/layers/KMLLayer","esri/geometry/webMercatorUtils","esri/graphicsUtils","dojo/_base/array","esri/symbols/SimpleLineSymbol",
-		"esri/symbols/SimpleMarkerSymbol","dojo/_base/Color","esri/geometry/Extent"], function (KMLLayer,webMercatorUtils,graphicsUtils,array,
-		SimpleLineSymbol,SimpleMarkerSymbol,Color,Extent) {
-	// Load onto the Map
-		esri.config.defaults.io.proxyUrl = "/proxy/DotNet/proxy.ashx";
-		esriConfig.defaults.io.alwaysUseProxy = false;
-		// test file: http://www.wpc.ncep.noaa.gov/kml/qpf/QPF24hr_Day1_main.kml
-		// test file: https://dl.dropboxusercontent.com/u/2142726/esrijs-samples/Wyoming.kml
-		var kmlExtent=null;
-		var kmlLayer = new KMLLayer(url);
-		map.addLayer(kmlLayer);
-		
-		/*var layers = kmlLayer.getLayers();
-		array.forEach(layers, function(layer){
-			if (layer.declaredClass === "esri.layers.FeatureLayer") {
-			}
-			else if (layer.declaredClass === "esri.layers.MapImageLayer") {
-			}
-		});*/
-		
-		/*var attr = kmlLayer.getAttributionData().then(function(value){
-			alert("in get attributes");
-		},function(err){alert(err.message,"Error");});*/
-		var kmlCreated=kmlLayer.on("load", function(evt){	
-			kmlCreated.remove();
-			console.log (evt.layer.id);
-			// Add layer name to click event for checkbox and X button in KML Files List so that we can remove it from the map.
-			addLayerNamesToTable(evt.layer.id,index);
-			// hide keyboard
-			document.getElementById("kmlFile").blur();
-			document.body.focus();
-			closeMenu();
-			//slideLeft(document.getElementById('wayPtsPane'));
-			//var kmlLoaded = map.on("layer-add-result",function(evt2){
-				// Add graphics to drawGraphicsCount array
-				/*var layer=evt.layer;
-				if (layer.id.indexOf("graphicsLayer") == 0){
-					var lyrExtent=graphicsUtils.graphicsExtent(layer.graphics);
-					//if (layer.geometryType == "esriGeometryPoint") {
-						//var name="",desc="";
-// get extent for the point
-var point = layer.geometry.point;
-var toleranceInPixel=50;
-								//calculate map coords represented per pixel
-var pixelWidth = map.extent.getWidth() / map.width;
-
-//calculate map coords for tolerance in pixel
-var toleraceInMapCoords = toleranceInPixel * pixelWidth;
-
-//calculate & return computed extent
-lyrExtent = new esri.geometry.Extent( point.x – toleraceInMapCoords,
-point.y – toleraceInMapCoords,
-point.x + toleraceInMapCoords,
-point.y + toleraceInMapCoords,
-map.spatialReference ); }
-						
-						/*array.forEach(layer.graphics,function(g){
-							var symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE,7,new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([0,0,200]), 1),new Color([0,0,255,0.6]));
-							addPoint(g.geometry,g.attributes.name,g.attributes.description,symbol);
-							alert("loaded point "+g.attributes.name);
-						});*/
-					//}
-					/*if (lyrExtent) (kmlExtent) ? kmlExtent.union(lyrExtent): kmlExtent = lyrExtent;
-			
-					// Zoom to extent of all layers 
-					if (kmlExtent) map.setExtent(kmlExtent);
-					hideLoading();
-				}*/
-			//});
-			
-			// Zoom to extent of all layers 
-			var kmlExtent=null, layers = kmlLayer.getLayers();  
-			var lyrExtent=null;
-			if (kmlLayer.folders)
-				console.log("Has Folders="+kmlLayer.folders.length);
-			if (layers[0].graphics)
-				console.log("Has Graphics="+layers[0].graphics.length);
-			dojo.forEach(layers, function(lyr) {  
-				if ( lyr.graphics && lyr.graphics.length > 0 ) {
-					// Add layer name to click event for checkbox and X button in KML Files List so that we can remove it from the map.
-					// Make sure it has not already been added. Seems to call this multiple times for the same layer
-					//addLayerNamesToTable(lyr.graphics[0]._layer.id,index);
-					if (lyr.graphics[0].geometry.spatialReference.wkid == 4326)
-						lyrExtent = webMercatorUtils.geographicToWebMercator(graphicsUtils.graphicsExtent(lyr.graphics) ); 
-					else if (lyr.graphics[0].geometry.spatialReference.wkid == 102100)
-						lyrExtent = graphicsUtils.graphicsExtent(lyr.graphics);
-					//***************** to do *******************
-					else alert("need to convert spatial reference");
-					if (lyrExtent === null) lyrExtent= new Extent(lyr.graphics.x,lyr.graphics.y,lyr.graphics.x,lyr.graphics.y,lyr.graphics.spatialReference);
-					if (lyrExtent) (kmlExtent) ? kmlExtent.union(lyrExtent): kmlExtent = lyrExtent;
-				}  
-			});
-			if (kmlExtent) map.setExtent(kmlExtent);
-			hideLoading();
-		});
-		kmlLayer.on("error", function(e){
-			deleteRow(document.getElementById("kmlList").rows[index]);
-			// hide keyboard
-			document.getElementById("kmlFile").blur();
-			document.body.focus();
-			
-			alert(e.error.message,"Warning");
-			hideLoading();
-		});
-	});			
-}
-		
 function safeInput(txtBox) {
-	var ch=["~","|",";","#","^","%","\\","&"];
+	/*var ch=["~","|",";","#","^","%","\\","&"];
 	var msg="",count=0;
 	for (var i=0; i<ch.length; i++) {
 		if (txtBox.value.indexOf(ch[i])>-1){
@@ -327,18 +61,31 @@ function safeInput(txtBox) {
 			msg += ch[i]+" ";
 			count++;
 		}
-	}
-	if (count>1)
+	}*/
+	txtBox.value=txtBox.value.replace(/\"/g,"``");// encode "
+	txtBox.value=txtBox.value.replace(/\'/g,"`");// encode '
+	txtBox.value=txtBox.value.replace(/;/g,"");
+	txtBox.value=txtBox.value.replace(/&/g,"and");
+	txtBox.value=txtBox.value.replace(/\n/g,"newline"); // preserve new line characters
+	regexp=/([^a-zA-Z0-9 \-,°`\.!_\*()])/g; // only allow these characters (^ means not so the test removes all other characters)
+	if (regexp.test(txtBox.value)) alert("Illegal characters were removed.","Note");
+	txtBox.value=txtBox.value.replace(regexp,""); // clean it
+	txtBox.value=txtBox.value.replace(/newline/g,"\n"); // preserve new line charactersS
+	return txtBox.value;
+	/*if (count>1)
 		alert(msg+"are not allowed. They were removed.","Note");
 	else if (count==1)
 		alert(msg+"is not allowed. It was removed.","Note");
 	if (count== 0) return true;
-	else return false;
+	else return false;*/
 }
 function resizeTextBox(txtBox) {
 	// Make the Way Point popup have an expanding text box
 	// Called by: resize, orientation change, and identify.js/placeIdGroupCombo (runs same code)
-	if (!txtBox) return;
+	if (!txtBox) {
+		hideLoading();
+		return;
+	}
 	txtBox.style.height = 'auto';
 	txtBox.style.height = txtBox.scrollHeight+'px';
 	hideLoading();
@@ -353,6 +100,11 @@ function addPoint(geometry,label,desc,symbol){
 		// Store graphic layer name so we can remove it later
 		label = label.replace(/~/g," "); // to email the way point spaces were replaced with tildas, so put them back.
 		desc = desc.replace(/~/g," "); // to email the way point spaces were replaced with tildas, so put them back.
+		label = label.replace(/\"/g,'``'); // encode " for degree min sec point
+		desc = desc.replace(/\"/g,'``'); // encode " for degree min sec point
+		label = label.replace(/\'/g,"`"); // encode ' for degree min sec point
+		desc = desc.replace(/\'/g,"`"); // encode ' for degree min sec point
+
 		drawGraphicsLayer = new GraphicsLayer();
 		drawGraphicsLayer.id = "drawgraphics"+drawGraphicsCounter;
 		// The point symbol
@@ -383,60 +135,74 @@ function addPoint(geometry,label,desc,symbol){
 		g.setAttributes({name:label,description:desc});
 		//g.infoTemplate=infoTemp;
 		drawGraphicsLayer.add(g);	
-		drawGraphicsLayer.setMinScale(wayPtMaxScale+1);
+		drawGraphicsLayer.setMinScale(wayPtMaxScale);
 		drawGraphicsLayer.setMaxScale(0);
 		map.addLayer(drawGraphicsLayer);
+		drawGraphicsLayer.title = label;
+		drawGraphicsLayer.desc = desc;
 		drawGraphicsLayer.refresh();
-		drawGraphicsLayer.content = "<div class='esriPopupItemTitle'>Way Point found at map click:</div>"+
+		drawGraphicsLayer.content = "<div id='wayptContent'><div class='esriPopupItemTitle'>Way Point found at map click:</div>"+
 			"<form id='popupForm'>"+
-			"<input id='wayPtTitle' type='text' style='width:150px;margin-left:5px;' value='"+label+"'></input>"+
-			"<textarea id='wayPtDesc' onkeyup='javascript:resizeTextBox(this)' style='height:80px; width: calc(100% - 25px)!important;width: -moz-calc(100% - 25x)!important;width: -webkit-calc(100% - 25px)!important; margin:5px; overflow:hidden; resize:none;' "+
+			"<input id='wayPtTitle' type='text' maxlength='50' style='width:250px;max-width:96%;margin-left:5px;' value='"+label+"'></input>"+
+			"<textarea id='wayPtDesc' maxlength='200' onkeyup='javascript:resizeTextBox(this)' style='height:80px; width: calc(100% - 25px)!important;width: -moz-calc(100% - 25x)!important;width: -webkit-calc(100% - 25px)!important; margin:5px; overflow:hidden; resize:none;' "+
 			" placeHolder=\"Description\">"+desc+"</textarea>"+
 			"<p align='center'><button class='mblButton' type='button' onclick=\"var gr=map.getLayer('"+drawGraphicsLayer.id+"');"+
-			"var result1=safeInput(document.getElementById('wayPtTitle'));"+
-			"var result2=safeInput(document.getElementById('wayPtDesc'));"+
-			"if(!result1 || !result2) return false;"+
-			"gr.content = gr.content.replace(gr.title,document.getElementById('wayPtTitle').value);"+
-			"gr.content = gr.content.replace(gr.desc+'</textarea>',document.getElementById('wayPtDesc').value+'</textarea>');"+
-			"gr.title=document.getElementById('wayPtTitle').value;"+
-			"gr.desc=document.getElementById('wayPtDesc').value;"+
-			"gr.graphics[2].symbol.text = document.getElementById('wayPtTitle').value;"+
+			"var title=safeInput(document.getElementById('wayPtTitle'));"+
+			"var desc=safeInput(document.getElementById('wayPtDesc'));"+
+			"gr.content = gr.content.replace(gr.title,title);"+
+			"gr.content = gr.content.replace(gr.desc+'</textarea>',desc+'</textarea>');"+
+			"gr.title=title;"+
+			"gr.desc=desc;"+
+			"gr.graphics[2].symbol.text = title;"+
 			"gr.refresh();"+
-			"map.infoWindow.hide();"+
 			"map.infoWindow.popupInfoView.container.style.display='none';"+
 			"map.infoWindow.popupNavigationBar.container.style.display='none';"+
 			"document.getElementById('wayPtDesc').blur();"+
 			"document.body.focus();"+
 			"\">Save</button>&nbsp;&nbsp;"+
 			"<button type='button' class='mblButton' onclick='map.infoWindow.setTitle(\"\");map.infoWindow.setContent(\"\");"+
-			"map.infoWindow.hide();"+
 			"map.infoWindow.popupInfoView.container.style.display=\"none\";"+
 			"map.infoWindow.popupNavigationBar.container.style.display=\"none\";' data-dojo-type='dojox/mobile/Button'>Close</button>&nbsp;&nbsp;"+
 			"<button type='button' onclick='map.infoWindow.setTitle(\"\");"+
-			"map.infoWindow.hide();"+
 			"map.infoWindow.popupInfoView.container.style.display=\"none\";"+
 			"map.infoWindow.popupNavigationBar.container.style.display=\"none\";"+
 			"map.graphics.clear();"+
 			"map.removeLayer(map.getLayer(\""+drawGraphicsLayer.id+"\"));"+
 			"drawGraphicsCount.splice(drawGraphicsCount.indexOf(\""+drawGraphicsLayer.id+"\"),1);"+			
-			"map.infoWindow.setContent(\"\");' class='mblButton'>Delete</button></p><br/><br/></form>";
-		drawGraphicsLayer.title = label;
-		drawGraphicsLayer.desc = desc;
+			"map.infoWindow.setContent(\"\");' class='mblButton'>Delete</button></p><br/><br/></form></div>"+
+			"<script>"+
+			"  document.getElementById('wayptContent').addEventListener('load', function() {"+
+			"  document.getElementsByClassName('esriPopupItemTitle')[0].scrollIntoView();"+
+			"  console.log('loaded');"+
+			"});</script>";
+			//"var gl=map.getLayer('"+drawGraphicsLayer.id+"');"+
+			//"console.log('update title to '+gl.title);"+
+			//"document.getElementById('wayPtTitle').value=gl.title;"+
+			//"document.getElementById('wayPtDesc').innerHTML=gl.desc;"+
+			//"document.getElementById('wayPtTitle').value='hi there';"+
+			//"console.log('test');"+
+			// Notes for window.onload function above
+			// scrollIntoView needed when the user looks at a long description, then the next infowindow was blank until the user scrolled to the top.
+			// Update title and desc. The title was not being updated.
+
 		drawGraphicsLayer.on ("click", function(event){
 			if (drawing) return;
-			wayPtClick=true;
 			//drawing=true;
 			clickPoint = getScreenClick(event);
 			map.infoWindow.setTitle(this.title);
-			map.infoWindow._contentPane.innerHTML=this.content;
+			map.infoWindow.wayPt = true; // 4-9-18 set flag for doIdentify to tell if need to hide old infoWindow
+			map.infoWindow.setContent(this.content);
 			getIdentifyFooter();
 			showIdentify(); // requires global variable, clickPoint
 			// Listen for orientation change or resize then resize description text box
 			var supportsOrientationChange = "onorientationchange" in window, orientationEvent = supportsOrientationChange ? "orientationchange" : "resize";
 			window.addEventListener(orientationEvent, function () {
-				//showLoading();
-				// wait 1/2 a second for screen to draw
-				setTimeout(resizeTextBox(document.getElementById("wayPtDesc")), 500);
+				// Check if showing waypt popup
+				if (document.getElementById("wayPtDesc")){
+					showLoading();
+					// wait 1/2 a second for screen to draw
+					setTimeout(resizeTextBox(document.getElementById("wayPtDesc")), 500);
+				}
 			}, false);
 			var gr = this;
 			// Update the way point title & description
@@ -634,7 +400,7 @@ function drawInit() {
 			addPoint(geometry,document.getElementById("wayPtInputTitle").value,document.getElementById("wayPtInputDesc").value, addPointSymbol());
 			if (map.getScale() > wayPtMaxScale){
 				alert("Zooming in to show way points...","",null,false);
-				map.setScale(wayPtMaxScale); // zoom in so can see way point.
+				map.setScale(wayPtMaxScale); // zoom in so can see way point. One level below wayPtMaxScale.
 				map.centerAt(geometry);
 			}
 		}
@@ -755,9 +521,11 @@ function drawInit() {
 	document.getElementById("wayPtForm").addEventListener("submit", function(event){ 
 		event.stopImmediatePropagation(); // don't call this twice
 		event.preventDefault(); // don't load a new page
-		var result1 = safeInput(dom.byId("wayPtInputTitle"));
-		var result2 = safeInput(dom.byId("wayPtInputDesc"));
-		if (!result1 || !result2) return;
+		//var result1 = safeInput(dom.byId("wayPtInputTitle"));
+		//var result2 = safeInput(dom.byId("wayPtInputDesc"));
+		//if (!result1 || !result2) return;
+		safeInput(dom.byId("wayPtInputTitle"));
+		safeInput(dom.byId("wayPtInputDesc"));
 		map.disableClickRecenter();
 		activateDrawTool();
 		toolbar.activate(Draw.POINT);		
