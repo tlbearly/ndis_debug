@@ -43,8 +43,8 @@ define([
 				if (map.getLayer(drawGraphicsCount[i]).graphics[id]) {
 					if (id==2) layer = map.getLayer(drawGraphicsCount[i]).title;
 					else layer = map.getLayer(drawGraphicsCount[i]).graphics[id].symbol.text;
-					layer = layer.replace(/``/g,"\%22").replace(/`/g,"\%27"); // Singe and doubleQuotes are not allowed in the title for the way point popup because it uses javascript to create it.
-					url +=  "|" +layer.replace(singleQuote,"\%27").replace(doubleQuote,"\%22").replace(/,/g,";").replace(/\n/g,"\%0D").replace(/\?/g,"\%3F");
+					layer = layer.replace(/``/g,"\\%22").replace(/`/g,"\\%27"); // Singe and doubleQuotes are not allowed in the title for the way point popup because it uses javascript to create it.
+					url +=  "|" +layer.replace(singleQuote,"\%27").replace(doubleQuote,"\\%22").replace(/,/g,";").replace(/\n/g,"\%0D").replace(/\?/g,"\%3F");
 					//+ "|"+ "0|" + parseInt(layer.symbol.font.size) + "|0|t|f|f";
 				}
 				else url+="|Way%20Point";
@@ -52,8 +52,8 @@ define([
 				if (map.getLayer(drawGraphicsCount[i]).desc){
 					var desc = map.getLayer(drawGraphicsCount[i]).desc;
 					if (desc[desc.length-1] == ".") desc += " "; //add space to end of description because email chokes on ".,new way point..."
-					desc =desc.replace(/``/g,"\%22").replace(/`/g,"\%27"); // Singe and doubleQuotes are not allowed in the title for the way point popup because it uses javascript to create it.
-					url += "|" + desc.replace(singleQuote,"\%27").replace(doubleQuote,"\%22").replace(/,/g,";").replace(/\n/g,"\%0D").replace(/\?/g,"\%3F");
+					desc =desc.replace(/``/g,"\\%22").replace(/`/g,"\\%27"); // Singe and doubleQuotes are not allowed in the title for the way point popup because it uses javascript to create it.
+					url += "|" + desc.replace(singleQuote,"\\%27").replace(doubleQuote,"\\%22").replace(/,/g,";").replace(/\n/g,"\%0D").replace(/\?/g,"\%3F");
 				}
 			}
 			return url;
