@@ -285,7 +285,8 @@ function drawInit() {
 				label = document.getElementById("drawlabel").value;
 				// test for XSS attack. Pattern contains allowed characters. [^ ] means match any character that is not
 				// in the is set. \ escapes characters used by regex like .-'"|\
-				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g; 
+				label=label.replace("&","and");
+				regexp=/([^a-zA-Z0-9 \-\',\.!_\*()])/g; 
 				if (regexp.test(label)) alert("Illegal characters were removed from the label.","Warning");
 				label=label.replace(regexp,""); // clean it
 
@@ -313,7 +314,8 @@ function drawInit() {
 					label = document.getElementById("customXYlabel").value;
 					// test for XSS attack. Pattern contains allowed characters. [^ ] means match any character that is not
 					// in the is set. \ escapes characters used by regex like .-'"|\
-					regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g; 
+					label=label.replace("&","and");
+					regexp=/([^a-zA-Z0-9 \-\',\.!_\*()])/g; 
 					if (regexp.test(label)) alert("Illegal characters were removed from the label.","Warning");
 					label=label.replace(regexp,""); // clean it
 
@@ -494,7 +496,8 @@ function drawInit() {
 					label = document.getElementById("customLineLabel").value;
 				  // test for XSS attack. Pattern contains allowed characters. [^ ] means match any character that is not
 					// in the is set. \ escapes characters used by regex like .-'"|\
-					regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g; 
+					label=label.replace("&","and");
+					regexp=/([^a-zA-Z0-9 \-\',\.!_\*()])/g; 
 					if (regexp.test(label)) alert("Illegal characters were removed from the label.","Warning");
 					label=label.replace(regexp,""); // clean it
 				}
@@ -531,7 +534,8 @@ function drawInit() {
 			label = document.getElementById("customPolyLabel").value;
 			// test for XSS attack. Pattern contains allowed characters. [^ ] means match any character that is not
 			// in the is set. \ escapes characters used by regex like .-'"|\
-			regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g; 
+			label=label.replace("&","and");
+			regexp=/([^a-zA-Z0-9 \-\',\.!_\*()])/g; 
 			if (regexp.test(label)) alert("Illegal characters were removed from the label.","Warning");
 			label=label.replace(regexp,""); // clean it
 			addLabel(labelPoint, label, drawGraphicsLayer, "11pt");
@@ -889,7 +893,8 @@ function drawCurrentLocation(){
 				label = document.getElementById("customXYlabel").value;
 				// test for XSS attack. Pattern contains allowed characters. [^ ] means match any character that is not
 				// in the is set. \ escapes characters used by regex like .-'"|\
-				regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_*()])/g; 
+				label=label.replace("&","and");
+				regexp=/([^a-zA-Z0-9 \-\',\.!_\*()])/g; 
 				if (regexp.test(label)) alert("Illegal characters were removed from the label.","Warning");
 				label=label.replace(regexp,""); // clean it
 
