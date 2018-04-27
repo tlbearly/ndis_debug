@@ -168,7 +168,8 @@ function addPoint(geometry,label,desc,symbol){
 			"map.infoWindow.popupNavigationBar.container.style.display=\"none\";"+
 			"map.graphics.clear();"+
 			"map.removeLayer(map.getLayer(\""+drawGraphicsLayer.id+"\"));"+
-			"drawGraphicsCount.splice(drawGraphicsCount.indexOf(\""+drawGraphicsLayer.id+"\"),1);"+			
+			"drawGraphicsCount.splice(drawGraphicsCount.indexOf(\""+drawGraphicsLayer.id+"\"),1);"+	
+			"drawGraphicsCounter--;"+		
 			"map.infoWindow.setContent(\"\");' class='mblButton'>Delete</button></p><br/><br/></form></div>"+
 			"<script>"+
 			"  document.getElementById('wayptContent').addEventListener('load', function() {"+
