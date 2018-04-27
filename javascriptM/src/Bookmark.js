@@ -52,7 +52,7 @@ define([
 		defaultHelp: "This tool allows you to save the current map view including: way points, selected map layers, and base map layer in your <b>browser's bookmarks</b> or save "+
 				"it to an icon on your home screen. The advantage to this is that you can clear your browser history, including cookies and your bookmarks will not be lost."+
 				" The disadvantage is that browsers have a limit on the length of a URL address, so it may not be able to save all of your Way Points. Also, if you started "+
-				"this web app from an icon on your home screen it will run in fullscreen mode and the Settings icon will be hidden.<br/><br/>When you press the "+
+				"this web app from an icon on your home screen it will run in fullscreen mode and the Settings icon will be hidden. To use this feature, please start this web page in your browser.<br/><br/>When you press the "+
 				"'Create Bookmark' button the page will reload with a new URL address. Then to save it:<br/><br>On Chrome press the settings button "+
 				"<img src='assets/images/androidBookmark.png'/>, then press the star button or select 'Add to Home Screen'.<br/><br/>On iPhone press the settings button "+
 				"<img src='assets/images/iosBookmark.png' style='height:26px'/>, then select 'Add Bookmark' or 'Add to Home Screen'."+
