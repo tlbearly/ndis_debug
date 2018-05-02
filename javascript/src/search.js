@@ -497,6 +497,11 @@ function searchInit() {
 						// user made a selection in the "search for:" drop down. Display a table of multiple matches or zoom to a single match.
 						try {
 							var userTypedTxt = registry.byId("searchText").get("value");
+							// protect against xss attacks
+							var regexp=/([^a-zA-Z0-9 \-\',\.!_\*()])/g; 
+							if (regexp.test(userTypedTxt)) alert("Illegal characters were removed from the search text.","Warning");
+							userTypedTxt=userTypedTxt.replace(regexp,""); // clean it
+
 							var attr = registry.byId("featureType").attr("displayedValue");
 							if (userTypedTxt == "" && attr != "Township Range") return;
 							clearSelection();
