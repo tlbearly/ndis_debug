@@ -230,15 +230,15 @@ function searchInit() {
 						onClick: function() {
 							// Check if need to update gmu list. If changed from elk, bighorn sheep, or mountain goat.
 							if (featureTypeCombo.attr("displayedValue") == "GMUs" && settings.useGMUs) {
-								if ((gmu=="Big Game GMU" && searchObj["GMUs"].titlefield != settings.elkField) ||
-									(gmu=="Bighorn GMU" && searchObj["GMUs"].titlefield != settings.sheepField) ||
-									(gmu=="Goat GMU" && searchObj["GMUs"].titlefield != settings.goatField)) {
+								if ((gmu=="Big Game GMU" && searchObj.GMUs.titlefield != settings.elkField) ||
+									(gmu=="Bighorn GMU" && searchObj.GMUs.titlefield != settings.sheepField) ||
+									(gmu=="Goat GMU" && searchObj.GMUs.titlefield != settings.goatField)) {
 									this.loadAndOpenDropDown();
 									updateSearchTextStore("GMUs");
 								}
 							}
 						},
-						onChange: function(){setSelection()},
+						onChange: function(){setSelection();},
 						onKeyUp: function(value){
 							// user pressed ESC, pgup, pgdn, or arrow keys
 							if ([27,33,34,37,38,39,40].indexOf(value.keyCode) > -1) return;
@@ -373,12 +373,13 @@ function searchInit() {
 							}).then(function(response) {
 								try {
 									var dataArr = [];
+									var obj;
 									for (var i=0; i<response.features.length; i++) {
 										// Bighorn Sheep or Mount Goat GMU
 										if (attr=="GMUs" && (searchObj[attr].displayfields == "Mountain Goat GMU" || searchObj[attr].displayfields == "Bighorn Sheep GMU")){
-											if (response.features[i].attributes["HUNTING"] != "YES") continue;
+											if (response.features[i].attributes.HUNTING != "YES") continue;
 										}
-										var obj = {};
+										obj = {};
 										obj[searchObj[attr].searchfield] = response.features[i].attributes[searchObj[attr].searchfield]; // load object key as variable
 										dataArr.push(obj);
 									}
@@ -391,13 +392,13 @@ function searchInit() {
 											if (item[searchObj[attr].searchfield] != "OUT")
 												result.push(item[searchObj[attr].searchfield].substring(1));
 										});
-										result.sort(function(a,b){return a-b}); // Numeric Sort
+										result.sort(function(a,b){return a-b;}); // Numeric Sort
 										var gmuArr = [];
 										dataArr=null;
 										dataArr=[];
-										var obj;
+										
 										result.forEach(function(item) {
-											obj = new Object();
+											obj = {};
 											obj[searchObj[attr].searchfield] = letter + item;
 											dataArr.push(obj);
 											obj=null;
@@ -422,8 +423,7 @@ function searchInit() {
 							},function (err){
 								document.getElementById("searchLoadingImg").style.display="none";
 								alert("Feature Search query error: looking up feature type suggestions in javascript/search.js updateSearchTextStore(). "+
-									searchObj[attr].url+"/query?where="+expr+"&outfields="+searchObj[attr].searchfield
-									+" "+err.message,"Code Error",err);
+									searchObj[attr].url+"/query?where="+expr+"&outfields="+searchObj[attr].searchfield	+" "+err.message,"Code Error",err);
 							});
 						}
 						catch(e){
@@ -488,7 +488,7 @@ function searchInit() {
 								alert("File: "+app+"/"+searchObj[id].lookupsearchvalues+" not found.","Data Error");
 								document.getElementById("searchLoadingImg").style.display="none";
 							}
-						}
+						};
 						xmlhttp.open("GET",app+"/"+searchObj[id].lookupsearchvalues+"?v="+ndisVer,true);
 						xmlhttp.send(null);
 					}
@@ -572,19 +572,18 @@ function searchInit() {
 										});
 										
 									}
-								}
+								};
 								xmlhttp.onerror = function() {
 									alert('There was an error looking up the data from '+searchObj[attr].database+'?key='+userTypedTxt,"Code Error");
 									document.getElementById("searchLoadingImg").style.display="none";
 									document.getElementById("searchMsg").style.display = "none";
-								}
+								};
 							}
 							// --------------------------------------------------------
 							// No database lookup,just display table and zoom to point
 							// --------------------------------------------------------
 							else{
 								var queryExpr = searchObj[attr].expression;
-								var expr;
 								// Handle Township Range Section
 								if (attr == "Township Range")
 								{
@@ -734,11 +733,11 @@ function searchInit() {
 							try{
 								var obj = gra.attributes;
 								// only display Mountain Goat and Bighorn Sheep GMUs where hunting is allowed
-								if (attr != "GMUs" || gmu=="Big Game GMU" || obj["HUNTING"] == "YES"){
+								if (attr != "GMUs" || gmu=="Big Game GMU" || obj.HUNTING == "YES"){
 									var value;
 									var title;
 									var point = getGeomCenter(gra);
-									var cols = new Array();
+									var cols = [];
 									var graInfoData = 
 									{
 										icon: widgetIcon,
@@ -753,7 +752,7 @@ function searchInit() {
 									};
 
 									// Add data for each row
-									var row = new Object();
+									var row = {};
 									row.id = index++;
 									for (j=0;j<displayFields.length;j++){
 										if (obj[displayFields[j]]) {
@@ -792,9 +791,9 @@ function searchInit() {
 											var linkIndex = queryLinkField.indexOf(displayFields[j]);
 											if ((value != "") && (value != " ") && (displayNames[j] != "key"))
 											{
-												graInfoData.link = new Array();
+												graInfoData.link = [];
 												graInfoData.link.push(value);
-												graInfoData.linktext = new Array();
+												graInfoData.linktext = [];
 												graInfoData.linktext.push(queryLinkText[linkIndex]);
 												// if there is a link text, use it in place of the url
 												if (queryLinkText[linkIndex].length > 0)
@@ -887,7 +886,7 @@ function searchInit() {
 							header[displayNames[i].replace(/ /g,"_")]=obj;
 							if ((header[displayNames[i].replace(/ /g,"_")].label.length+10) > width[displayFields[i]])
 								width[displayFields[i]]=header[displayNames[i].replace(/ /g,"_")].label.length+10;
-							width[displayFields[i]]=width[displayFields[i]]*ave_char_width+"px"
+							width[displayFields[i]]=width[displayFields[i]]*ave_char_width+"px";
 							// if it is a link add formatter function
 							if (queryLinkField.indexOf(displayFields[i]) > -1) header[displayNames[i].replace(/ /g,"_")].formatter = makeLink;
 						}
@@ -912,7 +911,7 @@ function searchInit() {
 						for (var i=0;i<sortFields.length;i++) sortFields[i]=sortFields[i].replace(/ /g,"_");
 						var numericSort = {};
 						var numericArr = searchObj[attr].numericsort.split(",");
-						for (var i=0;i<sortFields.length;i++){
+						for (i=0;i<sortFields.length;i++){
 							numericSort[sortFields[i]] = numericArr[i];
 						}
 						function multiColumnSort(arr, sf, numericSort) {
@@ -933,7 +932,7 @@ function searchInit() {
 						  });
 						  s += Array(sf.length).join('}') + ';return -1';
 						  return arr.sort(new Function(s));
-						};
+						}
 						multiColumnSort(recAC,sortFields,numericSort);
 						//fsGrid.renderArray(recAC);
 						// Set column widths
@@ -998,7 +997,7 @@ function searchInit() {
 							}
 							graphicsHLLayer.add(gra);
 							// Add label  
-							addLabel(Graphic(row.data.point), row.data.title, graphicsHLLayer, "11pt")
+							addLabel(Graphic(row.data.point), row.data.title, graphicsHLLayer, "11pt");
 							gra = null;
 						});
 						
@@ -1082,7 +1081,7 @@ function searchInit() {
 						}
 						graphicsHLLayer.add(gra);
 						// Add label  
-						addLabel(Graphic(event.graphic.attributes.point), event.graphic.attributes.title, graphicsHLLayer, "11pt")
+						addLabel(Graphic(event.graphic.attributes.point), event.graphic.attributes.title, graphicsHLLayer, "11pt");
 						gra = null;
 					}
 
@@ -1102,7 +1101,7 @@ function searchInit() {
 								var pl = gra.geometry;// as Polyline;
 								var pathCount = pl.paths.length;
 								var pathIndex = parseInt((pathCount / 2) - 1);
-								var midPath = new Array();
+								var midPath = [];
 								midPath = pl.paths[pathIndex];
 								var ptCount = midPath.length;
 								var ptIndex = parseInt((ptCount / 2) - 1);
@@ -1228,7 +1227,7 @@ function searchInit() {
 							for (var i=0; i<recAC.length; i++)
 							{
 								if (i>0) key += ",";
-								key	+= recAC[i]["key"]; // The key field was added in queryFeaturesGraphical.  We will remove it here.
+								key	+= recAC[i].key; // The key field was added in queryFeaturesGraphical.  We will remove it here.
 							}
 							var attr = registry.byId("featureTypeGraphic").attr("displayedValue");
 							if (attr == fishSpeciesGraphicalName) attr = "Fish species";
@@ -1256,9 +1255,9 @@ function searchInit() {
 											
 											var field = searchObj[attr].graphical_db_fields.split(",");
 											var header = searchObj[attr].graphical_db_displayfields.split(",");
-											var width = new Array();
+											var width = [];
 											var sort = searchObj[attr].graphical_db_sort.split(",");
-											var j;
+											var i,j;
 											
 											// Loop through each field to add to the table
 											for (var f=0; f<field.length; f++)
@@ -1270,7 +1269,7 @@ function searchInit() {
 													recAC[j][header[f]] = "";
 													// Loop through the values for this key
 													var rec = xml[j].getElementsByTagName(searchObj[attr].graphical_filename);
-													for (var i=0; i<rec.length; i++)
+													for (i=0; i<rec.length; i++)
 													{
 														if (i>0) recAC[j][header[f]] += ",";
 														recAC[j][header[f]] += rec[i].getElementsByTagName(field[f])[0].childNodes[0].nodeValue;
@@ -1287,13 +1286,13 @@ function searchInit() {
 											var ave_char_width = 6;
 											for (i=0; i<recAC.length; i++)
 											{
-												delete(recAC[i]["key"]);
+												delete(recAC[i].key);
 												// Sort comma delimited data in each new column
 												for (f=0; f<field.length; f++)
 												{
 													if (sort[f].toUpperCase() == "YES")
 													{
-														var arr = new Array();
+														var arr = [];
 														if (recAC[i][header[f]]){
 															arr = recAC[i][header[f]].split(",");
 															arr.sort();
@@ -1308,7 +1307,7 @@ function searchInit() {
 											for (f=0; f<header.length; f++)
 												gridHeader[header[f]] = {label:header[f],resizable:true};
 											// remove key from header
-											delete(gridHeader["key"]);
+											delete(gridHeader.key);
 											fsGrid.set("columns",gridHeader);
 											// Set width for new columns
 											for (f=0; f<header.length; f++)
@@ -1433,11 +1432,11 @@ function searchInit() {
 					registry.byId("searchRemoveBtn").on("click",clearSelection);
 					registry.byId("searchRemoveBtn").set("disabled", true);
 					document.getElementById("clearSearchGraphics").style.display="none";
-					document.getElementById("clearSearchGraphics").addEventListener('click',function() {clearSelection()});
-					document.getElementById("searchpoint").addEventListener('click',function(event) {activateSearchTool(event)});
-					document.getElementById("searchpolyline").addEventListener('click',function(event) {activateSearchTool(event)});
-					document.getElementById("searchrectangle").addEventListener('click',function(event) {activateSearchTool(event)});
-					document.getElementById("searchpolygon").addEventListener('click',function(event) {activateSearchTool(event)});
+					document.getElementById("clearSearchGraphics").addEventListener('click',function() {clearSelection();});
+					document.getElementById("searchpoint").addEventListener('click',function(event) {activateSearchTool(event);});
+					document.getElementById("searchpolyline").addEventListener('click',function(event) {activateSearchTool(event);});
+					document.getElementById("searchrectangle").addEventListener('click',function(event) {activateSearchTool(event);});
+					document.getElementById("searchpolygon").addEventListener('click',function(event) {activateSearchTool(event);});
 					
 					
 					// fill searchTextCombo suggestion list
