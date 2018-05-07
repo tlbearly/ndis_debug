@@ -186,7 +186,7 @@ function searchInit() {
 						// Show warning for required fields.
 							var layerName = layers[i].getElementsByTagName("name")[0] && layers[i].getElementsByTagName("name")[0].childNodes[0] ?
 								layers[i].getElementsByTagName("name")[0].childNodes[0].nodeValue : "undefined";
-							alert("WARNING: In SearchWidget.xml file required value missing for tag: "+tag+", in layer: "+layerName+".","Data Error")
+							alert("WARNING: In SearchWidget.xml file required value missing for tag: "+tag+", in layer: "+layerName+".","Data Error");
 						}
 
 						// add options to select element
@@ -244,9 +244,9 @@ function searchInit() {
 						onClick: function() {
 							// Check if need to update gmu list. If changed from elk, bighorn sheep, or mountain goat.
 							if (featureTypeCombo.attr("displayedValue") == "GMUs" && settings.useGMUs) {
-								if ((gmu=="Big Game GMU" && searchObj["GMUs"].titlefield != settings.elkField) ||
-									(gmu=="Bighorn GMU" && searchObj["GMUs"].titlefield != settings.sheepField) ||
-									(gmu=="Goat GMU" && searchObj["GMUs"].titlefield != settings.goatField)) {
+								if ((gmu=="Big Game GMU" && searchObj.GMUs.titlefield != settings.elkField) ||
+									(gmu=="Bighorn GMU" && searchObj.GMUs.titlefield != settings.sheepField) ||
+									(gmu=="Goat GMU" && searchObj.GMUs.titlefield != settings.goatField)) {
 									this.loadAndOpenDropDown();
 									updateSearchTextStore("GMUs");
 								}
@@ -394,19 +394,20 @@ function searchInit() {
 							}).then(function(response) {
 								try {
 									var dataArr = [];
+									var obj;
 									//var valueArr = []; // for mobile
 									for (var i=0; i<response.features.length; i++) {
 										// Bighorn Sheep or Mount Goat GMU
 										if (attr=="GMUs" && (searchObj[attr].displayfields == "Mountain Goat GMU" || searchObj[attr].displayfields == "Bighorn Sheep GMU")){
-											if (response.features[i].attributes["HUNTING"] != "YES") continue;
+											if (response.features[i].attributes.HUNTING != "YES") continue;
 										}
-										var obj = {};
+										obj = {};
 										// For mobile add the county name
-										if (response.features[i].attributes["COUNTYNAME"]) obj[searchObj[attr].searchfield] = response.features[i].attributes[searchObj[attr].searchfield]+" ("+
-											response.features[i].attributes["COUNTYNAME"]+")";
+										if (response.features[i].attributes.COUNTYNAME) obj[searchObj[attr].searchfield] = response.features[i].attributes[searchObj[attr].searchfield]+" ("+
+											response.features[i].attributes.COUNTYNAME+")";
 										else
 											obj[searchObj[attr].searchfield] = response.features[i].attributes[searchObj[attr].searchfield]; // load object key as variable
-										obj["value"]=response.features[i].attributes[searchObj[attr].searchfield];
+										obj.value=response.features[i].attributes[searchObj[attr].searchfield];
 										dataArr.push(obj);
 									}
 									// Sort Mt Goat and Bighorn Sheep GMUs
@@ -418,13 +419,12 @@ function searchInit() {
 											if (item[searchObj[attr].searchfield] != "OUT")
 												result.push(item[searchObj[attr].searchfield].substring(1));
 										});
-										result.sort(function(a,b){return a-b}); // Numeric Sort
+										result.sort(function(a,b){return a-b;}); // Numeric Sort
 										var gmuArr = [];
 										dataArr=null;
 										dataArr=[];
-										var obj;
 										result.forEach(function(item) {
-											obj = new Object();
+											obj = {};
 											obj[searchObj[attr].searchfield] = letter + item;
 											dataArr.push(obj);
 											obj=null;
@@ -450,8 +450,7 @@ function searchInit() {
 							},function (err){
 								document.getElementById("searchLoadingImg").style.display="none";
 								alert("Feature Search query error in javascript/search.js updateSearchTextStore(). Query="+
-									searchObj[attr].url+"/query?where="+expr+"&outfields="+searchObj[attr].searchfield
-									+" "+err.message,"Data Error",err);
+									searchObj[attr].url+"/query?where="+expr+"&outfields="+searchObj[attr].searchfield	+" "+err.message,"Data Error",err);
 							});
 						}
 						catch(e){
@@ -516,7 +515,7 @@ function searchInit() {
 								alert("File: "+app+"/"+searchObj[id].lookupsearchvalues+" not found.","Data Error");
 								document.getElementById("searchLoadingImg").style.display="none";
 							}
-						}
+						};
 						xmlhttp.open("GET",app+"/"+searchObj[id].lookupsearchvalues+"?v="+ndisVer,true);
 						xmlhttp.send(null);
 					}
@@ -615,19 +614,18 @@ function searchInit() {
 										});
 										
 									}
-								}
+								};
 								xmlhttp.onerror = function() {
 									alert('There was an error looking up the data from '+searchObj[attr].database+'?key='+userTypedTxt,"Code Error");
 									document.getElementById("searchLoadingImg").style.display="none";
 									//document.getElementById("searchMsg").style.display = "none";
-								}
+								};
 							}
 							// --------------------------------------------------------
 							// No database lookup,just display table and zoom to point
 							// --------------------------------------------------------
 							else{
 								var queryExpr = searchObj[attr].expression;
-								var expr;
 								// Handle Township Range Section
 								if (attr == "Township Range")
 								{
@@ -739,7 +737,7 @@ function searchInit() {
 								if (queryLayer)
 								{
 									queryTask = new QueryTask(queryLayer);
-									var query = new Query();
+									query = new Query();
 									query.where = expr;
 									var outflds = queryFields.split(",");
 									if (attr=="GMUs" && (searchObj[attr].displayfields == "Mountain Goat GMU" || searchObj[attr].displayfields == "Bighorn Sheep GMU")){
@@ -800,11 +798,11 @@ function searchInit() {
 							try{
 								var obj = gra.attributes;
 								// only display Mountain Goat and Bighorn Sheep GMUs where hunting is allowed
-								if (attr != "GMUs" || gmu=="Big Game GMU" || obj["HUNTING"] == "YES"){
+								if (attr != "GMUs" || gmu=="Big Game GMU" || obj.HUNTING == "YES"){
 									var value;
 									var title;
 									var point = getGeomCenter(gra);
-									var cols = new Array();
+									var cols = [];
 									var graInfoData = 
 									{
 										icon: widgetIcon,
@@ -1179,7 +1177,7 @@ function searchInit() {
 								var pl = gra.geometry;// as Polyline;
 								var pathCount = pl.paths.length;
 								var pathIndex = parseInt((pathCount / 2) - 1);
-								var midPath = new Array();
+								var midPath = [];
 								midPath = pl.paths[pathIndex];
 								var ptCount = midPath.length;
 								var ptIndex = parseInt((ptCount / 2) - 1);
