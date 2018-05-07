@@ -30,7 +30,35 @@ function addOverviewMap() {
 function lookupAddress() {
 	require(["dojo/dom"], function(dom){
 		var addr = dom.byId("streetTxt").value;
+		// protect against xss attacks
+		var regexp=/([^a-zA-Z0-9 \-\',\.()])/g; 
+		if (regexp.test(addr)) {
+			addr=addr.replace(regexp,""); // clean it
+			dom.byId("streetTxt").value=addr;
+			alert("Illegal characters were removed from the address.","Warning");
+			return;
+		}
+
 		var city = dom.byId("cityTxt").value;
+		// protect against xss attacks
+		regexp=/([^a-zA-Z0-9 \-\'()])/g; 
+		if (regexp.test(city)) {
+			city=city.replace(regexp,""); // clean it
+			dom.byId("cityTxt").value = city;
+			alert("Illegal characters were removed from the city.","Warning");
+			return;
+		}
+
+		var zip = dom.byId("zipTxt").value;
+		// protect against xss attacks
+		regexp=/([^0-9 \-])/g; 
+		if (regexp.test(zip)) {
+			zip=zip.replace(regexp,""); // clean it
+			dom.byId("zipTxt").value = zip;
+			alert("Illegal characters were removed from the zip code.","Warning");
+			return;
+		}
+		
 		if (addr!=="" && city!=="") {
 			require(["esri/geometry/Extent"],function(Extent){
 				showLoading();
@@ -39,7 +67,7 @@ function lookupAddress() {
 					"Address": addr,
 					"City": city,
 					"Region": "CO",
-					"Postal": dom.byId("zipTxt").value
+					"Postal": zip
 				};
 				locator.outSpatialReference = map.spatialReference;
 				var ext = new Extent({
