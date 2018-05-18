@@ -12,7 +12,7 @@ navigator.sayswho = (function () {
         if(tem!= null) return 'Opera '+tem[1];
 		// Check for Edge
 		tem=ua.match(/Edge\/(\d+)/i);
-		if(tem != null) return "Edge "+tem[1]
+		if(tem != null) return "Edge "+tem[1];
 	}
 	M = M[2] ? [M[1], M[2]] : [navigator.appName, navigator.appVersion, '-?'];
 	if ((tem = ua.match(/version\/(\d+)/i)) != null)
@@ -22,12 +22,14 @@ navigator.sayswho = (function () {
 	return M.join(' ');
 })();
 function alert() {
+	// Arguments: message, title, error object, show X button?, fade?, mili-seconds before fade
 	var msg,
 	title = "DEBUG",
 	theStack = "",
 	email = "tamara.bearly@colostate.edu",
 	showX = true,
-	fade = false;
+	fade = false,
+	sec = 10000;
 	for (var i = 0; i < arguments.length; i++) {
 		if (i == 0)
 			msg = arguments[i];
@@ -39,6 +41,8 @@ function alert() {
 			showX = arguments[i];
 		else if (i == 4)
 			fade = arguments[i];
+		else if (i == 5)
+			sec = arguments[i];
 	}
 	require(["dojo/dom", "dijit/registry"], function (dom, registry) {
 		if (showX)
@@ -79,7 +83,7 @@ function alert() {
 					registry.byId("errorMsgBox").hide();
 					dom.byId("errorMsg").innerHTML = "";
 				});
-			}, 10000);
+			}, sec);
 		}
 	});
 }
