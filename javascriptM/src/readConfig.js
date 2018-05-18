@@ -1,4 +1,6 @@
 var cfgExtent;
+var geoLocate;
+var geoLocateZoomIn=true;
 function createMap() {
 	require(["dojo/dom", "dijit/registry", "dojo/_base/lang", "esri/map", "esri/dijit/PopupMobile", "esri/symbols/SimpleLineSymbol",
 	"esri/symbols/SimpleMarkerSymbol", "esri/tasks/GeometryService", "esri/Color", "dojo/dom-construct", "esri/SpatialReference", 
@@ -311,14 +313,14 @@ function createMap() {
 						}
 						else if (label == "Settings") {
 							// Location
-							var sl = new ListItem({
-								id: "showLocation",
-								icon: "assets/images/bluedot.png",
-								rightText: "Off",
-								label: "<a class='mblAccordionTitleAnchor' href=\"javascript:openLocation();\">Location</a>"
-							});
-							sl.placeAt(dom.byId("toolsMenu")); // use when all are added from config.xml
-							//sl.startup();
+							// NOW using LocateButton below zoom buttons
+							//var sl = new ListItem({
+							//	id: "showLocation",
+							//	icon: "assets/images/bluedot.png",
+							//	rightText: "Off",
+							//	label: "<a class='mblAccordionTitleAnchor' href=\"javascript:openLocation();\">Location</a>"
+							//});
+							//sl.placeAt(dom.byId("toolsMenu")); // use when all are added from config.xml
 						
 							// Links
 							var li = new ListItem({
@@ -513,6 +515,10 @@ function createMap() {
 					minScale : 9244649,
 					lods: customLods
 				});
+
+				// Start up location button
+				document.getElementById("LocateButton").addEventListener("click",init_geo);
+				
 				// load basemap from URL if present
 				if (queryObj.layer && queryObj.layer.substring(0, queryObj.layer.indexOf("|")).split(",")[0] != "streets"){	
 					// read basemap from URL if &layer= is found.
@@ -568,7 +574,8 @@ function createMap() {
 						drawInit();
 						// Goto current location if no user specified place was found on the URL. 6-28-17
 						if (!queryObj.extent && !queryObj.place && !queryObj.keyword && !queryObj.map && navigator.geolocation) {
-							init_geo();
+							init_geo(); // uses code in geo.js
+							alert("Location tracking is ON","",null,false,true,2000);
 						}
 						if (labelPt && queryObj.label && queryObj.label != "") {
 							require(["esri/geometry/Point", "esri/graphicsUtils", "esri/geometry/Extent", "esri/layers/GraphicsLayer", "esri/graphic", "esri/symbols/PictureMarkerSymbol"], function (Point, graphicsUtils, Extent, GraphicsLayer, Graphic, PictureMarkerSymbol) {
@@ -629,7 +636,7 @@ function createMap() {
 											queryTask.execute(query, function (response) {
 												if (response.features.length == 0) {
 													// 6-14-17 If it is not found in the url.xml database file try GNIS.
-													gotoLocation(queryObj.value,true);
+													gotoLocation(queryObj.value,true);// in findPlace.js
 													//alert("Cannot zoom to value: " + queryObj.value + ". The feature was not found in " + layer[i].getElementsByTagName("url")[0].firstChild.nodeValue + " for field: " + layer[i].getElementsByTagName("field")[0].firstChild.nodeValue + ". To fix this error, edit keyword = " + queryObj.keyword + " in " + app + "/url.xml file.", "URL Keyword/Value Error");
 													//useConfigExtent();
 												} else {
@@ -703,7 +710,7 @@ function createMap() {
 				else if (queryObj.place && queryObj.place != "") {
 					var place = queryObj.place.replace("%20"," ");
 					if (queryObj.prj && queryObj.prj!="") settings = {XYProjection: queryObj.prj};
-					gotoLocation(place,true); // pass true to tell it that it was called from the url
+					gotoLocation(place,true); // pass true to tell it that it was called from the url. In findPlace.js
 				}
 				else if (queryObj.map && queryObj.map != "") {
 					if (!queryObj.value || queryObj.value == "" || !queryObj.field || queryObj.field == "") {
