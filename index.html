@@ -80,7 +80,7 @@ header("Pragma: no-cache");
         <!-- pdf library from https://github.com/MrRio/jsPDF  also in js.arcgis.com 3.23, but missing saveAs function -->
         <!-- for saveAs funciton to save to disk -->
         <script type="text/javascript" src="jsPDF/dist/jspdf.debug.js" true></script>
-        <!--link rel="stylesheet" type="text/css" href="assets/css/layout.css?v=3.11" /-->
+        <!--link rel="stylesheet" type="text/css" href="assets/css/layout.css?v=3.18" /-->
         <!--script type="text/javascript" src="javascript/errorBox.js?v=3.16"></script>
         <script type="text/javascript" src="javascript/xmlUtils.js?v=3.11"></script>
         <script type="text/javascript" src="javascript/utilFuncs.js?v=3.11"></script>
@@ -474,7 +474,7 @@ header("Pragma: no-cache");
             <div data-dojo-type="dijit/Dialog" data-dojo-id="reportHelpDialog" style="width:350px;display:none;" title="Resource Report Help">
                 <div class="dijitDialogPaneContentArea">
                     <a id="reportHelp" target="help">Click here to view help video.</a><br/><br/> Generate a PDF report of planning resources at a specific point. Click the Select location button, then click on the map. The report will contain addresses,
-                    phone numbers, & web addresses for field offices, welcome centers, campgrounds, and more.
+                    phone numbers, &amp; web addresses for field offices, welcome centers, campgrounds, and more.
                     <br/><br/>
                 </div>
             </div>
@@ -599,7 +599,7 @@ header("Pragma: no-cache");
                         <img id="searchLoadingImg" alt="loading icon" src="assets/images/loading.gif" style="position:absolute; right:50%; top:50%; z-index:100;display:none;" />
                         <span title="Feature Search Help" onClick="featureSearchHelpDialog.show();"><img class="help_icon" src="assets/images/i_help.png"></span>
                         <div id="searchTabText" style="width:100%;height:100%;">
-                            <div id="FeatureSearchTabs" data-dojo-type="dijit/layout/TabContainer" style="width:100%;" doLayout="false">
+                            <div id="FeatureSearchTabs" data-dojo-type="dijit/layout/TabContainer" doLayout="false">
                                 <div id="text_Pane" data-dojo-type="dijit/layout/ContentPane" title="Text Search" data-dojo-props="selected:true">
                                     <span>Search for a feature type by name. Highlights the features found and displays a table with more info.</span><br/><br/>
                                     <label for="featureType">Feature type: </label><input id="featureType" /><br/><br/>
@@ -678,7 +678,7 @@ header("Pragma: no-cache");
                     open="false">
                     <span title="Draw, Label, Measure Help" onClick="drawHelpDialog.show();"><img alt='help button' class="help_icon" src="assets/images/i_help.png"></span><br/>
                     <div id="drawContent" style="width:100%;height:100%;">
-                        <div id="drawTabs" data-dojo-type="dijit/layout/TabContainer" style="width:95%;height:240px;">
+                        <div id="drawTabs" data-dojo-type="dijit/layout/TabContainer" style="width:95%;height:260px;">
                             <div id="draw_Pane" data-dojo-type="dijit/layout/ContentPane" doLayout="false" title="Draw & Measure" data-dojo-props="selected:true">
                                 <span>Add way points, lines, and shapes to the map. Show the lat, long or UTM coordinate of the point, or the distance and/or area of the line or shape.</span><br/><br/>
                                 <p id="drawImageGroup" style="text-align:center">
