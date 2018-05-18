@@ -269,8 +269,14 @@
 		padding-right: 10px;
 	}
 	/* Put scrollbar at the edge for large TOC */
+	#tocPane_pane {
+    padding-right: 2px !important;
+	}
 	.claro .dijitTitlePaneContentInner {
-		padding: 10px 0px 10px 10px !important;
+		padding: 10px 10px 10px 10px !important;
+	}
+	#FeatureSearchTabs_tablist,#bmTabs{
+		width:100%!important;
 	}
 	
 	#search_help {
@@ -302,8 +308,33 @@
 	}
 	
 	/* Style all dojo.form.button(s)*/
-	.dijitButtonNode {
-		height:18px;
+	.claro .dijitSelect .dijitArrowButtonInner, .claro .dijitComboBox .dijitArrowButtonInner {
+		height:20px;
+	}
+	.claro .dijitSelect .dijitInputField, .claro .dijitTextBox .dijitInputField {
+		padding:5px;
+	}
+	#streetTxt, #cityTxt, #zipTxt {
+    padding: 5px;
+	}
+	#widget_findCombo{
+		padding:0 45px 0 25px!important;
+	}
+	#widget_gmuList .dijitInputField {
+    padding: 1px 2px;
+	}
+	#customXYlabel, #customLineLabel, #customPolyLabel, #drawlabel, #bookmarkName {
+		padding:5px;
+	}
+	#bookmarkName{
+		width:95%!important;
+	}
+	#drawlabel{
+		margin-bottom:10px;
+	}
+	/* point style dropdown. (color and size of way points dots) */
+	#pointStyle > tbody > tr > td > div {
+    padding: 0px;
 	}
 	
 	/* Find a Place */
@@ -477,11 +508,25 @@
 	}
 	
 	/* Feature Search grid */
-	.dgrid-row-odd tr:hover {
-	    background: #999!important; /* Make selected rows be gray */
+	.dgrid-header, .dgrid-header-row, .dgrid-footer {
+    background-color: #eee;
+    background-repeat: repeat-x;
+    background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+    background-image: -webkit-linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+    background-image: -o-linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+		background-image: linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
 	}
-	.dgrid-row-even tr:hover {
-	    background: #999!important; /* Make selected rows be gray */
+	.dgrid-row-odd tr:hover, .dgrid-row-even tr:hover {
+		background-color: #abd6ff;
+		background-repeat: repeat-x;
+		background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+		background-image: -webkit-linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+		background-image: -o-linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+		background-image: linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+		padding: 1px;
+		border: solid 1px #759dc0;
+		color: #000000;
+		cursor:pointer;
 	}
 	.dgrid {
 		height:200px!important;
