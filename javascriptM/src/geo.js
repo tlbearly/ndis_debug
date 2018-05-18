@@ -4,7 +4,7 @@
 var wpid=false, z, prev_lat, prev_long;
 //var min_speed=0, max_speed=0, min_altitude=0, max_altitude=0;
 var  locGraphicsLayer=null, lastPoint=null;
-var symbol, min_accuracy=4000;
+var locSymbol, min_accuracy=4000;
 
 // This function just adds a leading "0" to time/date components which are <10 (because there is no cross-browser way I know of to do this using the date object)
 /*function format_time_component(time_component)
@@ -31,6 +31,7 @@ function geo_success(position)
 	// Check that the accuracy of our Geo location is sufficient for our needs
 	if(position.coords.accuracy<=min_accuracy)
 	{
+		//alert("accuracy="+position.coords.accuracy);
 		// We don't want to action anything if our position hasn't changed - we need this because on IPhone Safari at least, we get repeated readings of the same location with 
 		// different accuracy which seems to count as a different reading - maybe it's just a very slightly different reading or maybe altitude, accuracy etc has changed
 		if(prev_lat.toFixed(5)!=position.coords.latitude.toFixed(5) || prev_long!=position.coords.longitude.toFixed(5))
@@ -82,16 +83,13 @@ function geo_success(position)
 		}
 	}
 	else{
-		require(["dijit/registry"],function(registry){
-			var sl = registry.byId("showLocation");
-			sl.set("rightText", "Off");
-			wpid=false;
-			if (document.getElementById("menuView").style.left == "0px") {
-				// show error when user has tried to turn it on, not on startup
-				alert("Accuracy not sufficient (+/-"+Math.round(position.coords.accuracy, 1).numberFormat(0)+"m) for current location.","");
-				closeMenu();
-			}
-		});
+		wpid=false;
+		if (document.getElementById("menuView").style.left == "0px") {
+			// show error when user has tried to turn it on, not on startup
+			alert("Accuracy not sufficient (+/-"+Math.round(position.coords.accuracy, 1).numberFormat(0)+"m) for current location.","");
+			// Set locate button to start tracking image
+			document.getElementById("LocateButton").className="";
+		}
 		//if (info_string) op.innerHTML=info_string+"<br/><br/>";
 	}
 }
@@ -110,24 +108,19 @@ function displayLocation(position) {
 			if (!locGraphicsLayer) {
 				locGraphicsLayer = new GraphicsLayer();
 				map.addLayer(locGraphicsLayer);
-				symbol = new PictureMarkerSymbol("assets/images/bluedot.png", 20, 20);
+				locSymbol = new PictureMarkerSymbol("assets/images/bluedot.png", 20, 20);
 			}
 			//clear existing graphics
 			locGraphicsLayer.clear();
 			var pt = webMercatorUtils.geographicToWebMercator(new Point(position.coords.longitude, position.coords.latitude));
 			if (!lastPoint) map.centerAndZoom(pt, 7); // zoom in on start 4-19-17 Updated lods used to be 13.
-			locGraphicsLayer.add(new Graphic(pt, symbol));
+			locGraphicsLayer.add(new Graphic(pt, locSymbol));
 			lastPoint = pt;
-			require(["dijit/registry"],function(registry){
-				var sl = registry.byId("showLocation");
-				sl.set("rightText", "On");
-			});
+			//alert("Location tracking is ON displayLocation","",null,false,true,2000);
 		}
 		catch(e){
-			require(["dijit/registry"],function(registry){
-				var sl = registry.byId("showLocation");
-				sl.set("rightText", "Off");
-			});
+			// Set locate button to start tracking image
+			document.getElementById("LocateButton").className="";
 			alert(e.message,"Error",e);
 		}
 	});
@@ -148,30 +141,29 @@ function geo_error(error)
 				}
 				navigator.geolocation.clearWatch(wpid);
 				wpid=false;
-				if (document.getElementById("menuView").style.left == "0px") closeMenu();
+				// Set locate button to start tracking image
+				document.getElementById("LocateButton").className="";
 			});
 			break;
 		case error.POSITION_UNAVAILABLE:
 			require(["dijit/registry"],function(registry){
 				if (wpid > 0) alert("Could not determine your location. <button data-dojo-type='dojox/mobile/Button' class='mblButton' onclick=\"slideRight(document.getElementById('locationHelp'));closeAlert();document.getElementById('errorMsg').innerHTML=''\">Help</button>","");
-				if (document.getElementById("menuView").style.left == "0px") closeMenu();
-				var sl = registry.byId("showLocation");
-				sl.set("rightText", "Off");
+				// Set locate button to start tracking image
+				document.getElementById("LocateButton").className="";
 				navigator.geolocation.clearWatch(wpid);
 				wpid=false;
 			});
 		break;
 		case error.TIMEOUT:
 			require(["dijit/registry"],function(registry){
-				if (document.getElementById("menuView").style.left == "0px") closeMenu();
 				if (wpid > 0) alert("Could not determine your location. <button data-dojo-type='dojox/mobile/Button' class='mblButton' onclick=\"slideRight(document.getElementById('locationHelp'));closeAlert();document.getElementById('errorMsg').innerHTML=''\">Help</button>","");
-				var sl = registry.byId("showLocation");
-				sl.set("rightText", "Off");
+				// Set locate button to start tracking image
+				document.getElementById("LocateButton").className="";
 				navigator.geolocation.clearWatch(wpid);
 				wpid=false;
 			});
 		break;
-	};
+	}
 }
 
 function get_pos()
@@ -182,16 +174,12 @@ function get_pos()
 	// First, check that the Browser is capable
 	if(!!navigator.geolocation) {
 		wpid=navigator.geolocation.watchPosition(geo_success, geo_error, {enableHighAccuracy:true, maximumAge:30000, timeout:27000});
-		if (document.getElementById("menuView").style.left == "0px") closeMenu();
 	}
 	else{
-		require(["dijit/registry"],function(registry){
-			var sl = registry.byId("showLocation");
-			sl.set("rightText", "Off");
-		});
 		alert("Your Browser doesn't support the Geo Location API.<br/><input type='checkbox' class='checkBoxButton' onClick='setCookie(\"noGeo\",\"1\");closeAlert();' />"+
 			" Do not show this again.","");
-		if (document.getElementById("menuView").style.left == "0px") closeMenu();
+		// Set locate button to start tracking image
+		document.getElementById("LocateButton").className="";
 	}
 }
 
@@ -199,40 +187,35 @@ function get_pos()
 // Initialiser
 function init_geo()
 {
-	//op=document.getElementById("locOutputDiv"); // Note the op is defined in global space and is therefore globally available
-	// Handle Current Location on/off Switch
-	require(["dijit/registry"],function(registry){
-		var sl = registry.byId("showLocation");
+	// Handle Current Location Tracking on/off Switch
 		// turn on
-		if (sl.rightText != "On"){
+		if (document.getElementById("LocateButton").className.indexOf("tracking") == -1){
 			// Reset values
 			prev_lat=0;
 			prev_long=0;
 			lastPoint=null;
+			// Set locate button to now tracking image
+			document.getElementById("LocateButton").className="tracking";
 			if (wpid) // If we already have a wpid which is the ID returned by navigator.geolocation.watchPosition()
 			{
 				navigator.geolocation.clearWatch(wpid);
 				wpid=false;
-				//document.getElementById("locTable").style.display="none"; // hide the stats table
-				//op.innerHTML="";
-				sl.set("rightText", "On");
-				closeMenu();
+				//alert("Location tracking is ON","",null,false,true,2000);
 			}
-			else // Else...We should only ever get here right at the start of the process
+			else // Else...We should only ever get here when location button has been toggled on
 			{
-				sl.set("rightText", "Aquiring...");
-				//op.innerHTML="Aquiring Geo Location...<br/><br/>";
+				alert("Location tracking is ON","",null,false,true,2000);
 				get_pos();
 			}
 		}
 		// turn off
 		else {
+			// Set locate button to start tracking image
+			document.getElementById("LocateButton").className="";
 			navigator.geolocation.clearWatch(wpid);
 			wpid=false;
-			sl.set("rightText", "Off");
-			closeMenu();
+			alert("Location tracking is OFF","",null,false,true,2000);
 			if (locGraphicsLayer)
 				locGraphicsLayer.clear();
 		}
-	});
 }
