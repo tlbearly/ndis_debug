@@ -53,6 +53,7 @@
 	<li><a href="#js">Need to enable JavaScript</a></li>
 	<li><a href="#pop">Need to enable pop-ups for printing and reports</a></li>
 	<li><a href="#printChrome">Print troubleshooting: Having trouble saving the PDF with Chrome?</a></li>
+	<li><a href="#location">Enable current location tracking (Mobile only)</a></li>
 </ul>
 <br/><br/>
 <p>
@@ -307,6 +308,35 @@ But if you have Adobe Reader or Foxit Reader installed it will work. You can mak
 	<li>Click disable Chrome PDF Viewer.</li>
 	<li>Click Enable Adobe Reader or Foxit Reader.</li>
 	<li>Check Always allowed</li>
+</ol>
+<p><a href="#top" title="">Back to top</a></p>
+<br/><br/>
+<a name="location"/>
+<hr/>
+<h1>Location Services</h1>
+The mobile browser is has a button below the zoomin/zoomout buttons to toggle location tracking.
+If current location is not working try the following:
+<h3>Step 1: Turn on location services</h3>
+Make sure GPS/Location Service is turned on in your phone's settings.<br/>
+<h3>Step 2: Try going outside</h3>
+<h3>Step3: Reset location settings</h3>
+The first time you turn on Current Location you will be asked if you want to give the map access to your location. You can reset this choice by:<br/><br/> For Chrome browsers:<br/>
+<ol>
+		<li>Touch the menu icon in the top-right corner of the screen.</li>
+		<li>Touch <strong>Settings>Content Settings>Website Settings</strong> or <strong>Settings>Site settings>Location</strong>.</li>
+		<li>Find
+				<script>
+						document.write(document.location.host)
+				</script>.</li>
+		<li>Allow location access.</li>
+		<li>Reload the Atlas in Chrome and allow location access on the message that shows up.</li>
+</ol>
+For Safari browsers:<br/>
+<ol>
+		<li>Goto your home screen.</li>
+		<li>Touch <strong>Settings>Privacy>Location Services</strong></li>
+		<li>Slide Location Services on.</li>
+		<li>Reload Atlas in Safari and allow location access on the message that shows up.</li>
 </ol>
 <p><a href="#top" title="">Back to top</a></p>
 </td></tr>
