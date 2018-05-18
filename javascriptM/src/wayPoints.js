@@ -364,9 +364,9 @@ function drawInit() {
 		//dom.byId("length").innerHTML = label;
 		// addLabel is in javascript/utilFunc.js
 		addLabel(labelPoint, label, lenGraphicsLayer, "11pt");
-    }
+  }
 	
-    function drawIt(evtObj) {
+  function drawIt(evtObj) {
 		if (dragging) {dragging=false;return;}
 		if (evtObj.stopImmediatePropagation) evtObj.stopImmediatePropagation(); // don't show the infoWindow when adding a way pt.
 		closeAlert();
@@ -418,7 +418,8 @@ function drawInit() {
 			//lenGraphicsLayer.id = "lengraphics"+lenGraphicsCounter;
 			//lenGraphicsCount.push(lenGraphicsLayer.id);
 			//lenGraphicsCounter++;
-			symbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,0,10]), 2);
+			// 5-17-18 added var. It was globally changing all symbol variables.
+			var symbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,0,10]), 2);
 			lenGraphicsLayer.add(new Graphic(geometry, symbol));
 			//labelPoint = new Graphic(new Point((geometry.getExtent().xmax - geometry.getExtent().xmin)/2 + geometry.getExtent().xmin, (geometry.getExtent().ymax - geometry.getExtent().ymin)/2 + geometry.getExtent().ymin, map.spatialReference)); 
 			labelPoint = new Graphic(new Point(geometry.paths[0][1], map.spatialReference)); 
@@ -439,8 +440,8 @@ function drawInit() {
 		drawing=false;
 	}
 		
-	  // Populate the point style drop down on draw widget
-      var point = new Select({
+	// Populate the point style drop down on draw widget
+  var point = new Select({
 		name: "pointStyle",
 		id: "pointStyle",
 		labelAttr: "label",
