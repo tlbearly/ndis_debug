@@ -273,7 +273,7 @@
     padding-right: 2px !important;
 	}
 	.claro .dijitTitlePaneContentInner {
-		padding: 10px 10px 10px 10px !important;
+		padding: 10px!important;
 	}
 	#FeatureSearchTabs_tablist,#bmTabs{
 		width:100%!important;
