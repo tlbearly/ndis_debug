@@ -90,17 +90,17 @@ header("Pragma: no-cache");
         <!-- Load our javascript. If last parameter is true it will load asyncronously. Else the script is fetched and executed immediately. -->
         <script src="https://js.arcgis.com/3.23compact"></script>
         <!-- Load external javascript files here. -->
-        <!--link rel="stylesheet" href="assets/css/layoutM.css?v=3.11"></script>
-		<script type="text/javascript" src="javascriptM/geo.js?v=3.13"></script>
+        <!--link rel="stylesheet" href="assets/css/layoutM.css?v=3.18"></script>
+		<script type="text/javascript" src="javascriptM/geo.js?v=3.18"></script>
 		<script type="text/javascript" src="javascriptM/disclaimer.js?v=3.11"></script>
-		<script type="text/javascript" src="javascriptM/errorBox.js?v=3.11"></script>
+		<script type="text/javascript" src="javascriptM/errorBox.js?v=3.18"></script>
 		<script type="text/javascript" src="javascriptM/findPlace.js?v=3.11"></script>
 		<script type="text/javascript" src="javascriptM/identify.js?v=3.17a"></script>
-		<script type="text/javascript" src="javascriptM/readConfig.js?v=3.17a"></script>
+		<script type="text/javascript" src="javascriptM/readConfig.js?v=3.18"></script>
 		<script type="text/javascript" src="javascriptM/search.js?v=3.11"></script>
 		<script type="text/javascript" src="javascriptM/swipe.js?v=3.11"></script>
 		<script type="text/javascript" src="javascriptM/utilFuncs.js?v=3.11"></script>
-		<script type="text/javascript" src="javascriptM/wayPoints.js?v=3.17"></script>
+		<script type="text/javascript" src="javascriptM/wayPoints.js?v=3.18"></script>
 		<script type="text/javascript" src="javascriptM/xmlUtils.js?v=3.11"></script-->
         <script>
             /* For DEBUGGING */
@@ -518,7 +518,9 @@ header("Pragma: no-cache");
             </h1>
             <div class="mapcontent">
                 <img id="loading" alt="loading icon" src="assets/images/loading.gif" style="top:50%;position:absolute; right:50%; z-index:100;display:block;" />
-                <div id="mapDiv"></div>
+                <div id="mapDiv">
+                    <div id="LocateButton"></div>
+                </div>
             </div>
 
             <!-- Footer -->
@@ -728,43 +730,6 @@ header("Pragma: no-cache");
             </div>
         </div>
 
-        <!-- Location Help -->
-        <!--style="display:none;position:absolute;top:0;left:0;right:10px;bottom:10px;height:100%;width:100%;z-index:50;overflow:hidden;"-->
-        <div id="locationHelp" data-dojo-type="dojox/mobile/ContentPane" class="scrollPane">
-            <h1 data-dojo-type="dojox.mobile.Heading" data-dojo-props='fixed:"top", label:"Current Location Help"'>
-                <span data-dojo-type="dojox/mobile/ToolBarButton" data-dojo-props='icon:"assets/images/leftarrow.png"' onclick="slideLeft(document.getElementById('locationHelp'));"></span>
-            </h1>
-            <div class="scrollContainer">
-                <!--style="width:95%;height:100%;overflow:auto;padding:10px;"-->
-                <div data-dojo-type="dojox/mobile/ContentPane" class="scrollContent">
-                    If current location is not working try the following:
-                    <h3>Step 1: Turn on location services</h3>
-                    Make sure GPS/Location Service is turned on in your phone's settings.<br/>
-                    <h3>Step 2: Try going outside</h3>
-                    <h3>Step3: Reset location settings</h3>
-                    The first time you turn on Current Location you will be asked if you want to give the map access to your location. You can reset this choice by:<br/><br/> For Chrome browsers:<br/>
-                    <ol>
-                        <li>Touch the menu icon in the top-right corner of the screen.</li>
-                        <li>Touch <strong>Settings>Content Settings>Website Settings</strong> or <strong>Settings>Site settings>Location</strong>.</li>
-                        <li>Find
-                            <script>
-                                document.write(document.location.host)
-                            </script>.</li>
-                        <li>Allow location access.</li>
-                        <li>Reload the Atlas in Chrome and allow location access on the message that shows up.</li>
-                    </ol>
-                    For Safari browsers:<br/>
-                    <ol>
-                        <li>Goto your home screen.</li>
-                        <li>Touch <strong>Settings>Privacy>Location Services</strong></li>
-                        <li>Slide Location Services on.</li>
-                        <li>Reload Atlas in Safari and allow location access on the message that shows up.</li>
-                    </ol>
-                    <!--h3>Step 4: Secure Site</h3>
-			Make sure you accessed this site with "https://". As of April 2016, geolocation requires a secure site.-->
-                </div>
-            </div>
-        </div>
         <script>
             /* Add Google Analytics Stats */
             (function(i, s, o, g, r, a, m) {
