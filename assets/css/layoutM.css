@@ -24,6 +24,37 @@
 		position:absolute;
 		top:45px;
 	}
+	#LocateButton {
+		position: absolute;
+		top: 95px;
+		left: 20px;
+		z-index: 2;
+		padding: 2px;
+    width: 30px;
+    height: 30px;
+    background-color: #666;
+    background-color: rgba(102,102,102,0.80);
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: pointer;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -o-border-radius: 5px;
+    border-radius: 5px;
+    background-image: url(../images/locate.png);
+    background-position: center center;
+    background-repeat: no-repeat;
+	}
+	#LocateButton:hover {
+		background-color: #333;
+		background-color: rgba(102,102,102,0.90);
+	}
+	.tracking{
+		background-image: url(../images/tracking.png)!important;
+	}
+
 	.mapcontent{
 		height: calc(100% - 45px);         /* standards-based answer for IE9+, FF16+ */
 		height: -moz-calc(100% - 45px);    /* support for FF4 - FF15                 */
@@ -152,6 +183,10 @@
 		width: -webkit-calc(100% - 124px)!important; /* support for Chrome19+ and Safari6+     */
 		height: 38px!important;
 		border-radius:0px!important;
+	}
+	.dijitInputInner{
+		padding-left:5px!important;
+		padding-right:5px!important;
 	}
 	input#findCombo.dijitReset.dijitInputInner{
 		height: 40px!important;
