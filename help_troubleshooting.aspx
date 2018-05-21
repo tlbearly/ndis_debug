@@ -314,7 +314,7 @@ But if you have Adobe Reader or Foxit Reader installed it will work. You can mak
 <a name="location"/>
 <hr/>
 <h1>Location Services</h1>
-The mobile browser has a button below the zoomin/zoomout buttons to toggle location tracking. When tracking is turned on, it will zoom to your current location.
+The mobile browser has a button <img src="assets/images/locate.png" style="background-color: rgba(102,102,102,.8);border-radius:5px;"/> below the zoomin/zoomout buttons to toggle location tracking. When tracking is turned on, it will zoom to your current location.
 If current location is not working try the following:
 <h3>Step 1: Turn on location services</h3>
 Make sure GPS/Location Service is turned on in your phone's settings.<br/>
