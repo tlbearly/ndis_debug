@@ -46,12 +46,34 @@
         <tr>
             <td>
                 <h4><a href="<%=app%>/help.html">Help</a> &#149;
-                    <a href="<%=app%>/definitions.html">Map
-Information</a></h4>
+                    <a href="<%=app%>/definitions.html">Map Information</a></h4>
+
+                <h2>Version 3.18 Released May 2018</h2>
+                <ul>
+                    <li><strong>What's New in the <%=subtitle%>:</strong><br/>
+                        <ul>
+                            <li>Loads as a secure site with https://</li>
+                            <li>Fixed problem with location services not working with Chrome on mobile devices.</li>
+                            <li>Fixed problem with SFU not found when accessed on the URL.</li>
+                            <li>Moved Location Tracking (on mobile devices) to a toggle button below the zoomin / zoomout buttons. It was hard to find before, since it was in the menu.</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h2>Version 3.11 Released April 2017</h2>
+                <ul>
+                    <li><strong>What's New in the <%=subtitle%>:</strong><br/>
+                        <ul>
+                            <li>Printing now saves to a geo pdf so that you can view your current location in the pdf without needing cell service.</li>
+                            <li>Improved the "Search for a Colordo Place" suggestions drop down list. Now it gives suggestions as you type.</li>
+                            <li>Fixed problem with PDFs not loading with new browser versions.</li>
+                        </ul>
+                    </li>
+                </ul>
 
                 <h2>Version 3.1 Released July 2016</h2>
                 <ul>
-                    <li><strong>New <%=subtitle%></strong><br/>Here are some of the new features:
+                    <li><strong>What's New in the <%=subtitle%>:</strong><br/>
                         <ul>
                             <li><strong>Mobile ready Colorado Fishing Atlas</strong></li>
                             <li>Allows more way points to be stored in a bookmark.</li>
@@ -69,8 +91,9 @@ Information</a></h4>
 
                 <h2>Version 3.0 Released May 2015</h2>
                 <ul>
-                    <li><strong>New <%=subtitle%></strong> rewritten so that it is faster and will work on Macs.<br/>Here are some of the new features:
+                    <li><strong>What's New in the <%=subtitle%>:</strong><br/>
                         <ul>
+                            <li>Rewritten so that it is faster and will work on Macs.</li>
                             <li>New basemaps: National Geographic, new topographic, light &amp; dark gray canvas, Open Street Map, Terrain with Labels, and USGS National Map. As ESRI adds more basemaps they will automatically appear in our atlas.
                             </li>
                             <li>Fixed a bug in Bookmarks. Deleting a bookmark in one atlas (say the Fishing Atlas) was deleting it from all atlases. Now bookmarks are independent of each atlas.</li>
