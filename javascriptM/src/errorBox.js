@@ -1,3 +1,4 @@
+var errBoxTimer=null;
 navigator.sayswho = (function () {
 	var ua = navigator.userAgent,
 	tem,
@@ -30,6 +31,11 @@ function alert() {
 	showX = true,
 	fade = false,
 	sec = 10000;
+	// Cancel fade error box because we received a new error message. errBoxTimer is set when fading the error box ater so many seconds
+	if (errBoxTimer) {
+		document.getElementById("errorMsg").innerHTML = ""; // Clear old message "Location tracking is ON"
+		clearTimeout(errBoxTimer);
+	}
 	for (var i = 0; i < arguments.length; i++) {
 		if (i == 0)
 			msg = arguments[i];
@@ -78,10 +84,11 @@ function alert() {
 		}
 		registry.byId("errorMsgBox").show();
 		if (fade) {
-			setTimeout(function () {
+			errBoxTimer = setTimeout(function () {
 				require(["dijit/registry", "dojo/dom"], function (registry, dom) {
 					registry.byId("errorMsgBox").hide();
 					dom.byId("errorMsg").innerHTML = "";
+					errBoxTimer=null;
 				});
 			}, sec);
 		}
