@@ -132,37 +132,29 @@ function geo_error(error)
 //alert(error.message,"debug",error);
 	switch(error.code)
 	{
-		case error.PERMISSION_DENIED:
-            require(["dijit/registry"],function(registry){
-				var sl = registry.byId("showLocation");
-				sl.set("rightText", "Off");				
-				if (wpid > 0) {
-						alert("You have blocked this site from accessing your location. <button data-dojo-type='dojox/mobile/Button' class='mblButton' onclick=\"slideRight(document.getElementById('locationHelp'));closeAlert();document.getElementById('errorMsg').innerHTML=''\">Help</button>","");
-				}
-				navigator.geolocation.clearWatch(wpid);
-				wpid=false;
-				// Set locate button to start tracking image
-				document.getElementById("LocateButton").className="";
-			});
+		case error.PERMISSION_DENIED:			
+			if (wpid > 0) {
+					alert("You have blocked this site from accessing your location. <button data-dojo-type='dojox/mobile/Button' class='mblButton' onclick=\"slideRight(document.getElementById('locationHelp'));closeAlert();document.getElementById('errorMsg').innerHTML=''\">Help</button>","");
+			}
+			navigator.geolocation.clearWatch(wpid);
+			wpid=false;
+			// Set locate button to stop tracking image
+			document.getElementById("LocateButton").className="";
 			break;
 		case error.POSITION_UNAVAILABLE:
-			require(["dijit/registry"],function(registry){
-				if (wpid > 0) alert("Could not determine your location. <button data-dojo-type='dojox/mobile/Button' class='mblButton' onclick=\"slideRight(document.getElementById('locationHelp'));closeAlert();document.getElementById('errorMsg').innerHTML=''\">Help</button>","");
-				// Set locate button to start tracking image
-				document.getElementById("LocateButton").className="";
-				navigator.geolocation.clearWatch(wpid);
-				wpid=false;
-			});
-		break;
+			if (wpid > 0) alert("Could not determine your location. <button data-dojo-type='dojox/mobile/Button' class='mblButton' onclick=\"slideRight(document.getElementById('locationHelp'));closeAlert();document.getElementById('errorMsg').innerHTML=''\">Help</button>","");
+			// Set locate button to stop tracking image
+			document.getElementById("LocateButton").className="";
+			navigator.geolocation.clearWatch(wpid);
+			wpid=false;
+			break;
 		case error.TIMEOUT:
-			require(["dijit/registry"],function(registry){
-				if (wpid > 0) alert("Could not determine your location. <button data-dojo-type='dojox/mobile/Button' class='mblButton' onclick=\"slideRight(document.getElementById('locationHelp'));closeAlert();document.getElementById('errorMsg').innerHTML=''\">Help</button>","");
-				// Set locate button to start tracking image
-				document.getElementById("LocateButton").className="";
-				navigator.geolocation.clearWatch(wpid);
-				wpid=false;
-			});
-		break;
+			if (wpid > 0) alert("Could not determine your location. <button data-dojo-type='dojox/mobile/Button' class='mblButton' onclick=\"slideRight(document.getElementById('locationHelp'));closeAlert();document.getElementById('errorMsg').innerHTML=''\">Help</button>","");
+			// Set locate button to start tracking image
+			document.getElementById("LocateButton").className="";
+			navigator.geolocation.clearWatch(wpid);
+			wpid=false;
+			break;
 	}
 }
 
