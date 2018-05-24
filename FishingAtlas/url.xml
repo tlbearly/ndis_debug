@@ -119,7 +119,7 @@
 	<!-- public layer is used to highlight boundaries for STL, SWA, SFU, WWA. Uses CPW Public Access Properties -->
 	<layer>
 		<keyword>public</keyword>
-		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/99</url>
+		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/3</url>
 		<expression>UPPER(PropName)=UPPER('[value]')</expression>
 		<mapscale></mapscale>
 		<field>PropName</field>
@@ -133,21 +133,21 @@
 	<!-- forest boundary one polygon, uses Support map boundaries, Forest Service map -->
 	<layer>
 		<keyword>forest</keyword>
-		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/102</url>
+		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/5</url>
 		<expression>UPPER(MapName)=UPPER('[value]')</expression>
 		<field>MapName</field>
 	</layer>
 	<!-- grassland boundary one polygon, uses Support map boundaries, Forest Service map -->
 	<layer>
 		<keyword>grassland</keyword>
-		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/102</url>
+		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/5</url>
 		<expression>UPPER(MapName)=UPPER('[value]')</expression>
 		<field>MapName</field>
 	</layer>
 	<!-- Uses Land Management -->
 	<layer>
 		<keyword>wilderness</keyword>
-		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/100</url>
+		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/4</url>
 		<expression>UPPER(NAME)=UPPER('[value]')</expression>
 		<field>NAME</field>
 	</layer>
