@@ -1,3 +1,5 @@
+<%@ Import Namespace="System.Text.RegularExpressions" %>
+<%@ Import Namespace="System.Web" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" >
 <head>
@@ -12,15 +14,16 @@
         Dim app As String
         Dim subtitle As String
         Sub Page_Load(Sender As Object, E as EventArgs)
-            app = Server.HTMLEncode(Request.Querystring("app"))
-            If((app.ToLower() <> "huntingatlas") AND (app.ToLower() <> "fishingatlas") AND (app.ToLower() <> "propertyfinder") AND (app.ToLower() <> "stockingrestrictions")) Then
-                app = "huntingatlas"
-            End If
-            
-            subtitle = Server.HTMLEncode(Request.Querystring("subtitle"))
-            If((subtitle.ToLower() <> "Colorado Hunting Atlas") AND (subtitle.ToLower() <> "Colorado Fishing Atlas") AND (subtitle.ToLower() <> "Colorado Property Finder") AND (subtitle.ToLower() <> "Colorado Stocking Restrictions")) Then
-                subtitle = "Colorado Hunting Atlas"
-            End If
+						app = Request.Querystring("app")
+            Dim pattern As String = "[^a-zA-Z]"
+            Dim replacement As String = ""
+            Dim rgx As New Regex(pattern)
+            app = rgx.Replace(app, replacement)
+
+            pattern = "[^a-zA-Z ]"
+            rgx = New Regex(pattern)
+            subtitle = HttpUtility.UrlDecode(Request.Querystring("subtitle"))
+            subtitle = rgx.Replace(subtitle, replacement)
         End Sub
     </script>
 
