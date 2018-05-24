@@ -74,7 +74,15 @@ function findPlaceInit() {
 			 return words.join('/');
 		}
 		function updateStore() {
-			var url = myFindService + "/suggest?f=json&maxSuggestions=200&Text=" + findCombo.get('value');
+			// protect against XSS attacks
+			var userTypedTxt = findCombo.get('value');
+			var regexp=/([^a-zA-Z0-9 :\-,\'\._()])/g; 
+			if (regexp.test(userTypedTxt)) {
+				userTypedTxt=userTypedTxt.replace(regexp,""); // clean it
+				findCombo.set('value',userTypedTxt);				
+			}
+			userTypedTxt = encodeURI(userTypedTxt);// encode it for url
+			var url = myFindService + "/suggest?f=json&maxSuggestions=200&Text=" + userTypedTxt;
 			var XMLHttpRequest1 = createXMLhttpRequest();
 			XMLHttpRequest1.open("GET", url, true);
 			XMLHttpRequest1.onreadystatechange = function () {
@@ -331,7 +339,7 @@ function loadFindBoundaries(label, x, y){
 				field : "COUNTYNAME"
 			},
 			"public" : {
-				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/96",
+				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/3",
 				field : "PropName"
 			},
 			"gmu" : {
@@ -339,15 +347,15 @@ function loadFindBoundaries(label, x, y){
 				field : "GMUID"
 			},
 			"forest" : {
-				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/99",
+				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/5",
 				field : "MapName"
 			},
 			"grassland" : {
-				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/99",
+				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/5",
 				field : "MapName"
 			},
 			"wilderness" : {
-				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/97",
+				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/4",
 				field : "NAME"
 			}
 		};
