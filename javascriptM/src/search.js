@@ -546,7 +546,7 @@ function searchInit() {
 							else
 								userTypedTxt = registry.byId("searchText").get("value");
 							// protect against xss attacks
-							var regexp=/([^a-zA-Z0-9 \-\',\.!_\*()])/g; 
+							var regexp=/([^a-zA-Z0-9 :#\-\',\.!_\*()])/g; 
 							if (regexp.test(userTypedTxt)) alert("Illegal characters were removed from the search text.","Warning");
 							userTypedTxt=userTypedTxt.replace(regexp,""); // clean it
 
