@@ -1,12 +1,12 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<%@ Import Namespace="System.Text.RegularExpressions" %>
+<%@ Import Namespace="System.Web" %>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "https://www.w3.org/TR/html4/strict.dtd">
+<html xmlns="https://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 
 <head>
     <link rel="stylesheet" type="text/css" href="assets/css/help.css" />
     <title>What's New</title>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-    <link rel="stylesheet" type="text/css" href="assests/css/styles.css">
-
 </head>
 
 <body>
@@ -14,15 +14,16 @@
         Dim app As String
         Dim subtitle As String
         Sub Page_Load(Sender As Object, E as EventArgs)
-            app = Server.HTMLEncode(Request.Querystring("app"))
-            If((app.ToLower() <> "huntingatlas") AND (app.ToLower() <> "fishingatlas") AND (app.ToLower() <> "propertyfinder") AND (app.ToLower() <> "stockingrestrictions")) Then
-                app = "huntingatlas"
-            End If
-            
-            subtitle = Server.HTMLEncode(Request.Querystring("subtitle"))
-            If((subtitle.ToLower() <> "Colorado Hunting Atlas") AND (subtitle.ToLower() <> "Colorado Fishing Atlas") AND (subtitle.ToLower() <> "Colorado Property Finder") AND (subtitle.ToLower() <> "Colorado Stocking Restrictions")) Then
-                subtitle = "Colorado Hunting Atlas"
-            End If
+            app = Request.Querystring("app")
+            Dim pattern As String = "[^a-zA-Z]"
+            Dim replacement As String = ""
+            Dim rgx As New Regex(pattern)
+            app = rgx.Replace(app, replacement)
+
+            pattern = "[^a-zA-Z ]"
+            rgx = New Regex(pattern)
+            subtitle = HttpUtility.UrlDecode(Request.Querystring("subtitle"))
+            subtitle = rgx.Replace(subtitle, replacement)
         End Sub
     </script>
     <table class="header">
