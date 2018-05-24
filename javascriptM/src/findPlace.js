@@ -68,7 +68,15 @@ function findPlaceInit() {
 			 return words.join('/');
 		}
 		function updateStore() {
-			var url = myFindService + "/suggest?f=json&maxSuggestions=200&Text=" + findCombo.get('value');
+			// protect against XSS attacks
+			var userTypedTxt = findCombo.get('value');
+			var regexp=/([^a-zA-Z0-9 :\-,\'\._()])/g; 
+			if (regexp.test(userTypedTxt)) {
+				userTypedTxt=userTypedTxt.replace(regexp,""); // clean it
+				findCombo.set('value',userTypedTxt);				
+			}
+			userTypedTxt = userTypedTxt.replace(/\'/, "%27");
+			var url = myFindService + "/suggest?f=json&maxSuggestions=200&Text=" + userTypedTxt;
 			var XMLHttpRequest1 = createXMLhttpRequest();
 			XMLHttpRequest1.open("GET", url, true);
 			XMLHttpRequest1.onreadystatechange = function () {
@@ -77,7 +85,7 @@ function findPlaceInit() {
 						try {
 							var dataArr = JSON.parse(XMLHttpRequest1.response).suggestions;
 							dataArr.sort(sortArrayOfObj("text"));
-							var value = findCombo.get('value');
+							var value = userTypedTxt;
 							var data = [];
 							dataArr.forEach(function (item, index, obj) {
 								// return value contains "value, county name" split these into two strings named label and county.
@@ -226,7 +234,7 @@ function handleCoordinate(label) {
 			});
 			return;
 		} else {
-			alert("<p>Warning:  This point is not in Colorado, or it is not in one of the supported projections of:</p><ul>" + "<li>Lat, Long decimal degrees (e.g. 39.2, 103.5032 or 39.2, -103.5032)</li>" + "<li>Long, Lat decimal degrees (e.g. -104.345, 39.012 or 104.345, 39.012)</li>" + "<li>Lat, Long degrees, decimal minutes (e.g. 39:3.5,104:30.223)</li>" + "<li>Lat, Long degrees, minutes, seconds (e.g. 39:3:30,104:30:1.44)</li>" + "<li>Long, Lat degrees, decimal minutes (e.g. 104:30.45,39:3.5)</li>" + "<li>Lat, Long degrees, decimal minutes (e.g. 39:3.5,104:30.45)</li>" + "<li>NAD83 UTM (e.g. 1020042,  4333793)</li>" + "<li>NAD27 UTM, or WGS84 UTM.</li></ul>Use a comma to separate the coordinates.", "Warning");
+			alert("This point is not in Colorado, or it is not in one of the supported projections of:<ul>" + "<li>Lat, Long decimal degrees (e.g. 39.2, 103.5032 or 39.2, -103.5032)</li>" + "<li>Long, Lat decimal degrees (e.g. -104.345, 39.012 or 104.345, 39.012)</li>" + "<li>Lat, Long degrees, decimal minutes (e.g. 39:3.5,104:30.223)</li>" + "<li>Lat, Long degrees, minutes, seconds (e.g. 39:3:30,104:30:1.44)</li>" + "<li>Long, Lat degrees, decimal minutes (e.g. 104:30.45,39:3.5)</li>" + "<li>Lat, Long degrees, decimal minutes (e.g. 39:3.5,104:30.45)</li>" + "<li>NAD83 UTM (e.g. 1020042,  4333793)</li>" + "<li>NAD27 UTM, or WGS84 UTM.</li></ul>Use a comma to separate the coordinates.", "Warning");
 			hideLoading();
 			return;
 		}
@@ -240,6 +248,12 @@ function zoomToFindLocation(label, x, y) {
 		// handle single quote since query uses single quotes around search text
 		var quote = /'/g;
 		label = label.replace(quote,"''");
+		// Clean label from XSS attacks
+		var regexp=/([^a-zA-Z0-9 :\-,\'\._()])/g; 
+		if (regexp.test(label)) {
+			label=label.replace(regexp,""); // clean it				
+		}
+
 		// Is it a boundary? county, gmu, stl, sfu, swa, wwa, national forest, grassland, or wilderness
 		if ((label.toUpperCase().slice(-6, label.length) == "COUNTY") || (label.toUpperCase().slice(0, 4) == "GMU ") || (label.toUpperCase().slice(-4, label.length) == " STL") || (label.toUpperCase().indexOf(" STL ") > -1) || (label.toUpperCase().slice(-4, label.length) == " SWA") || (label.toUpperCase().indexOf(" SWA ") > -1) || (label.toUpperCase().slice(-4, label.length) == " SFU") || (label.toUpperCase().indexOf(" SFU ") > -1) || (label.toUpperCase().slice(-4, label.length) == " WWA") || (label.toUpperCase().indexOf(" WWA ") > -1) || (label.toUpperCase().slice(-15, label.length) == "NATIONAL FOREST") || (label.toUpperCase().indexOf("NATIONAL GRASSLAND") > -1) || (label.toUpperCase().indexOf("WILDERNESS") > -1)) {
 			var queryTask;
@@ -335,7 +349,7 @@ function loadFindBoundaries(label, x, y){
 				field : "COUNTYNAME"
 			},
 			"public" : {
-				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/96",
+				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/3",
 				field : "PropName"
 			},
 			"gmu" : {
@@ -343,15 +357,15 @@ function loadFindBoundaries(label, x, y){
 				field : "GMUID"
 			},
 			"forest" : {
-				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/99",
+				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/5",
 				field : "MapName"
 			},
 			"grassland" : {
-				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/99",
+				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/5",
 				field : "MapName"
 			},
 			"wilderness" : {
-				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/97",
+				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/4",
 				field : "NAME"
 			}
 		};
