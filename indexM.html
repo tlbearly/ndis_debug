@@ -193,16 +193,15 @@ header("Pragma: no-cache");
                     // preserve new lines in way point definitions
                     var location = document.location.search.replace(/\%0D/g,"newline");
                     queryObj = ioquery.queryToObject(location.substr((location[0] === "?" ? 1 : 0)));
-                    app = encodeURIComponent(queryObj.app);
+                    app = queryObj.app;
                     if (!app)
                         app = "HuntingAtlas";
-                    else if ((app.toLowerCase() != "huntingatlas") &&
-                    (app.toLowerCase() != "fishingatlas") &&
-                    (app.toLowerCase() != "propertyfinder") &&
-                    (app.toLowerCase() != "stockingrestrictions")){
-                        app = "HuntingAtlas";
-                        alert("Application name not found. Defaulting to Hunting Atlas.","Notice");
+                    else {
+                        regexp=/([^a-zA-Z])/g; // only allow letters in the app name
+                        if (regexp.test(app)) alert("Illegal characters were removed from the application name. Only letters allowed.","Warning");
+                        app = app.replace(regexp,""); // clean it
                     }
+				
                     // Sanitize user input. Protect against XSS attacks.
                     // test for XSS attack. Pattern contains allowed characters. [^ ] means match any character that is not
                     // in the is set. \ escapes characters used by regex like .-'"|\
@@ -726,6 +725,42 @@ header("Pragma: no-cache");
                 <div id="errorMsg"></div>
                 <div id="errorXbtn" style="float:right;display:none;position:absolute;right:1px;top:3px;">
                     <a href="javascript:closeAlert();"><img src="https://js.arcgis.com/3.23compact/esri/dijit/images/whitex.png" class="btn" /></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Location Help -->
+        <div id="locationHelp" data-dojo-type="dojox/mobile/ContentPane" class="scrollPane">
+            <h1 data-dojo-type="dojox.mobile.Heading" data-dojo-props='fixed:"top", label:"Current Location Help"'>
+                <span data-dojo-type="dojox/mobile/ToolBarButton" data-dojo-props='icon:"assets/images/leftarrow.png"' onclick="slideLeft(document.getElementById('locationHelp'));"></span>
+            </h1>
+            <div class="scrollContainer">
+                <div data-dojo-type="dojox/mobile/ContentPane" class="scrollContent">
+                    If current location is not working try the following:
+                    <h3>Step 1: Turn on location services</h3>
+                    Make sure GPS/Location Service is turned on in your phone's settings.<br/>
+                    <h3>Step 2: Try going outside</h3>
+                    <h3>Step3: Reset location settings</h3>
+                    The first time you turn on Current Location you will be asked if you want to give the map access to your location. You can reset this choice by:<br/><br/> For Chrome browsers:<br/>
+                    <ol>
+                        <li>Touch the menu icon in the top-right corner of the screen.</li>
+                        <li>Touch <strong>Settings>Content Settings>Website Settings</strong> or <strong>Settings>Site settings>Location</strong>.</li>
+                        <li>Find
+                            <script>
+                                document.write(document.location.host)
+                            </script>.</li>
+                        <li>Allow location access.</li>
+                        <li>Reload the Atlas in Chrome and allow location access on the message that shows up.</li>
+                    </ol>
+                    For Safari browsers:<br/>
+                    <ol>
+                        <li>Goto your home screen.</li>
+                        <li>Touch <strong>Settings>Privacy>Location Services</strong></li>
+                        <li>Slide Location Services on.</li>
+                        <li>Reload Atlas in Safari and allow location access on the message that shows up.</li>
+                    </ol>
+                    <!--h3>Step 4: Secure Site</h3>
+			        Make sure you accessed this site with "https://". As of April 2016, geolocation requires a secure site.-->
                 </div>
             </div>
         </div>
