@@ -212,23 +212,19 @@ header("Pragma: no-cache");
                         }
                         parser.parse();
                         
-                        /****************************************/
-						/*      Set allowed APP NAMES here      */
-                        /****************************************/
                         // Protect against XSS attacks
 						// preserve new lines in way point descriptions (For future changes, if we decide to add them like the Mobile version.)
 						var location = document.location.search.replace(/\%0D/g,"newline");
 						queryObj = ioquery.queryToObject(location.substr((location[0] === "?" ? 1 : 0)));
-                        app = encodeURIComponent(queryObj.app);
+                        app = queryObj.app;
                         if (!app)
                             app = "HuntingAtlas";
-                        else if ((app.toLowerCase() != "huntingatlas") &&
-                        (app.toLowerCase() != "fishingatlas") &&
-                        (app.toLowerCase() != "propertyfinder") &&
-                        (app.toLowerCase() != "stockingrestrictions")){
-                            app = "HuntingAtlas";
-                            alert("Application name not found. Defaulting to Hunting Atlas.","Notice");
+                        else {
+                            regexp=/([^a-zA-Z])/g; // only allow letters in the app name
+                            if (regexp.test(app)) alert("Illegal characters were removed from the application name. Only letters allowed.","Warning");
+                            app = app.replace(regexp,""); // clean it
                         }
+				
                         // create a map and add layers
                         loading = dom.byId("loadingImg"); //loading image. id
                         // set up cross domain permissions
