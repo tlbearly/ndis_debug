@@ -75,7 +75,7 @@ function findPlaceInit() {
 				userTypedTxt=userTypedTxt.replace(regexp,""); // clean it
 				findCombo.set('value',userTypedTxt);				
 			}
-			userTypedTxt = userTypedTxt.replace(/\'/, "%27");
+			userTypedTxt = encodeURI(userTypedTxt);// encode it for url
 			var url = myFindService + "/suggest?f=json&maxSuggestions=200&Text=" + userTypedTxt;
 			var XMLHttpRequest1 = createXMLhttpRequest();
 			XMLHttpRequest1.open("GET", url, true);
