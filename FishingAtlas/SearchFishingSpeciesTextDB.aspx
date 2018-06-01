@@ -1,6 +1,7 @@
 <%@ Import Namespace="System.Data" %>
 <%@ Import Namespace="System.Data.OleDb" %>
 <%@ Import Namespace="System.Xml" %>
+<%@ Import Namespace="System.Text.RegularExpressions" %>
 <%@ Page Debug="False" %>
 <script language="vb" runat="server">
 ' http://www.altova.com/Access-Database-OLEDB-32bit-64bit.html
@@ -12,7 +13,10 @@
 ' Then the matches are used to create a where statement to query the mapservice and display the fields.
 ' Set up the reference to this file in SearchWidget.xml database tag for the specific layer.
 '
-' To debug type: http://ndis-flex-2.nrel.colostate.edu/fishingatlas/SearchFishingSpeciesTextDB.aspx?key=Walleye into the browser
+' To debug type: 
+' https://ndis-flex-2.nrel.colostate.edu/debug/fishingatlas/SearchFishingSpeciesTextDB.aspx?key=Walleye
+' https://ndis-flex-2.nrel.colostate.edu/debug/fishingatlas/SearchFishingSpeciesTextDB.aspx?key=Trout: Cutthroat (Native)
+' into the browser
 '*************************************************************************************************************
 
 
@@ -34,15 +38,22 @@ Sub Page_Load(Sender As Object, E as EventArgs)
   Response.Write ("<?xml version=""1.0"" encoding=""UTF-16""?>"&vbcrlf)
 
   Dim i As Integer
+  Dim pattern As String = "[^a-zA-Z :()]"
+  Dim replacement As String = ""
+  Dim rgx As New Regex(pattern)
+  ' Disallow common SQL functions
+  Dim pattern2 As String = "(union|select|drop|delete)"
+  Dim disallowRgx As New Regex(pattern2)
+  If (rgx.Match(Request("key"),pattern).Success OR disallowRgx.Match(Request("key"),pattern2).Success) Then
+    Response.Write("Invalid key")
+    Exit Sub
+  End If
+  Dim mykey As String = rgx.Replace(Request("key").ToString(), replacement).ToString()
 
-  If (Request("key") = "" AND Request("key") IS Nothing) Then
-	Response.Write ("Missing parameter key.")
-	Response.End
-  End If  
-
-  Dim mykey As String
-  mykey = Request("key").ToString()
-
+  If (mykey = "" OR mykey IS Nothing) Then
+	  Response.Write ("Missing parameter key.")
+	  Exit Sub
+  End If
 
 '*************************************************
 '        Update SQL here
@@ -55,16 +66,21 @@ Sub Page_Load(Sender As Object, E as EventArgs)
 ' The WHERE statement field should be the field that was 
 ' used in the Search Widget Text drop down list.
 '*************************************************
+  Dim comm As new OleDbCommand
+	objCommand = new OleDbDataAdapter(comm)
   strCommand =  "SELECT tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE, (Ucase(tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish))"
-  strCommand +=     " FROM tblMasterSpecies_GrpBy_WaterID_Species"
-  strCommand +=     " WHERE ((((Ucase(tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish)))='" & mykey.ToUpper() & "'));"
-
-
-' debug
-' Response.Write (strCommand)
-
+  strCommand += " FROM tblMasterSpecies_GrpBy_WaterID_Species"
+  strCommand += " WHERE ((((Ucase(tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish)))=@mykey));"
+  comm.CommandText = strCommand
+  comm.Parameters.AddWithValue("@mykey",mykey.ToUpper())
   objConnection = New OleDbConnection(strConnect)
-  objCommand = New OleDbDataAdapter(strCommand, objConnection)
+  comm.Connection = objConnection
+
+  'strCommand =  "SELECT tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE, (Ucase(tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish))"
+  'strCommand +=     " FROM tblMasterSpecies_GrpBy_WaterID_Species"
+  'strCommand +=     " WHERE ((((Ucase(tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish)))='" & mykey.ToUpper() & "'));"
+  'objConnection = New OleDbConnection(strConnect)
+  'objCommand = New OleDbDataAdapter(strCommand, objConnection)
 '**************************************************
 '         Update name of database file here
 '**************************************************
