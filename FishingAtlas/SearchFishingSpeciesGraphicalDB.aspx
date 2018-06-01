@@ -13,7 +13,8 @@
 ' Set up the reference to this file in SearchWidget.xml graphical_database tag for the specific layer.
 '
 ' To debug type: 
-' https://ndis-flex-2.nrel.colostate.edu/debug/fishingatlas/SearchFishingSpeciesGraphicalDB.aspx?key=54673,55853,56918,70817 into the browser
+' https://ndis-flex-2.nrel.colostate.edu/debug/fishingatlas/SearchFishingSpeciesGraphicalDB.aspx?key=54673,55853,56918,70817
+' into the browser
 '*************************************************************************************************************
 
 
