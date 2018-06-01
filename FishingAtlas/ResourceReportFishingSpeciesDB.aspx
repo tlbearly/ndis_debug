@@ -1,6 +1,7 @@
 <%@ Import Namespace="System.Data" %>
 <%@ Import Namespace="System.Data.OleDb" %>
 <%@ Import Namespace="System.Xml" %>
+<%@ Import Namespace="System.Text.RegularExpressions" %>
 <%@ Page Debug="False" %>
 <script language="vb" runat="server">
 ' http://www.altova.com/Access-Database-OLEDB-32bit-64bit.html
@@ -11,7 +12,8 @@
 ' This file is used by Resource Report Widget during to lookup values in a database for display in the report.   
 ' Set up the reference to this file in ResourceReportWidget.xml database tag for the specific layer.
 '
-' To debug type: http://ndis-flex.nrel.colostate.edu/fishing/ResourceReportFishingSpeciesDB.aspx?key=54673,55853,56918,70817 into the browser
+' To debug type: 
+' https://ndis-flex-2.nrel.colostate.edu/debug/fishingatlas/ResourceReportFishingSpeciesDB.aspx?key=54673,55853,56918,70817 into the browser
 '*************************************************************************************************************
 
 
@@ -32,13 +34,20 @@ Sub Page_Load(Sender As Object, E as EventArgs)
 
   Response.Write ("<?xml version=""1.0"" encoding=""UTF-16""?>"&vbcrlf)
 
+  Dim pattern As String = "[^0-9,]"
+  Dim replacement As String = ""
+  Dim rgx As New Regex(pattern)
+  If (rgx.Match(Request("key"),pattern).Success) Then
+    Response.Write("Invalid key")
+    Exit Sub
+  End If
 
   If (Request("key") = "" AND Request("key") IS Nothing) Then
-	Response.Write ("Missing parameter key.")
-	Response.End
+	  Response.Write ("Missing parameter key.")
+	  Exit Sub
   End If  
 
-  Dim myKey() As String = Request("key").split(",")
+  Dim mykey() As string = rgx.Replace(Request("key").ToString(), replacement).split(",")
   myxml = ""
 
   Response.Write ("<myxml>")
@@ -58,16 +67,23 @@ Sub Page_Load(Sender As Object, E as EventArgs)
 ' This is the link field between the mapservice
 ' and the database.
 '*************************************************
+    Dim comm As new OleDbCommand
+		objCommand = new OleDbDataAdapter(comm)
     strCommand =  "SELECT tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFishGroup, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish"
-    strCommand +=     " FROM tblMasterSpecies_GrpBy_WaterID_Species"
-    strCommand +=     " WHERE ((((tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE))='" & mykey(i) & "'))"
-    strCommand +=     " ORDER BY tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFishGroup, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish;"
-
-' debug
-' Response.Write (strCommand)
-
+    strCommand += " FROM tblMasterSpecies_GrpBy_WaterID_Species"
+    strCommand += " WHERE ((((tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE))=@mykey))"
+    strCommand += " ORDER BY tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFishGroup, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish;"
+    comm.CommandText = strCommand
+    comm.Parameters.AddWithValue("@mykey",mykey(i))
     objConnection = New OleDbConnection(strConnect)
-    objCommand = New OleDbDataAdapter(strCommand, objConnection)
+    comm.Connection = objConnection
+
+    'strCommand =  "SELECT tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFishGroup, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish"
+    'strCommand +=     " FROM tblMasterSpecies_GrpBy_WaterID_Species"
+    'strCommand +=     " WHERE ((((tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE))='" & mykey(i) & "'))"
+    'strCommand +=     " ORDER BY tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFishGroup, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish;"
+    'objConnection = New OleDbConnection(strConnect)
+    'objCommand = New OleDbDataAdapter(strCommand, objConnection)
 
 '**************************************************
 '         Update name of database file here
