@@ -3,6 +3,7 @@
 <%@ Import Namespace="System.Xml" %>
 <%@ Import Namespace="System.IO" %>
 <%@ Import Namespace="System.Text" %>
+<%@ Import Namespace="System.Text.RegularExpressions" %>
 <%@ Page Debug="False" %>
 <script language="vb" runat="server">
 
@@ -15,8 +16,7 @@
 ' one to many values in the identify popup.  Set up the connection in SettingWidget.xml.
 '
 ' To debug type:
-'		http://ndis-staging.nrel.colostate.edu/FishingAtlas/IdentifyFishingPlacesDB.aspx?key=52580
-'       http://ndis-flex-2.nrel.colostate.edu/FishingAtlas/IdentifyFishingPlacesDB.aspx?key=52580
+'   https://ndis-flex-2.nrel.colostate.edu/FishingAtlas/IdentifyFishingPlacesDB.aspx?key=52580
 ' For debugging set Page Debug="True" above.
 '
 ' Return value is xml to IdentifyWidget.mxml. It reads from two databases, the first to get species name,
@@ -58,28 +58,41 @@ Sub Page_Load(Sender As Object, E as EventArgs)
   strConnect += "Persist Security Info=False"
   
   Dim i As Integer
+  Dim pattern As String = "[^0-9]"
+  Dim replacement As String = ""
+  Dim rgx As New Regex(pattern)
+  If (rgx.Match(Request("key"),pattern).Success) Then
+    Response.Write("Invalid key")
+    Exit Sub
+  End If
+  Dim mykey As String = rgx.Replace(Request("key").ToString(), replacement).ToString()
 
-  If (Request("key") = "" AND Request("key") IS Nothing) Then
-	Response.Write ("Missing parameter key.")
-	Response.End
-  End If  
-
-  Dim mykey As String
-  mykey = Request("key").ToString()
+  If (mykey = "" AND mykey IS Nothing) Then
+	  Response.Write ("Missing parameter key.")
+	  Exit Sub
+  End If
 
 '*************************************************
 '        Update SQL for species name here
 '*************************************************
-    strCommand =  "SELECT tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFishGroup, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish"
-    strCommand +=     " FROM tblMasterSpecies_GrpBy_WaterID_Species"
-    strCommand +=     " WHERE (((tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE)='" & mykey & "'))"
-    strCommand +=     " ORDER BY tblMasterSpecies_GrpBy_WaterID_Species.AtlasFishGroup, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish;"
-
-' debug
-' Response.Write (strCommand)
-
+    Dim comm As new OleDbCommand
+		objCommand = new OleDbDataAdapter(comm)
+		strCommand =  "SELECT tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFishGroup, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish"
+    strCommand += " FROM tblMasterSpecies_GrpBy_WaterID_Species"
+    strCommand += " WHERE (((tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE)=@mykey))"
+    strCommand += " ORDER BY tblMasterSpecies_GrpBy_WaterID_Species.AtlasFishGroup, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish;"
+    comm.CommandText = strCommand
+    comm.Parameters.AddWithValue("@mykey",mykey)
     objConnection = New OleDbConnection(strConnect)
-    objCommand = New OleDbDataAdapter(strCommand, objConnection)
+    comm.Connection = objConnection
+
+    'strCommand =  "SELECT tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFishGroup, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish"
+    'strCommand +=     " FROM tblMasterSpecies_GrpBy_WaterID_Species"
+    'strCommand +=     " WHERE (((tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE)='" & mykey & "'))"
+    'strCommand +=     " ORDER BY tblMasterSpecies_GrpBy_WaterID_Species.AtlasFishGroup, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish;"
+    'objConnection = New OleDbConnection(strConnect)
+		'objCommand = New OleDbDataAdapter(strCommand, objConnection)
+		
 '**************************************************
 '         Update name of database file here
 '**************************************************
