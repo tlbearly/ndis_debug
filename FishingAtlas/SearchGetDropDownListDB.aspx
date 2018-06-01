@@ -10,7 +10,7 @@
 '*************************************************************************************************************
 ' This file is used by Search Widget to get a list of values to the fill the text search drop down list.
 '
-' To debug type: http://ndis-flex.nrel.colostate.edu/fishing/SearchGetDropDownListDB.aspx into the browser
+' To debug type: https://ndis-flex-2.nrel.colostate.edu/debug/fishingatlas/SearchGetDropDownListDB.aspx into the browser
 '*************************************************************************************************************
 
 
