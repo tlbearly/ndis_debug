@@ -1,6 +1,7 @@
 <%@ Import Namespace="System.Data" %>
 <%@ Import Namespace="System.Data.OleDb" %>
 <%@ Import Namespace="System.Xml" %>
+<%@ Import Namespace="System.Text.RegularExpressions" %>
 <%@ Page Debug="False" %>
 <script language="vb" runat="server">
 ' http://www.altova.com/Access-Database-OLEDB-32bit-64bit.html
@@ -12,7 +13,8 @@
 ' delimited list of one to many values in the resource report.  Set up the connection in ResourceReportWidget.xml
 ' database tag.
 '
-' To debug type: http://ndis-flex.nrel.colostate.edu/debug/test/ResourceReportFishingRegsDB.aspx?key=416,419 into the browser
+' To debug type: 
+'  https://ndis-flex-2.nrel.colostate.edu/debug/fishingatlas/ResourceReportFishingRegsDB.aspx?key=416,419 into the browser
 '*************************************************************************************************************
 
 
@@ -32,13 +34,20 @@ Sub Page_Load(Sender As Object, E as EventArgs)
   strConnect += "Persist Security Info=False"
 
   Response.Write ("<?xml version=""1.0"" encoding=""UTF-16""?>"&vbcrlf)
-
-  If (Request("key") = "" AND Request("key") IS Nothing) Then
-	Response.Write ("Missing parameter key.")
-	Response.End
+  Dim pattern As String = "[^0-9,]"
+  Dim replacement As String = ""
+  Dim rgx As New Regex(pattern)
+  If (rgx.Match(Request("key"),pattern).Success) Then
+    Response.Write("Invalid key")
+    Exit Sub
+  End If
+  
+  If (request("key") = "" AND request("key") IS Nothing) Then
+	  Response.Write ("Missing parameter key.")
+    Exit Sub
   End If  
 
-  Dim mykey() = Request("key").split(",")
+  Dim mykey() As String = rgx.Replace(Request("key").ToString(), replacement).split(",")
   myxml = ""
 
   Response.Write ("<myxml>")
@@ -57,16 +66,23 @@ Sub Page_Load(Sender As Object, E as EventArgs)
 ' This is the link field between the mapservice
 ' and the database.
 '*************************************************
+    Dim comm As new OleDbCommand
+		objCommand = new OleDbDataAdapter(comm)
     strCommand =  "SELECT LOCATION_NO_OVERLAP.LOC_ID, LOCATION_NO_OVERLAP.WATER, LOCATION_NO_OVERLAP.SPECIFIC_AREA, REGS_CW.REG_ORDER, REGS_CW.REG_DESC"
     strCommand +=	" FROM (LOCATION_NO_OVERLAP INNER JOIN PIVOT_NO_OVERLAP ON LOCATION_NO_OVERLAP.LOC_ID = PIVOT_NO_OVERLAP.LOC_ID) INNER JOIN REGS_CW ON PIVOT_NO_OVERLAP.REG_CODE = REGS_CW.REG_CODE"
-    strCommand +=	" WHERE (((LOCATION_NO_OVERLAP.LOC_ID)=" & mykey(i) & "))"
+    strCommand +=	" WHERE (((LOCATION_NO_OVERLAP.LOC_ID)=@mykey))"
     strCommand +=	" ORDER BY LOCATION_NO_OVERLAP.LOC_ID, REGS_CW.REG_ORDER;"
-
-' debug
-' Response.Write (strCommand)
-
+    comm.CommandText = strCommand
+    comm.Parameters.AddWithValue("@mykey",mykey(i))
     objConnection = New OleDbConnection(strConnect)
-    objCommand = New OleDbDataAdapter(strCommand, objConnection)
+    comm.Connection = objConnection
+
+    'strCommand =  "SELECT LOCATION_NO_OVERLAP.LOC_ID, LOCATION_NO_OVERLAP.WATER, LOCATION_NO_OVERLAP.SPECIFIC_AREA, REGS_CW.REG_ORDER, REGS_CW.REG_DESC"
+    'strCommand +=	" FROM (LOCATION_NO_OVERLAP INNER JOIN PIVOT_NO_OVERLAP ON LOCATION_NO_OVERLAP.LOC_ID = PIVOT_NO_OVERLAP.LOC_ID) INNER JOIN REGS_CW ON PIVOT_NO_OVERLAP.REG_CODE = REGS_CW.REG_CODE"
+    'strCommand +=	" WHERE (((LOCATION_NO_OVERLAP.LOC_ID)=" & mykey(i) & "))"
+    'strCommand +=	" ORDER BY LOCATION_NO_OVERLAP.LOC_ID, REGS_CW.REG_ORDER;"
+    'objConnection = New OleDbConnection(strConnect)
+    'objCommand = New OleDbDataAdapter(strCommand, objConnection)
 
 '**************************************************
 '         Update name of database file here
