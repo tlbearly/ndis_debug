@@ -13,14 +13,12 @@
 ' To debug type: https://ndis-flex-2.nrel.colostate.edu/debug/fishingatlas/SearchGetDropDownListDB.aspx into the browser
 '*************************************************************************************************************
 
-
 Sub Page_Load(Sender As Object, E as EventArgs)
   Dim objConnection As OleDbConnection
   Dim objCommand As OleDbDataAdapter
   Dim strConnect As String
   Dim strCommand As String
   Dim DataSet1 As New DataSet
-
 
   strConnect =  "Provider=Microsoft.ACE.OLEDB.12.0;"
 '*************************************************
@@ -31,17 +29,12 @@ Sub Page_Load(Sender As Object, E as EventArgs)
 
   Response.Write ("<?xml version=""1.0"" encoding=""UTF-8""?>"&vbcrlf)
 
-
 '*************************************************
 '        Update SQL here
 '*************************************************
   strCommand = "SELECT LUT_AtlasFishList.AtlasFish"
   strCommand += " FROM LUT_AtlasFishList"
   strCommand += " ORDER BY LUT_AtlasFishList.AtlasFish;"
-
-' debug
-' Response.Write (strCommand)
-
   objConnection = New OleDbConnection(strConnect)
   objCommand = New OleDbDataAdapter(strCommand, objConnection)
 '**************************************************
