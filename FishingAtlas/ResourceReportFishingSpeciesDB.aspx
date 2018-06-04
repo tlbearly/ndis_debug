@@ -16,7 +16,6 @@
 ' https://ndis-flex-2.nrel.colostate.edu/debug/fishingatlas/ResourceReportFishingSpeciesDB.aspx?key=54673,55853,56918,70817 into the browser
 '*************************************************************************************************************
 
-
 Sub Page_Load(Sender As Object, E as EventArgs)
   Dim objConnection As OleDbConnection
   Dim objCommand As OleDbDataAdapter
@@ -38,7 +37,7 @@ Sub Page_Load(Sender As Object, E as EventArgs)
 	  Exit Sub
   End If
 
-  Dim pattern As String = "[^0-9,]"
+  Dim pattern As String = "[^0-9, ]"
   Dim replacement As String = ""
   Dim rgx As New Regex(pattern)
   If (rgx.Match(Request("key"),pattern).Success) Then
@@ -73,7 +72,8 @@ Sub Page_Load(Sender As Object, E as EventArgs)
     strCommand += " WHERE ((((tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE))=@mykey))"
     strCommand += " ORDER BY tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFishGroup, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish;"
     comm.CommandText = strCommand
-    comm.Parameters.AddWithValue("@mykey",mykey(i))
+    Dim str = Trim(mykey(i))
+    comm.Parameters.AddWithValue("@mykey",str)
     objConnection = New OleDbConnection(strConnect)
     comm.Connection = objConnection
 

@@ -17,7 +17,6 @@
 '  https://ndis-flex-2.nrel.colostate.edu/debug/fishingatlas/ResourceReportFishingRegsDB.aspx?key=416,419 into the browser
 '*************************************************************************************************************
 
-
 Sub Page_Load(Sender As Object, E as EventArgs)
   Dim objConnection As OleDbConnection
   Dim objCommand As OleDbDataAdapter
@@ -39,7 +38,7 @@ Sub Page_Load(Sender As Object, E as EventArgs)
     Exit Sub
   End If 
 
-  Dim pattern As String = "[^0-9,]"
+  Dim pattern As String = "[^0-9, ]"
   Dim replacement As String = ""
   Dim rgx As New Regex(pattern)
   If (rgx.Match(Request("key"),pattern).Success) Then
@@ -73,7 +72,8 @@ Sub Page_Load(Sender As Object, E as EventArgs)
     strCommand +=	" WHERE (((LOCATION_NO_OVERLAP.LOC_ID)=@mykey))"
     strCommand +=	" ORDER BY LOCATION_NO_OVERLAP.LOC_ID, REGS_CW.REG_ORDER;"
     comm.CommandText = strCommand
-    comm.Parameters.AddWithValue("@mykey",mykey(i))
+    Dim str = Trim(mykey(i))
+    comm.Parameters.AddWithValue("@mykey",str)
     objConnection = New OleDbConnection(strConnect)
     comm.Connection = objConnection
 

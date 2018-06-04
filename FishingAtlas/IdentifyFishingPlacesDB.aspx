@@ -16,7 +16,7 @@
 ' one to many values in the identify popup.  Set up the connection in SettingWidget.xml.
 '
 ' To debug type:
-'   https://ndis-flex-2.nrel.colostate.edu/FishingAtlas/IdentifyFishingPlacesDB.aspx?key=52580
+'   https://ndis-flex-2.nrel.colostate.edu/debug/FishingAtlas/IdentifyFishingPlacesDB.aspx?key=52580
 ' For debugging set Page Debug="True" above.
 '
 ' Return value is xml to IdentifyWidget.mxml. It reads from two databases, the first to get species name,
@@ -63,14 +63,14 @@ Sub Page_Load(Sender As Object, E as EventArgs)
   End If
 
   Dim i As Integer
-  Dim pattern As String = "[^0-9]"
+  Dim pattern As String = "[^0-9 ]"
   Dim replacement As String = ""
   Dim rgx As New Regex(pattern)
   If (rgx.Match(Request("key"),pattern).Success) Then
     Response.Write("Invalid key")
     Exit Sub
   End If
-  Dim mykey As String = rgx.Replace(Request("key").ToString(), replacement).ToString()
+  Dim mykey As String = Trim(rgx.Replace(Request("key").ToString(), replacement).ToString())
 
 '*************************************************
 '        Update SQL for species name here

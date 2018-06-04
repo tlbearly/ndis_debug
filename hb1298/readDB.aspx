@@ -45,7 +45,7 @@ Sub Page_Load(Sender As Object, E as EventArgs)
 
   Dim i As Integer
 
-  Dim pattern As String = "[^0-9a-zA-Z,]"
+  Dim pattern As String = "[^0-9a-zA-Z, ]"
   Dim replacement As String = ""
   Dim rgx As New Regex(pattern)
   If (rgx.Match(Request("rso"),pattern).Success) Then
@@ -61,8 +61,9 @@ Sub Page_Load(Sender As Object, E as EventArgs)
     Exit Sub
   End If
 
-  Response.Write ("<hb1298>")  
-  Dim arrRSO() As string = rgx.Replace(Request("rso").ToString(), replacement).split(",")
+  Response.Write ("<hb1298>")
+  Dim str As String 
+  Dim arrRSO() As String = rgx.Replace(Request("rso").ToString(), replacement).split(",")
  
   For i=0 to uBound(arrRSO)
     comm = new OleDbCommand
@@ -73,7 +74,8 @@ Sub Page_Load(Sender As Object, E as EventArgs)
     strCommand +=	" WHERE (((Data.SpeciesCode)=@arrRSO))"
     strCommand +=	" ORDER BY Data.Species,Data.Activity;"
     comm.CommandText = strCommand
-    comm.Parameters.AddWithValue("@arrRSO",arrRSO(i))
+    str = Trim(arrRSO(i))
+    comm.Parameters.AddWithValue("@arrRSO",str)
     objConnection = New OleDbConnection(strConnect)
     comm.Connection = objConnection
 
@@ -103,7 +105,8 @@ Sub Page_Load(Sender As Object, E as EventArgs)
     strCommand +=	" WHERE (((Data.SpeciesCode)=@arrSWH))"
     strCommand +=	" ORDER BY Data.Species,Data.Activity;"
     comm.CommandText = strCommand
-    comm.Parameters.AddWithValue("@arrSWH",arrSWH(i))
+    str = Trim(arrSWH(i))
+    comm.Parameters.AddWithValue("@arrSWH",str)
     objConnection = New OleDbConnection(strConnect)
     comm.Connection = objConnection
 
@@ -133,7 +136,8 @@ Sub Page_Load(Sender As Object, E as EventArgs)
     strCommand +=	" WHERE (((Data.SpeciesCode)=@arrCDOW))"
     strCommand +=	" ORDER BY Data.Species,Data.Activity;"
     comm.CommandText = strCommand
-    comm.Parameters.AddWithValue("@arrCDOW",arrCDOW(i))
+    str = Trim(arrCDOW(i))
+    comm.Parameters.AddWithValue("@arrCDOW",str)
     objConnection = New OleDbConnection(strConnect)
     comm.Connection = objConnection
     

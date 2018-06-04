@@ -36,14 +36,14 @@ Sub Page_Load(Sender As Object, E as EventArgs)
   End If  
 
   Dim i As Integer
-  Dim pattern As String = "[^0-9]"
+  Dim pattern As String = "[^0-9 ]"
   Dim replacement As String = ""
   Dim rgx As New Regex(pattern)
   If (rgx.Match(Request("key"),pattern).Success) Then
     Response.Write("Invalid key")
     Exit Sub
   End If
-  Dim mykey As String = rgx.Replace(Request("key").ToString(), replacement).ToString()
+  Dim mykey As String = Trim(rgx.Replace(Request("key").ToString(), replacement).ToString())
 
 '*************************************************
 '        Update SQL here

@@ -38,7 +38,7 @@ Sub Page_Load(Sender As Object, E as EventArgs)
   End If
 
   Dim i As Integer
-  Dim pattern As String = "[^0-9,]"
+  Dim pattern As String = "[^0-9, ]"
   Dim replacement As String = ""
   Dim rgx As New Regex(pattern)
   If (rgx.Match(Request("key"),pattern).Success) Then
@@ -72,7 +72,8 @@ Sub Page_Load(Sender As Object, E as EventArgs)
     strCommand += " FROM tblMasterSpecies_GrpBy_WaterID_Species"
     strCommand += " WHERE ((((tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE))=@mykey));"
     comm.CommandText = strCommand
-    comm.Parameters.AddWithValue("@mykey",mykey(i))
+    Dim str = Trim(mykey(i))
+    comm.Parameters.AddWithValue("@mykey",str)
     objConnection = New OleDbConnection(strConnect)
     comm.Connection = objConnection
 
