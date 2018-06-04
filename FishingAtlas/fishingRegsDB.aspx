@@ -2,7 +2,7 @@
 <%@ Import Namespace="System.Data.OleDb" %>
 <%@ Import Namespace="System.Xml" %>
 <%@ Import Namespace="System.Text.RegularExpressions" %>
-<%@ Page Debug="False" %>
+<%@ Page Debug="false" %>
 <script language="vb" runat="server">
 ' http://www.altova.com/Access-Database-OLEDB-32bit-64bit.html
 ' Installed AccessDatabaseEngine_x64.exe from http://www.microsoft.com/download/en/details.aspx?displaylang=en&id=13255
@@ -30,6 +30,11 @@ Sub Page_Load(Sender As Object, E as EventArgs)
 
   Response.Write ("<?xml version=""1.0"" encoding=""UTF-16""?>"&vbcrlf)
 
+  If (Request("key") = "" OR Request("key") IS Nothing) Then
+  	Response.Write ("Missing parameter key.")
+    Exit Sub
+  End If  
+
   Dim i As Integer
   Dim pattern As String = "[^0-9]"
   Dim replacement As String = ""
@@ -39,11 +44,6 @@ Sub Page_Load(Sender As Object, E as EventArgs)
     Exit Sub
   End If
   Dim mykey As String = rgx.Replace(Request("key").ToString(), replacement).ToString()
-
-  If (mykey = "" OR mykey IS Nothing) Then
-  	Response.Write ("Missing parameter key.")
-    Exit Sub
-  End If  
 
 '*************************************************
 '        Update SQL here

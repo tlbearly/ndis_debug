@@ -4,7 +4,7 @@
 <%@ Import Namespace="System.IO" %>
 <%@ Import Namespace="System.Text" %>
 <%@ Import Namespace="System.Text.RegularExpressions" %>
-<%@ Page Debug="False" %>
+<%@ Page Debug="false" %>
 <script language="vb" runat="server">
 
 ' http://www.altova.com/Access-Database-OLEDB-32bit-64bit.html
@@ -57,6 +57,11 @@ Sub Page_Load(Sender As Object, E as EventArgs)
   strConnect += "Data Source=C:\Projects\fishingatlas\Data\Working\AtlasFishSpecies.mdb;"
   strConnect += "Persist Security Info=False"
   
+	If (Request("key") = "" OR Request("key") IS Nothing) Then
+	  Response.Write ("Missing parameter key.")
+	  Exit Sub
+  End If
+
   Dim i As Integer
   Dim pattern As String = "[^0-9]"
   Dim replacement As String = ""
@@ -66,11 +71,6 @@ Sub Page_Load(Sender As Object, E as EventArgs)
     Exit Sub
   End If
   Dim mykey As String = rgx.Replace(Request("key").ToString(), replacement).ToString()
-
-  If (mykey = "" AND mykey IS Nothing) Then
-	  Response.Write ("Missing parameter key.")
-	  Exit Sub
-  End If
 
 '*************************************************
 '        Update SQL for species name here
@@ -150,15 +150,23 @@ Sub Page_Load(Sender As Object, E as EventArgs)
 							'*************************************************
 							'        Update SQL for url here
 							'*************************************************
+							comm = new OleDbCommand
+							objCommand = new OleDbDataAdapter(comm)
 							strCommand =  "SELECT LUT_AtlasFishList.AtlasFish, LUT_AtlasFishList.FishURL"
 							strCommand +=     " FROM LUT_AtlasFishList"
-							strCommand +=     " WHERE (((LUT_AtlasFishList.AtlasFish)='" & species & "'))"
+							strCommand +=     " WHERE (((LUT_AtlasFishList.AtlasFish)=@species))"
 							strCommand +=     " ORDER BY LUT_AtlasFishList.AtlasFish;"
-							'   debug
-							'   Response.Write (strCommand)
-
+							comm.CommandText = strCommand
+							comm.Parameters.AddWithValue("@species",species)
 							objConnection = New OleDbConnection(strConnect)
-							objCommand = New OleDbDataAdapter(strCommand, objConnection)
+							comm.Connection = objConnection
+							
+							'strCommand =  "SELECT LUT_AtlasFishList.AtlasFish, LUT_AtlasFishList.FishURL"
+							'strCommand +=     " FROM LUT_AtlasFishList"
+							'strCommand +=     " WHERE (((LUT_AtlasFishList.AtlasFish)='" & species & "'))"
+							'strCommand +=     " ORDER BY LUT_AtlasFishList.AtlasFish;"
+							'objConnection = New OleDbConnection(strConnect)
+							'objCommand = New OleDbDataAdapter(strCommand, objConnection)
 							
 							'**************************************************
 							'    Update name of database file containing url
