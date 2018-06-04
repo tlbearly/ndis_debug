@@ -121,12 +121,12 @@
 			<lookupfilename>LUT_AtlasFishList</lookupfilename>
 			<lookupfield>AtlasFish</lookupfield>
 			
-			<database>https://ndismaps.nrel.colostate.edu/fishingatlas/SearchFishingSpeciesTextDB.aspx</database>
+			<database>https://ndis-flex-2.nrel.colostate.edu/fishingatlas/SearchFishingSpeciesTextDB.aspx</database>
 			<filename>tblMasterSpecies_GrpBy_WaterID_Species</filename>
 		    <database_field>WATERCODE</database_field>
 		    <database_field_type>string</database_field_type>
 			
-			<graphical_database>https://ndismaps.nrel.colostate.edu/fishingatlas/SearchFishingSpeciesGraphicalDB.aspx</graphical_database>
+			<graphical_database>https://ndis-flex-2.nrel.colostate.edu/fishingatlas/SearchFishingSpeciesGraphicalDB.aspx</graphical_database>
 		    <graphical_filename>tblMasterSpecies_GrpBy_WaterID_Species</graphical_filename>
 		    <graphical_db_fields>AtlasFish</graphical_db_fields>
 		    <graphical_db_displayfields>Fish Species</graphical_db_displayfields>
