@@ -5,6 +5,8 @@
 <%@ Page Debug="False" %>
 <script language="vb" runat="server">
 
+' NOT USED?????
+
 ' http://www.altova.com/Access-Database-OLEDB-32bit-64bit.html
 ' Installed AccessDatabaseEngine_x64.exe from http://www.microsoft.com/download/en/details.aspx?displaylang=en&id=13255
 ' to read from mdb files on a 64 bit machine.
@@ -14,8 +16,8 @@
 ' one to many values in the identify popup.  Set up the connection in SettingsWidget.xml.
 '
 ' To debug type:
-'		https://ndis-flex-2.nrel.colostate.edu/debug/hb1298/SearchDB.aspx?key=Bald%20Eagle%20Active%20Nest%20Site
-'   https://ndismaps.nrel.colostate.edu/hb1298/SearchDB.aspx?key=Bald%20Eagle%20Active%20Nest%20Site
+'		https://ndis-flex-2.nrel.colostate.edu/debug/hb1298/SearchDB.aspx?key=BEANS
+'   https://ndismaps.nrel.colostate.edu/hb1298/SearchDB.aspx?key=BEANS
 ' For debugging set Page Debug="True" above.
 '
 ' Return value is xml to IdentifyWidget.mxml. It reads from two databases, the first to get species name,
@@ -23,7 +25,9 @@
 '<?xml version="1.0" encoding="utf-16"?>
 '<NewDataSet>
 '  <Data>
-'    <SpeciesCode>BEANS</SpeciesCode>
+'    <Species>Bald Eagle</Species>
+'    <Activity>Active Nest Site</Activity>
+'    <ActivityCode>BEANS</ActivityCode>
 '  </Data>
 '</NewDataSet>
 '*************************************************************************************************************
