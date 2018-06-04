@@ -14,8 +14,8 @@
 ' one to many values in the identify popup.  Set up the connection in SettingsWidget.xml.
 '
 ' To debug type:
-'		http://ndis-staging.nrel.colostate.edu/hb1298/SearchDB.aspx?key=Bald%20Eagle%20Active%20Nest%20Site
-'       http://ndismaps.nrel.colostate.edu/hb1298/SearchDB.aspx?key=Bald%20Eagle%20Active%20Nest%20Site
+'		https://ndis-flex-2.nrel.colostate.edu/debug/hb1298/SearchDB.aspx?key=Bald%20Eagle%20Active%20Nest%20Site
+'   https://ndismaps.nrel.colostate.edu/hb1298/SearchDB.aspx?key=Bald%20Eagle%20Active%20Nest%20Site
 ' For debugging set Page Debug="True" above.
 '
 ' Return value is xml to IdentifyWidget.mxml. It reads from two databases, the first to get species name,
@@ -45,35 +45,48 @@ Sub Page_Load(Sender As Object, E as EventArgs)
   Response.Write ("<?xml version=""1.0"" encoding=""UTF-16""?>"&vbcrlf)
 
   If (Request("key") = "" AND Request("key") IS Nothing) Then
-	Response.Write ("Missing parameter key.")
-	Response.End
+  	Response.Write ("Missing parameter key.")
+	  Exit Sub
   End If  
 
-  Dim mykey As String
-  mykey = Request("key").ToString()
+  Dim pattern As String = "[^A-Za-z0-9]"
+  Dim replacement As String = ""
+  Dim rgx As New Regex(pattern)
+  If (rgx.Match(Request("key"),pattern).Success) Then
+    Response.Write("Invalid key")
+    Exit Sub
+  End If
+
+  Dim mykey As String = Trim(rgx.Replace(Request("key").ToString(), replacement))
 
 '*************************************************
 '        Update SQL for species name here
 '*************************************************
-    strCommand =  "SELECT Data.Species, Data.Activity, Data.SpeciesCode"
-    strCommand +=     " FROM Data"
-    strCommand +=     " WHERE (Trim(Data.SpeciesCode)='" & Trim(mykey) & "')"
-    strCommand +=     " ORDER BY Data.Species,Data.Activity;"
+  Dim comm As new OleDbCommand
+	objCommand = new OleDbDataAdapter(comm)
+  strCommand =  "SELECT Data.Species, Data.Activity, Data.SpeciesCode"
+  strCommand +=     " FROM Data"
+  strCommand +=     " WHERE (Trim(Data.SpeciesCode)=@mykey)"
+  strCommand +=     " ORDER BY Data.Species,Data.Activity;"
+  comm.CommandText = strCommand
+  comm.Parameters.AddWithValue("@mykey",mykey.ToUpper())
+  objConnection = New OleDbConnection(strConnect)
+  comm.Connection = objConnection
 
-' debug
-' Response.Write (strCommand)
-
-    objConnection = New OleDbConnection(strConnect)
-    objCommand = New OleDbDataAdapter(strCommand, objConnection)
+  'strCommand =  "SELECT Data.Species, Data.Activity, Data.SpeciesCode"
+  'strCommand +=     " FROM Data"
+  'strCommand +=     " WHERE (Trim(Data.SpeciesCode)='" & mykey & "')"
+  'strCommand +=     " ORDER BY Data.Species,Data.Activity;"
+  'objConnection = New OleDbConnection(strConnect)
+  'objCommand = New OleDbDataAdapter(strCommand, objConnection)
 '**************************************************
 '         Update name of database file here
 '**************************************************
-    objCommand.Fill(DataSet1, "Data")
+  objCommand.Fill(DataSet1, "Data")
 
 	Dim myxml As String
 	myxml = DataSet1.GetXml()
 	Dim str As String = myxml.Replace("SpeciesCode","ActivityCode")
 	Response.Write(str)
-	'Response.Write (myxml)
 End Sub
 </script>

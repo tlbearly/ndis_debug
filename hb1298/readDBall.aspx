@@ -1,7 +1,7 @@
 <%@ Import Namespace="System.Data" %>
 <%@ Import Namespace="System.Data.OleDb" %>
 <%@ Import Namespace="System.Xml" %>
-<%@ Page Debug="False" %>
+<%@ Page Debug="false" %>
 <script language="vb" runat="server">
 ' http://www.altova.com/Access-Database-OLEDB-32bit-64bit.html
 ' Installed AccessDatabaseEngine_x64.exe from http://www.microsoft.com/download/en/details.aspx?displaylang=en&id=13255
@@ -13,8 +13,8 @@ Sub Page_Load(Sender As Object, E as EventArgs)
   Dim strConnect As String
   Dim strCommand As String
   Dim DataSet1 As New DataSet
-Dim DataSet2 As New DataSet
-Dim DataSet3 As New DataSet
+  Dim DataSet2 As New DataSet
+  Dim DataSet3 As New DataSet
 '************************************************************************************************
 '* used by hb1298/definitions.html to read the definitions for RSO and SWH activity definitions.
 '************************************************************************************************
