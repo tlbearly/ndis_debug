@@ -692,7 +692,8 @@ function handleQueryResults(results) {
                                 if (str.indexOf(tmpStr) == -1) {
                                     // highlight polygon/point on mouse over, hide highlight on mouse out
                                     //str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
-                                    str += "<div><strong>" + tmpStr;
+                                    // tlb 6-8-18 added + "</div>" to the end of str for scrolling on ipad.
+                                    str += "<div><strong>" + tmpStr + "</div>";
                                     groupContent[identifyGroup] = str; // cache content
                                     map.infoWindow.setContent(str);
                                     map.infoWindow.show(clickPoint);
@@ -741,9 +742,10 @@ function removeHighlight() {
 }
 
 function getIdentifyHeader(name) {
-    if (identifyLayers[name].desc) return "<div class='esriPopupItemTitle'>" + name + " found at map click:</div><br/><p style='font-style:italic;top:-15px;position:relative;'>" + identifyLayers[name].desc + "</p>";
+     // tlb 6-8-18 Fix bug on ipad, info window not scrolling. Add <div style='height:100%;'>
+    if (identifyLayers[name].desc) return "<div style='height:100%;'><div class='esriPopupItemTitle'>" + name + " found at map click:</div><br/><p style='font-style:italic;top:-15px;position:relative;'>" + identifyLayers[name].desc + "</p>";
     else
-        return "<div class='esriPopupItemTitle'>" + name + " found at map click:</div><br/>";
+        return "<div style='height:100%;'><div class='esriPopupItemTitle'>" + name + " found at map click:</div><br/>";
 }
 
 function getIdentifyFooter() {
