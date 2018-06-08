@@ -62,13 +62,13 @@
 		padding: 6px 2px 5px 5px;
 	}
 	/* We are not use setFeatures to set content so actionsPane is hidden. The actionsPane contains Zoom to, 
-	Get Directions, elevation, and map click XY. Make it visible */
+	Get Directions, elevation, and map click XY. Make it visible. 6-8-18 change margin: -10px... to -5px */
 	.esriPopup .sizer .actionsPane .hidden {
 		display: block;
 		background-color: #BCD8F4;
 		background-image: linear-gradient(#FFFFFF 0px, rgba(255, 255, 255, 0) 3px, rgba(255, 255, 255, 0.75) 100%);
 		padding: 5px;
-		margin: -10px -5px 0 -5px;
+		margin: -5px -5px 0 -5px;
 		border-radius: 0 0 5px 5px;
 		-webkit-border-radius: 0 0 5px 5px;
 		border: 1px solid #ccc;
