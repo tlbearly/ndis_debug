@@ -635,7 +635,12 @@ function readConfig() {
 				var linkStr = '<span class="link"><a href="' + app + '/help.html" target="help"><img src="assets/images/i_help.png"/>Help</a></span>';
 				var link = xmlDoc.getElementsByTagName("links")[0].getElementsByTagName("link");
 				for (var i = 0; i < link.length; i++) {
-					linkStr += '<span class="link"><a href="' + link[i].getAttribute("url").replace("%3F", "?").replace("%26", "&") + '" target="_new"><img src="' + link[i].getAttribute("icon") + '"/>' + link[i].getAttribute("label") + '</a></span>';
+					// load mobile app with url parameters
+					if (link[i].getAttribute("label") == "Go Mobile"){
+						linkStr += '<span class="link"><a href="' + window.location.href.replace("index", "indexM") + '" target="_top"><img src="' + link[i].getAttribute("icon") + '"/>' + link[i].getAttribute("label") + '</a></span>';
+					}
+					else
+						linkStr += '<span class="link"><a href="' + link[i].getAttribute("url").replace("%3F", "?").replace("%26", "&") + '" target="_new"><img src="' + link[i].getAttribute("icon") + '"/>' + link[i].getAttribute("label") + '</a></span>';
 				}
 				dom.byId("links").innerHTML = linkStr;
 				addMapLayers();
