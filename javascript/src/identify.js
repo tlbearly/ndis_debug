@@ -692,8 +692,7 @@ function handleQueryResults(results) {
                                 if (str.indexOf(tmpStr) == -1) {
                                     // highlight polygon/point on mouse over, hide highlight on mouse out
                                     //str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
-                                    // tlb 6-8-18 added + "</div>" to the end of str for scrolling on ipad.
-                                    str += "<div><strong>" + tmpStr + "</div>";
+                                    str += "<div><strong>" + tmpStr;
                                     groupContent[identifyGroup] = str; // cache content
                                     map.infoWindow.setContent(str);
                                     map.infoWindow.show(clickPoint);
@@ -829,6 +828,13 @@ function displayInfoWindow() {
                 map.infoWindow.setContent(str);
                 groupContent[identifyGroup] = str; // cache content
                 str = null;
+            }
+        }
+        else {
+            // tlb 6-8-18 added + "</div>" to the end of infowindow content for scrolling on ipad.
+            if (map.infoWindow._contentPane.innerHTML.indexOf("Loading") != -1){
+                var str = map.infoWindow.map.infoWindow._contentPane.innerHTML+"</div>";
+                map.infoWindow.setContent(str);
             }
         }
 
