@@ -919,6 +919,23 @@ function displayInfoWindow() {
                     function(response) {
                         require(["dojo/dom-attr", "dojo/dom-construct", "dojo/query", "dojo/dom", "dojo/on", "dojo/domReady!"],
                             function(domAttr, domConstruct, query, dom, on) {
+                                // If user clicks outsite colorado there is no data. Was throwing an error. tlb 6-28-18
+                                if (response.results.length == 0 || isNaN(response.results[0].attributes["Pixel Value"])) {
+                                    if (query(".actionList #elevation", map.infoWindow.domNode)[0]) {
+                                        domConstruct.empty(query(".actionList #elevation", map.infoWindow.domNode)[0]);
+                                        domConstruct.place(
+                                            domConstruct.toDom("Elevation: data not available"),
+                                            query(".actionList #elevation", map.infoWindow.domNode)[0]);
+                                    } else {
+                                        domConstruct.create("span", {
+                                            "class": "action",
+                                            "id": "elevation",
+                                            "innerHTML": "Elevation: data not available"
+                                        }, query(".actionList", map.infoWindow.domNode)[0]);
+                                    }
+                                    return;
+                                }
+                                
                                 if (query(".actionList #elevation", map.infoWindow.domNode)[0]) {
                                     domConstruct.empty(query(".actionList #elevation", map.infoWindow.domNode)[0]);
                                     domConstruct.place(
