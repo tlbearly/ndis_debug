@@ -63,7 +63,7 @@ Sub Page_Load(Sender As Object, E as EventArgs)
   End If
 
   Dim i As Integer
-  Dim pattern As String = "[^0-9 ]"
+  Dim pattern As String = "[^0-9a-zA-Z ]"
   Dim replacement As String = ""
   Dim rgx As New Regex(pattern)
   If (rgx.Match(Request("key"),pattern).Success) Then
