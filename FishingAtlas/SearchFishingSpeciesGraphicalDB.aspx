@@ -68,9 +68,9 @@ Sub Page_Load(Sender As Object, E as EventArgs)
 '*************************************************
     Dim comm As new OleDbCommand
 		objCommand = new OleDbDataAdapter(comm)
-    strCommand =  "SELECT tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish"
-    strCommand += " FROM tblMasterSpecies_GrpBy_WaterID_Species"
-    strCommand += " WHERE ((((tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE))=@mykey));"
+    strCommand =  "SELECT tblMasterSpecies.WATERCODE, tblMasterSpecies.AtlasFish"
+    strCommand += " FROM tblMasterSpecies"
+    strCommand += " WHERE ((((tblMasterSpecies.WATERCODE))=@mykey));"
     comm.CommandText = strCommand
     Dim str = Trim(mykey(i))
     comm.Parameters.AddWithValue("@mykey",str)
@@ -78,16 +78,16 @@ Sub Page_Load(Sender As Object, E as EventArgs)
     comm.Connection = objConnection
 
 
-    'strCommand =  "SELECT tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish"
-    'strCommand +=     " FROM tblMasterSpecies_GrpBy_WaterID_Species"
-    'strCommand +=     " WHERE ((((tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE))='" & mykey(i) & "'));"
+    'strCommand =  "SELECT tblMasterSpecies.WATERCODE, tblMasterSpecies.AtlasFish"
+    'strCommand +=     " FROM tblMasterSpecies"
+    'strCommand +=     " WHERE ((((tblMasterSpecies.WATERCODE))='" & mykey(i) & "'));"
     'objConnection = New OleDbConnection(strConnect)
     'objCommand = New OleDbDataAdapter(strCommand, objConnection)
 
 '**************************************************
 '         Update name of database file here
 '**************************************************
-    objCommand.Fill(DataSet1, "tblMasterSpecies_GrpBy_WaterID_Species")
+    objCommand.Fill(DataSet1, "tblMasterSpecies")
 
     myxml = DataSet1.GetXml() 
     DataSet1 = Nothing

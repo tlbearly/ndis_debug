@@ -71,7 +71,7 @@
 //		Edit this file and modify database filename, SQL, and table name. 
 //		For example:	<database>https://ndismaps.nrel.colostate.edu/debug/fishing/SearchFishingSpeciesTextDB.aspx</database>
 // filename:  The name of the table used in the above database call.
-//		For example:	<filename>tblMasterSpecies_GrpBy_WaterID_Species</filename>
+//		For example:	<filename>tblMasterSpecies</filename>
 // database_field: The field that links the database to the mapservice.  Used to build the expression to query mapservice from url tag above.
 //		Will build a where expression like:  WATERCODE='13209' OR WATERCODE='14681' ...
 //		For example:    <database_field>WATERCODE</database_field>
@@ -82,7 +82,7 @@
 //		Edit this file and modify database filename, SQL, and table name. 
 //		For example:	<database>https://ndismaps.nrel.colostate.edu/debug/fishing/SearchFishingSpeciesGraphicalDB.aspx</database>
 // graphical_filename:  The name of the table used in the above database call.
-//		For example:	<graphical_filename>tblMasterSpecies_GrpBy_WaterID_Species</graphical_filename>
+//		For example:	<graphical_filename>tblMasterSpecies</graphical_filename>
 // graphical_db_fields: Comma delimited list or fields from the database to display on a graphical search
 // graphical_db_displayfields: Comma delimited list of header names in the display table for each of the above fields.
 // graphical_db_sort: Comma delimited list of yes or no depending on whether the above graphical_db_fields should be sorted in alphabetical order.
@@ -122,12 +122,12 @@
 			<lookupfield>AtlasFish</lookupfield>
 			
 			<database>https://ndis-flex-2.nrel.colostate.edu/fishingatlas/SearchFishingSpeciesTextDB.aspx</database>
-			<filename>tblMasterSpecies_GrpBy_WaterID_Species</filename>
+			<filename>tblMasterSpecies</filename>
 		    <database_field>WATERCODE</database_field>
 		    <database_field_type>string</database_field_type>
 			
 			<graphical_database>https://ndis-flex-2.nrel.colostate.edu/fishingatlas/SearchFishingSpeciesGraphicalDB.aspx</graphical_database>
-		    <graphical_filename>tblMasterSpecies_GrpBy_WaterID_Species</graphical_filename>
+		    <graphical_filename>tblMasterSpecies</graphical_filename>
 		    <graphical_db_fields>AtlasFish</graphical_db_fields>
 		    <graphical_db_displayfields>Fish Species</graphical_db_displayfields>
 		    <graphical_db_sort>yes</graphical_db_sort>

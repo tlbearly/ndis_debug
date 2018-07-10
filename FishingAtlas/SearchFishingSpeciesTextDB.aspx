@@ -67,23 +67,23 @@ Sub Page_Load(Sender As Object, E as EventArgs)
 '*************************************************
   Dim comm As new OleDbCommand
 	objCommand = new OleDbDataAdapter(comm)
-  strCommand =  "SELECT tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE, (Ucase(tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish))"
-  strCommand += " FROM tblMasterSpecies_GrpBy_WaterID_Species"
-  strCommand += " WHERE ((((Ucase(tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish)))=@mykey));"
+  strCommand =  "SELECT tblMasterSpecies.WATERCODE, (Ucase(tblMasterSpecies.AtlasFish))"
+  strCommand += " FROM tblMasterSpecies"
+  strCommand += " WHERE ((((Ucase(tblMasterSpecies.AtlasFish)))=@mykey));"
   comm.CommandText = strCommand
   comm.Parameters.AddWithValue("@mykey",mykey.ToUpper())
   objConnection = New OleDbConnection(strConnect)
   comm.Connection = objConnection
 
-  'strCommand =  "SELECT tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE, (Ucase(tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish))"
-  'strCommand +=     " FROM tblMasterSpecies_GrpBy_WaterID_Species"
-  'strCommand +=     " WHERE ((((Ucase(tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish)))='" & mykey.ToUpper() & "'));"
+  'strCommand =  "SELECT tblMasterSpecies.WATERCODE, (Ucase(tblMasterSpecies.AtlasFish))"
+  'strCommand +=     " FROM tblMasterSpecies"
+  'strCommand +=     " WHERE ((((Ucase(tblMasterSpecies.AtlasFish)))='" & mykey.ToUpper() & "'));"
   'objConnection = New OleDbConnection(strConnect)
   'objCommand = New OleDbDataAdapter(strCommand, objConnection)
 '**************************************************
 '         Update name of database file here
 '**************************************************
-  objCommand.Fill(DataSet1, "tblMasterSpecies_GrpBy_WaterID_Species")
+  objCommand.Fill(DataSet1, "tblMasterSpecies")
 
   Dim myxml As String
   myxml = DataSet1.GetXml() 

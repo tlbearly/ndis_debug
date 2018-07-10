@@ -23,22 +23,22 @@
 ' the second to get a url for the species. The xml returned looks like:
 '<?xml version="1.0" encoding="utf-16"?>
 '<NewDataSet>
-'  <tblMasterSpecies_GrpBy_WaterID_Species>
+'  <tblMasterSpecies>
 '    <WATERCODE>52580</WATERCODE>
 '    <AtlasFishGroup>Bass (Black)</AtlasFishGroup>
 '    <AtlasFish>
 '      <linkname>Bass: Largemouth</linkname>
 '      <linkurl>http://en.wikipedia.org/wiki/Largemouth_Bass</linkurl>
 '    </AtlasFish>
-'  </tblMasterSpecies_GrpBy_WaterID_Species>
-'  <tblMasterSpecies_GrpBy_WaterID_Species>
+'  </tblMasterSpecies>
+'  <tblMasterSpecies>
 '    <WATERCODE>52580</WATERCODE>
 '    <AtlasFishGroup>Bass (Temperate)</AtlasFishGroup>
 '    <AtlasFish>
 '      <linkname>Wiper</linkname>
 '      <linkurl>http://en.wikipedia.org/wiki/Hybrid_striped_bass</linkurl>
 '    </AtlasFish>
-'  </tblMasterSpecies_GrpBy_WaterID_Species>
+'  </tblMasterSpecies>
 '</NewDataSet>
 '*************************************************************************************************************
 
@@ -77,26 +77,26 @@ Sub Page_Load(Sender As Object, E as EventArgs)
 '*************************************************
     Dim comm As new OleDbCommand
 		objCommand = new OleDbDataAdapter(comm)
-		strCommand =  "SELECT tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFishGroup, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish"
-    strCommand += " FROM tblMasterSpecies_GrpBy_WaterID_Species"
-    strCommand += " WHERE (((tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE)=@mykey))"
-    strCommand += " ORDER BY tblMasterSpecies_GrpBy_WaterID_Species.AtlasFishGroup, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish;"
+		strCommand =  "SELECT tblMasterSpecies.WATERCODE, tblMasterSpecies.AtlasFishGroup, tblMasterSpecies.AtlasFish"
+    strCommand += " FROM tblMasterSpecies"
+    strCommand += " WHERE (((tblMasterSpecies.WATERCODE)=@mykey))"
+    strCommand += " ORDER BY tblMasterSpecies.AtlasFishGroup, tblMasterSpecies.AtlasFish;"
     comm.CommandText = strCommand
     comm.Parameters.AddWithValue("@mykey",mykey)
     objConnection = New OleDbConnection(strConnect)
     comm.Connection = objConnection
 
-    'strCommand =  "SELECT tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFishGroup, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish"
-    'strCommand +=     " FROM tblMasterSpecies_GrpBy_WaterID_Species"
-    'strCommand +=     " WHERE (((tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE)='" & mykey & "'))"
-    'strCommand +=     " ORDER BY tblMasterSpecies_GrpBy_WaterID_Species.AtlasFishGroup, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish;"
+    'strCommand =  "SELECT tblMasterSpecies.WATERCODE, tblMasterSpecies.AtlasFishGroup, tblMasterSpecies.AtlasFish"
+    'strCommand +=     " FROM tblMasterSpecies"
+    'strCommand +=     " WHERE (((tblMasterSpecies.WATERCODE)='" & mykey & "'))"
+    'strCommand +=     " ORDER BY tblMasterSpecies.AtlasFishGroup, tblMasterSpecies.AtlasFish;"
     'objConnection = New OleDbConnection(strConnect)
 		'objCommand = New OleDbDataAdapter(strCommand, objConnection)
 		
 '**************************************************
 '         Update name of database file here
 '**************************************************
-    objCommand.Fill(DataSet1, "tblMasterSpecies_GrpBy_WaterID_Species")
+    objCommand.Fill(DataSet1, "tblMasterSpecies")
 
   Dim myxml As String
   myxml = DataSet1.GetXml() 

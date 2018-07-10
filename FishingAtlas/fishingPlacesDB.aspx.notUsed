@@ -49,10 +49,10 @@ Sub Page_Load(Sender As Object, E as EventArgs)
 '*************************************************
 '        Update SQL here
 '*************************************************
-    strCommand =  "SELECT tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE, tblMasterSpecies_GrpBy_WaterID_Species.FA_NAME2, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFishGroup, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish"
-    strCommand +=     " FROM tblMasterSpecies_GrpBy_WaterID_Species"
-    strCommand +=     " WHERE (((tblMasterSpecies_GrpBy_WaterID_Species.WATERCODE)='" & mykey & "'))"
-    strCommand +=     " ORDER BY tblMasterSpecies_GrpBy_WaterID_Species.AtlasFishGroup, tblMasterSpecies_GrpBy_WaterID_Species.AtlasFish;"
+    strCommand =  "SELECT tblMasterSpecies.WATERCODE, tblMasterSpecies.FA_NAME2, tblMasterSpecies.AtlasFishGroup, tblMasterSpecies.AtlasFish"
+    strCommand +=     " FROM tblMasterSpecies"
+    strCommand +=     " WHERE (((tblMasterSpecies.WATERCODE)='" & mykey & "'))"
+    strCommand +=     " ORDER BY tblMasterSpecies.AtlasFishGroup, tblMasterSpecies.AtlasFish;"
 
 ' debug
  Response.Write (strCommand)
@@ -62,7 +62,7 @@ Response.End
 '**************************************************
 '         Update name of database file here
 '**************************************************
-    objCommand.Fill(DataSet1, "tblMasterSpecies_GrpBy_WaterID_Species")
+    objCommand.Fill(DataSet1, "tblMasterSpecies")
 
   Dim myxml As String
   myxml = DataSet1.GetXml() 

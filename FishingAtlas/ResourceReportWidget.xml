@@ -108,7 +108,7 @@
 			sortfields="FA_NAME2"
 			key="WATERCODE"
 			database="https://ndis-flex-2.nrel.colostate.edu/fishingatlas/ResourceReportFishingSpeciesDB.aspx"
-			filename="tblMasterSpecies_GrpBy_WaterID_Species"
+			filename="tblMasterSpecies"
 			one2one_fields=""
 			one2many_fields="AtlasFish"/>
 

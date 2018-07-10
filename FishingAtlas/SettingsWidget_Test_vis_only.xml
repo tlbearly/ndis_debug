@@ -164,7 +164,7 @@
 				<position>3</position>
 				<!-- The database file must be the same directory structure as the index.html file. -->
 				<database>IdentifyFishingPlacesDB.aspx</database>
-		      	<filename>tblMasterSpecies_GrpBy_WaterID_Species</filename>
+		      	<filename>tblMasterSpecies</filename>
 		      	<one2one_fields></one2one_fields>
 		      	<one2one_display></one2one_display>
 		      	<one2many_fields>AtlasFish</one2many_fields>
