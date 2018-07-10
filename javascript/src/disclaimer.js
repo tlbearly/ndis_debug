@@ -24,6 +24,8 @@ function loadDisclaimer(title) {
 							cont = xmlDoc.getElementsByTagName("content")[0].childNodes[0].nodeValue;
 					}	
 					if (cont) {
+						// add cookie notice
+						cont += "<br/>This site uses cookies. By using this site you agree to our cookie policy which is that cookies are only used to save user preferences. No personal information is collected or stored.<br/>";
 						theContent.innerHTML = cont;
 						myDialog.show();
 					}
