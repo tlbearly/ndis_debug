@@ -21,19 +21,20 @@ header("Pragma: no-cache");
         <title>Colorado Parks and Wildlife Atlas</title>
 
         <!-- *** Keep ArcGIS API version up to date here *** -->
-        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.23/esri/css/esri.css" />
+        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.24/esri/css/esri.css" />
         <!-- Import CSS stylesheet required for ResizeHandle module -->
-        <link rel="stylesheet" href="https://js.arcgis.com/3.23/dojox/layout/resources/ResizeHandle.css">
+        <link rel="stylesheet" href="https://js.arcgis.com/3.24/dojox/layout/resources/ResizeHandle.css">
         <!-- Available themes: claro, tundra, soria, and nihilo.-->
-        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.23/dijit/themes/claro/claro.css">
-        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.23/dijit/themes/tundra/tundra.css" /-->
-        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.23/dijit/themes/soria/soria.css" /-->
-        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.23/dijit/themes/nihilo/nihilo.css" /-->
+        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.24/dijit/themes/claro/claro.css">
+        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.24/dijit/themes/tundra/tundra.css" /-->
+        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.24/dijit/themes/soria/soria.css" /-->
+        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.24/dijit/themes/nihilo/nihilo.css" /-->
 
         <!-- icon in browser tab -->
         <link rel="shortcut icon" href="assets/images/favicon.png" />
         <link rel="icon" type="image/png" href="assets/images/favicon.png" />
-
+        <link rel="canonical" href="https://ndis-flex-2.nrel.colostate.edu/">
+        
         <script type="text/javascript">
             // agsjs is for legend/layerlist
             // dojo-firebug and dojo-debug-messages = true is for debugging-->
@@ -74,25 +75,25 @@ header("Pragma: no-cache");
                 bottom: 0px;
             }
         </style>
-        <script type="text/javascript" src="https://js.arcgis.com/3.23"></script>
+        <script type="text/javascript" src="https://js.arcgis.com/3.24"></script>
         <!-- Contains dojo.js and must be loaded after dojoConfig -->
         <!-- Load external javascript files here. -->
-        <!-- pdf library from https://github.com/MrRio/jsPDF  also in js.arcgis.com 3.23, but missing saveAs function -->
+        <!-- pdf library from https://github.com/MrRio/jsPDF  also in js.arcgis.com 3.24, but missing saveAs function -->
         <!-- for saveAs funciton to save to disk -->
         <script type="text/javascript" src="jsPDF/dist/jspdf.debug.js" true></script>
-        <!--link rel="stylesheet" type="text/css" href="assets/css/layout.css?v=3.21" /-->
+        <!--link rel="stylesheet" type="text/css" href="assets/css/layout.css?v=3.20" /-->
         <!--script type="text/javascript" src="javascript/errorBox.js?v=3.16"></script>
         <script type="text/javascript" src="javascript/xmlUtils.js?v=3.11"></script>
         <script type="text/javascript" src="javascript/utilFuncs.js?v=3.11"></script>
         <script type="text/javascript" src="javascript/bookmark.js?v=3.17"></script>
-        <script type="text/javascript" src="javascript/disclaimer.js?v=3.11"></script>
+        <script type="text/javascript" src="javascript/disclaimer.js?v=3.20"></script>
         <script type="text/javascript" src="javascript/draw.js?v=3.17"></script>
         <script type="text/javascript" src="javascript/findPlace.js?v=3.11"></script>
         <script type="text/javascript" src="javascript/gmu.js?v=3.11"></script>
-        <script type="text/javascript" src="javascript/identify.js?v=3.21"></script>	
+        <script type="text/javascript" src="javascript/identify.js?v=3.20"></script>	
         <script type="text/javascript" src="javascript/maplink.js?v=3.17"></script>
-        <script type="text/javascript" src="javascript/print.js?v=3.16"></script>
-        <script type="text/javascript" src="javascript/readConfig.js?v=3.21"></script>
+        <script type="text/javascript" src="javascript/print.js?v=3.20"></script>
+        <script type="text/javascript" src="javascript/readConfig.js?v=3.20"></script>
         <script type="text/javascript" src="javascript/resourceReport.js?v=3.16"></script>
         <script type="text/javascript" src="javascript/search.js?v=3.11"></script-->
         <!--script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCnamSJ8X7vZxYVby_V52kuveWx1jXx2SQ"></script><!-- for google maps elevation data. Used by Identify -->
@@ -260,7 +261,7 @@ header("Pragma: no-cache");
             <div id="header" data-dojo-type="dijit/layout/ContentPane" data-dojo-props='region:"top"'>
                 <!-- Disclaimer -->
                 <div data-dojo-type="dijit/Dialog" id="disclaimerDialog" title="Disclaimer" style="width:710px; max-width:100%;display:none">
-                    <div style="width: 700px; height: 460px; max-height:100%; max-width:100%; overflow: auto;">
+                    <div style="width: 700px; height: 500px; max-height:100%; max-width:100%; overflow: auto;">
                         <div id="disclaimerContent" style="padding:5px;"></div>
                         <input id="showDisclaimer" type="checkbox" onClick="setCookie('noDisclaimer','1')" /> Do not show again. (This is stored in a cookie in your browser history.)<br/><br/>
                         <p style="text-align: center;">
@@ -328,36 +329,36 @@ header("Pragma: no-cache");
                                     <label for="printTitle" style="width:30px">Title:</label> <input id="printTitle" value="Colorado Parks and Wildlife Custom Map" type="text" size="21" /><br/><br/>
                                     <label for="printSubTitle" style="width:30px">Subtitle:</label> <input id="printSubTitle" type="text" size="18" /><br/><br/>
                                     <label for="size">Paper size:</label> <select id="size" onChange="changePrintSize()">
-					<option value="Letter ">8.5 x 11</option> 
-					<!--option value="Legal ">8.5 x 14</option--> 
-					<option value="Tabloid ">11 x 17</option>     
-					<!--option value="ANSI C ">17 x 22</option-->
-					<!--option value="ANSI D ">22 x 34</option-->
-				</select><br/><br/>
+                                        <option value="Letter ">8.5 x 11</option> 
+                                        <!--option value="Legal ">8.5 x 14</option--> 
+                                        <option value="Tabloid ">11 x 17</option>     
+                                        <!--option value="ANSI C ">17 x 22</option-->
+                                        <!--option value="ANSI D ">22 x 34</option-->
+				                    </select><br/><br/>
                                     <label for="orient">Orientation:</label> <select id="orient" onChange="changePrintSize()">
-					<option value="Landscape">Landscape</option> 
-					<option value="Portrait">Portrait</option>     
-				</select><br/><br/>
+                                        <option value="Landscape">Landscape</option> 
+                                        <option value="Portrait">Portrait</option>     
+                                    </select><br/><br/>
                                     <label for="format">Format:</label> <select id="format" onchange="grayOutLegend(this)">
-					<option value="pdf">PDF</option> 
-					<option value="geopdf">Geo PDF</option> 
-					<!--option value="png24">PNG24</option> 
-					<option value="PNG8">PNG8</option--> 
-					<option value="jpg">JPG</option> 
-					<option value="gif">GIF</option> 
-					<option value="geotiff">GEOTIFF</option> 
-					<!--option value="svg">SVG</option--> 
-				</select><br/><br/>
+                                        <option value="pdf">PDF</option> 
+                                        <option value="geopdf">Geo PDF</option> 
+                                        <!--option value="png24">PNG24</option> 
+                                        <option value="PNG8">PNG8</option--> 
+                                        <option value="jpg">JPG</option> 
+                                        <option value="gif">GIF</option> 
+                                        <option value="geotiff">GEOTIFF</option> 
+                                        <!--option value="svg">SVG</option--> 
+                                    </select><br/><br/>
                                     <!--label for="dpi">Dots per inch:</label> <select id="dpi">
-					<option value="300 ">300</option> 
-					<option value="96 ">96</option>     
-				</select><br/><br/-->
+                                        <option value="300 ">300</option> 
+                                        <option value="96 ">96</option>     
+                                    </select><br/><br/-->
                                     <!--label for="scalebar">Scalebar units:</label> <select id="scalebar">
-					<option value="Miles">Miles</option> 
-					<option value="Kilometers">Kilometers</option>     
-					<option value="Feet">Feet</option>
-					<option value="Meters">Meters</option>
-				</select><br/><br/-->
+                                        <option value="Miles">Miles</option> 
+                                        <option value="Kilometers">Kilometers</option>     
+                                        <option value="Feet">Feet</option>
+                                        <option value="Meters">Meters</option>
+                                    </select><br/><br/-->
                                     <div id="printLegendCB" style="display:inline-block">
                                         <label for="printLegend">Include legend:</label> <input id="printLegend" type="checkbox" checked="checked" /><br/><br/>
                                     </div>
