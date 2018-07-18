@@ -12,8 +12,8 @@ header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
 ?>
 <html>
-
     <head>
+        <title>CPW Atlas</title>
         <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
         <meta content="utf-8" http-equiv="encoding">
         <!--meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no"/-->
@@ -40,6 +40,7 @@ header("Pragma: no-cache");
         <link rel="apple-touch-startup-image" href="assets/images/cpwseal.png" sizes="640x920" media="(max-device-width: 480px) and (-webkit-min-device-pixel-ratio: 2)" />
         <link rel="apple-touch-startup-image" href="assets/images/cpwseal.png" sizes="768x1004" media="screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation:portrait)" />
         <link rel="apple-touch-startup-image" href="assets/images/cpwseal.png" sizes="1024x748" media="screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation:landscape)" />
+        <link rel="canonical" href="https://ndis-flex-2.nrel.colostate.edu/">
 
         <!-- CSS files -->
         <!-- When update esri version download css files also. Put in directory matching the version -->
@@ -94,14 +95,15 @@ header("Pragma: no-cache");
 		<script type="text/javascript" src="javascriptM/geo.js?v=3.18"></script>
 		<script type="text/javascript" src="javascriptM/disclaimer.js?v=3.11"></script>
 		<script type="text/javascript" src="javascriptM/errorBox.js?v=3.18"></script>
-		<script type="text/javascript" src="javascriptM/findPlace.js?v=3.11"></script>
-		<script type="text/javascript" src="javascriptM/identify.js?v=3.17a"></script>
+        <script type="text/javascript" src="javascriptM/xmlUtils.js?v=3.11"></script>
+        <script type="text/javascript" src="javascriptM/findPlace.js?v=3.11"></script>
+        <script type="text/javascript" src="javascriptM/identify.js?v=3.17a"></script>
+        <script type="text/javascript" src="javascript/print.js?v=3.16"></script>
 		<script type="text/javascript" src="javascriptM/readConfig.js?v=3.18"></script>
 		<script type="text/javascript" src="javascriptM/search.js?v=3.18"></script>
 		<script type="text/javascript" src="javascriptM/swipe.js?v=3.11"></script>
 		<script type="text/javascript" src="javascriptM/utilFuncs.js?v=3.11"></script>
-		<script type="text/javascript" src="javascriptM/wayPoints.js?v=3.18"></script>
-		<script type="text/javascript" src="javascriptM/xmlUtils.js?v=3.11"></script-->
+		<script type="text/javascript" src="javascriptM/wayPoints.js?v=3.18"></script-->
         <script>
             /* For DEBUGGING */
             ///*
@@ -111,14 +113,15 @@ header("Pragma: no-cache");
             document.write('<script type="text/javascript" src="' + path + '/geo.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/disclaimer.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/errorBox.js?v=' + jsVer + '"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/xmlUtils.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/findPlace.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/identify.js?v=' + jsVer + '"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/print.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/search.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/swipe.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/utilFuncs.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/wayPoints.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/xmlUtils.js?v=' + jsVer + '"><\/script>');
             //*/
         </script>
         <!--script type="text/javascript" src="javascriptM/hb1298.js?v=3.1"></script-->
@@ -135,9 +138,14 @@ header("Pragma: no-cache");
             var queryObj;
             var map, mapLayers = [],
                 legendLayers = [];
+            var previewMap; // print preview map
             var initExtent, wkid;
             var geometryService, geometryService2;
             var myFindService;
+            var printGeoServiceUrl; // set in readConfig.js from printservice tag in config.xml
+            // for printing
+            var hideGroupSublayers = "",
+                radioLayers = "";
             // Initialize Widgets when clicked on in the menu
             var searchFlag = false,
                 geoFlag = false,
@@ -170,6 +178,7 @@ header("Pragma: no-cache");
                     "dojo/io-query",
                     "dojox/mobile",
                     "dojox/mobile/Button",
+                    "dojox/mobile/CheckBox",
                     "dojox/mobile/compat",
                     "dojox/mobile/ContentPane",
                     "dojox/mobile/SimpleDialog",
@@ -321,7 +330,7 @@ header("Pragma: no-cache");
                     esriConfig.defaults.io.proxyUrl = "/proxy/DotNet/proxy.ashx";
                     esriConfig.defaults.io.alwaysUseProxy = false;
                     document.dojoClick = false; // fix Android graphics layer not recognizing click
-                    //esri.config.defaults.io.timeout = 180000; // increase timeout for printing from 60 seconds (60,000) to 3 minutes
+                    esri.config.defaults.io.timeout = 180000; // increase timeout for printing from 60 seconds (60,000) to 3 minutes
 
                     // scroll up after keyboard is closed to keep page from scrolling off of the screen and losing the header bar!
                     document.addEventListener('focusout', function(e) {
@@ -409,6 +418,15 @@ header("Pragma: no-cache");
                 event.stopImmediatePropagation();
                 require(['dijit/registry'], function(registry) {
                     registry.byId('disclaimerDialog').hide();
+                });
+            }
+            function hidePrintDialog(event) {
+                event.stopImmediatePropagation();
+                require(['dijit/registry'], function(registry) {
+                    registry.byId('printDiv').hide();
+                    setTimeout(function(){
+                        drawing=false; // don't show infowindow on close dialog
+                    },1000);
                 });
             }
 
@@ -519,6 +537,7 @@ header("Pragma: no-cache");
                 <img id="loading" alt="loading icon" src="assets/images/loading.gif" style="top:50%;position:absolute; right:50%; z-index:100;display:block;" />
                 <div id="mapDiv">
                     <div id="LocateButton"></div>
+                    <div id="printBtn" onclick="javascript:printShow()" alt="download geo pdf of the current map"></div>
                 </div>
             </div>
 
@@ -534,7 +553,7 @@ header("Pragma: no-cache");
             <div class="discContent mblSimpleDialogText">
                 <div id="disclaimerContent"></div>
                 <p>NOTE: The browser back button is not recommended for this site.</p>
-                <p><label><input id="showDisclaimer" type="checkbox" class="checkBoxButton" onClick="setCookie('noDisclaimer','1')" />
+                <p><label><input id="showDisclaimer" data-dojo-type="dojox/mobile/CheckBox" type="checkbox" class="checkBoxButton" onClick="setCookie('noDisclaimer','1')" />
 			  Do not show again. (This is stored in a cookie in your browser history.)</label>
                 </p>
                 <p align="center">
@@ -588,6 +607,127 @@ header("Pragma: no-cache");
                 <span id="findClear" class="findBtnClear" title="Remove last highlight/push pin from map" onclick="removeSearchItem()">Clear</span>
                 <span id="findClose" data-dojo-type="dojox/mobile/ToolBarButton" style="float:right;">X</span>
             </h1>
+        </div>
+
+        <!-- Print Troubleshooting -->
+        <div id="printTroubleshootingDiv" data-dojo-type="dojox/mobile/SimpleDialog" data-dojo-id="printTroubleDialog" title="Print Help" style="width: 100%; display:none;">
+            <span id="printVideo"></span>
+            <h2>Having Trouble Saving with Chrome?</h2>
+            If you are using Chrome for your browser it has a built in pdf reader which fails to save the file the first time you try to download. The second time it works. But if you have Adobe Reader or Foxit Reader installed it will work. You can make this the
+            default pdf reader by doing the following:
+            <ol>
+                <li>In the address bar, type <i>about:plugins</i></li>
+                <li>The Plug-ins Tab will open</li>
+                <li>Click disable Chrome PDF Viewer.</li>
+                <li>Click Enable Adobe Reader or Foxit Reader.</li>
+                <li>Check Always allowed</li>
+            </ol>
+            <h2>Disable Your Pop-up Blocker</h2>
+            Print will open PDF file(s) in a new tab. If you have pop-ups disabled you will not see your printout.
+            <h2>Requires a PDF Reader</h2>
+            Since the printout is a PDF file, you must have a PDF Reader installed in your browser. Download either <a href="http://get.adobe.com/reader/" target="_blank">Adobe Reader</a> or <a href="http://www.foxitsoftware.com/Secure_PDF_Reader/"
+                target="_blank">Foxit Reader</a>.
+        </div>
+        <!-- Print Dialog -->
+        <div id="printDiv" data-dojo-type="dojox/mobile/SimpleDialog" data-dojo-id="printDialog" class="discContainer" style="display:none;width: calc(100% - 15px);position:fixed;top:0!important;left:0!important;overflow:hidden;height:calc(100% - 40px);">
+            <div id="printScroll" style="height:100%;overflow-y: auto;">
+                    <h1 data-dojo-type="dojox/mobile/Heading" data-dojo-props='fixed:"top", label:"Download Geo PDF"' style="border-radius:5px;background-color: whitesmoke;color:rgb(191, 197, 203);background-image: none;">
+                        <span data-dojo-type="dojox/mobile/ToolBarButton" style="float:right;" onclick="hidePrintDialog">X</span>
+                    </h1>
+                <span title="Print Help" onClick="printTroubleDialog.show();"><img alt='help button' class="help_icon" style="top:-33px;right:50px;width:15px;height:15px;" src="assets/images/i_help.png"></span>
+                <br/><br/>
+                <form>
+                    <!--label for="printTitle" style="width:30px">Title:</label> <input id="printTitle" value="Colorado Parks and Wildlife Custom Map" type="text"/><br/><br/>
+                    <label for="printSubTitle" style="width:30px">Subtitle:</label> <input id="printSubTitle" type="text"/><br/><br/-->
+                    <label id="sizeLabel" for="size" style="padding-left:15px">Map size:</label> <input id="size" style="color:#333;"/> 
+                    
+                    <!--select id="size" style="max-width:200px;margin:auto;" onChange="changePrintSize()">
+                        <option value="Letter ">8.5 x 11</option-->
+                        <!--option value="Legal ">8.5 x 14</option--> 
+                        <!--option value="Tabloid ">11 x 17</option-->     
+                        <!--option value="ANSI C ">17 x 22</option-->
+                        <!--option value="ANSI D ">22 x 34</option-->
+                    <!--/select-->
+                    <br/><br/>
+                    <label id="orientLabel" for="orient">Orientation:</label> <input id="orient" style="color:#333;"/>
+                    <!--select id="orient" style="max-width:200px;margin:auto;" onChange="changePrintSize()">
+                        <option value="Landscape">Landscape</option> 
+                        <option value="Portrait">Portrait</option>     
+                    </select-->
+                    <br/><br/>
+                    <span id='mapscale' style="color:#FFF;">Map Scale 1: 
+                        <select id="mapscaleList" onchange="setPreviewMapScale(this)" style="color: black">
+                              <option style="text-align:right" value="9244649">9M</option>
+                              <option style="text-align:right" value="4622324">4M</option>
+                              <option style="text-align:right" value="2311162">2M</option>
+                              <option style="text-align:right" value="1155581">1M</option>
+                              <option style="text-align:right" value="577791">500k</option>
+                              <option style="text-align:right" value="288895">250k</option>
+                              <option style="text-align:right" value="144448">100k</option>
+                              <option style="text-align:right" value="72224">50k</option>
+                              <option style="text-align:right" value="36112">24k</option>
+                              <option style="text-align:right" value="9028">10k</option>
+                              <!--option style="text-align:right" value="9244649">9,244,649</option>
+                              <option style="text-align:right" value="4622324">4,622,324</option>
+                              <option style="text-align:right" value="2311162">2,311,162</option>
+                              <option style="text-align:right" value="1155581">1,155,581</option>
+                              <option style="text-align:right" value="577791">577,791</option>
+                              <option style="text-align:right" value="288895">288,895</option>
+                              <option style="text-align:right" value="144448">144,448</option>
+                              <option style="text-align:right" value="72224">72,224</option>
+                              <option style="text-align:right" value="36112">36,112</option>
+                              <option style="text-align:right" value="18056">18,056</option>
+                              <option style="text-align:right" value="9028">9,028</option>
+                              <option style="text-align:right" value="4514">4,514</option>
+                              <option style="text-align:right" value="2257">2,257</option>
+                              <option style="text-align:right" value="1128">1,128</option-->
+                          </select></span>
+                    <br/><br/>
+                    <!-- Remove pdf file name because download on an a tag does not working inside Android App. It does not download anything! -->
+                    <!--label id="pdf_name_label" for="pdf_name">PDF File Name:</label> <input id="pdf_name" style="color:#333;width:200px;margin:auto;" type="text" required/>
+                    <br/><br/-->
+                    <!--label for="format">Format:</label> <select id="format" onchange="grayOutLegend(this)">
+                        <option value="pdf">PDF</option> 
+                        <option value="geopdf">Geo PDF</option> 
+                        <option value="png24">PNG24</option> 
+                        <option value="PNG8">PNG8</option> 
+                        <option value="jpg">JPG</option> 
+                        <option value="gif">GIF</option> 
+                        <option value="geotiff">GEOTIFF</option> 
+                        <option value="svg">SVG</option> 
+                    </select><br/><br/-->
+                    <!--label for="dpi">Dots per inch:</label> <select id="dpi">
+                        <option value="300 ">300</option> 
+                        <option value="96 ">96</option>     
+                    </select><br/><br/-->
+                    <!--label for="scalebar">Scalebar units:</label> <select id="scalebar">
+                        <option value="Miles">Miles</option> 
+                        <option value="Kilometers">Kilometers</option>     
+                        <option value="Feet">Feet</option>
+                        <option value="Meters">Meters</option>
+                    </select><br/><br/-->
+                    <!--div id="printLegendCB" style="display:inline-block">
+                        <label for="printLegend">Include legend:</label> <input id="printLegend" data-dojo-type="dojox/mobile/CheckBox" type="checkbox" checked="checked" /><br/><br/>
+                    </div-->
+                    <div align="center">
+                        <a id="print_link" href="" class="mblButton" style="display:none;width:120px;text-decoration: none;">Download PDF</a>
+                        <span id="printInst"style="display:none;">Creating PDF...</span> <img id="printLoading" style="vertical-align:bottom; display:none" src="assets/images/loading.gif"/>
+                        <button id="print_button" data-dojo-type="dojox/mobile/Button" role="presentation" type="button" onClick="printMap()">Create PDF</button>
+                        <span id="printMapLink" style="font-weight:bold;font-style:italic;"></span><br/>
+                        <!--span id="printLegendLink" style="font-weight:bold;font-style:italic;"></span><br/-->
+                    </div>
+                </form>
+                <h3 id="previewTitle">Map Preview  <div id="scrollDownBtn" onclick="printScrollDown()" class="mapBtn"><i id="downArrow"></i></div></h3>
+                <div id="previewContainer"  style="background-color: #eeeeee;
+                margin: 0 auto;width:80vw;max-width:440px;overflow-x:auto;overflow-y:hidden;">
+                    <hr id="scroll1" style="left:5px;position:relative;display: block;margin: 0.5em 0;border-style: solid;border-width: 5px;border-radius: 5px;border-color: #a8b8d2;">
+                    <!--div id="print_scroll" style="border:5px black solid;"-->
+                        <div id="printPreviewMap" class="map" data-dojo-type="dojox/mobile/ContentPane" data-dojo-props='region:"center"' dir="ltr" style="width:490px;height:348px;border:5px solid black;"></div>
+                    <!--/div-->
+                    <hr id="scroll2" style="left:5px;position:relative;display:block;margin: 0.5em 0;border-style: solid;border-width: 5px;border-radius: 5px;border-color: #a8b8d2;">
+                </div>
+                <div id="scrollUpBtn" onclick="printScrollUp()" class="mapBtn"><i id="upArrow"></i></div>
+            </div>
         </div>
 
         <!-- TOC -->
