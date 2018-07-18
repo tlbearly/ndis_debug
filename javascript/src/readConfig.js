@@ -728,6 +728,7 @@ function readConfig() {
 							autoResize: true,
 							showAttribution: false,
 							logo: false,
+							basemap: "streets",
 							isRubberBandZoom: true,
 							isScrollWheelZoom: true,
 							isShiftDoubleClick: true,
