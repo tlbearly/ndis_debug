@@ -1069,7 +1069,6 @@
 											
 											if (query(".actionList #elevation", map.infoWindow.domNode)[0]) {
 												  domConstruct.empty(query(".actionList #elevation", map.infoWindow.domNode)[0]);
-												  
 	                                              domConstruct.place(
 	                                                  // if pixel value is in meters
 	                                                  //domConstruct.toDom("Elevation: "+ Math.round(response.results[0].attributes["Pixel Value"]*3.28084) + " ft "+Math.round(response.results[0].attributes["Pixel Value"]) + " m"),
