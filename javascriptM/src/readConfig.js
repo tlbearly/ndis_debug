@@ -365,6 +365,9 @@ function createMap() {
 					for (i = 0; i < link.length; i++) {
 						if (link[i].getAttribute("label") != "Go Mobile")
 							linkStr += '<p class="link"><a href="' + link[i].getAttribute("url").replace("%3F","?").replace("%26","&") + '" target="_new"><img src="' + link[i].getAttribute("icon") + '"/>' + link[i].getAttribute("label") + '</a></p>';
+						// load mobile app with url parameters
+					  else
+							linkStr += '<p class="link"><a href="' + window.location.href.replace("indexM", "index") + '" target="_top"><img src="' + link[i].getAttribute("icon") + '"/>Load Desktop Site</a></p>';
 					}
 					linkStr += '<span id="emaillink"></span>';							
 					dom.byId("links").innerHTML = linkStr;
@@ -516,6 +519,22 @@ function createMap() {
 					lods: customLods
 				});
 
+				// added 6-12-18 to be able to download a geopdf
+				previewMap = new Map("printPreviewMap", {
+					extent: initExtent,
+					autoResize: true,
+					showAttribution: false,
+					logo: false,
+					basemap: "streets",
+					sliderStyle: "small",
+					minScale: 9244649,
+					isPan: true,
+					isClickRecenter: true,
+					showInfoWindowOnClick: false,
+					lods: customLods
+				});
+				previewMap.on("extent-change", showPreviewMapScale);
+				
 				// Start up location button
 				document.getElementById("LocateButton").addEventListener("click",init_geo);
 				
@@ -758,8 +777,6 @@ function createMap() {
 		var loadedFlag = false;
 		var level = null;
 		var labelPt = null;
-		var hideGroupSublayers,
-		radioLayers = "";
 		var slsHighlightSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([38, 38, 38, 0.7]), 2);
 		var sms = new SimpleMarkerSymbol();
 		sms.setPath("M21.5,21.5h-18v-18h18V21.5z M12.5,3V0 M12.5,25v-3 M25,12.5h-3M3,12.5H0");
@@ -783,6 +800,12 @@ function createMap() {
 					}
 					geometryService = new GeometryService(geoService);
 					geometryService2 = new GeometryService(geoService);
+					try {
+						printGeoServiceUrl = xmlDoc.getElementsByTagName("printservicegeo")[0].firstChild.nodeValue;
+					} catch (e) {
+						//alert('Missing tag: printservicegeo in ' + app + '/config.xml.\n\nTag should look like: &lt;printservicegeo&gt;http://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting&lt;/printservice&gt;\n\nWill use that url for now.', 'Data Error');
+						printGeoServiceUrl = "http://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting";
+					}
 					var title = app;
 					try {
 						if (xmlDoc.getElementsByTagName("mobile_title")[0])
@@ -828,6 +851,12 @@ function createMap() {
 					}
 					try {
 						findPlaceInit();
+					} catch (e) {
+						alert("Error in javascript/readConfig.js " + e.message, "Code Error", e);
+					}
+					try {
+						// read the PrintPdfWidget.xml file
+						printInit();
 					} catch (e) {
 						alert("Error in javascript/readConfig.js " + e.message, "Code Error", e);
 					}
