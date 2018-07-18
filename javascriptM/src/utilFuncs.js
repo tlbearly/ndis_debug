@@ -15,7 +15,18 @@
 	
 	  //************
 	  // Map Scale
-	  //************
+		//************
+		function setPreviewMapScale(list) {
+			previewMap.setScale(list[list.selectedIndex].value);
+		}
+		
+		function showPreviewMapScale(obj) {
+			if (obj.lod.level == 10) document.getElementById("mapscaleList").selectedIndex = 9;
+			else if (obj.lod.level == 11) document.getElementById("mapscaleList").selectedIndex = 10;
+			else if (obj.lod.level == 12) document.getElementById("mapscaleList").selectedIndex = 10;
+			else if (obj.lod.level == 13) document.getElementById("mapscaleList").selectedIndex = 11;
+			else document.getElementById("mapscaleList").selectedIndex = obj.lod.level;
+		}
 /*	  function showMapScale(obj) {
 		if (obj.lod.level == 10) document.getElementById("mapscaleList").selectedIndex = 9;
 		else if (obj.lod.level == 11) document.getElementById("mapscaleList").selectedIndex = 10;
