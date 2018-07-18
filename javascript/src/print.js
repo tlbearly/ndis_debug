@@ -104,7 +104,7 @@ function printShow(){
 				for (var j=0; j<map_layer.visibleLayers.length; j++)
 					visLayers.push(parseInt(map_layer.visibleLayers[j]));
 				prev_layer = new ArcGISDynamicMapServiceLayer(map_layer.url, {
-					"opacity": map_layer.opacity,
+					"opacity": parseFloat(map_layer.opacity),
 					"id":map_layer.id,
 					"visible": map_layer.visible
 				});
@@ -269,6 +269,10 @@ function printShow(){
 
 function changePrintSize(){
 	require(["esri/geometry/Point","esri/geometry/Extent","esri/SpatialReference","dojo/dom","dijit/registry"],function(Point,Extent,SpatialReference,dom,registry){
+		if (!previewMap || !previewMap.extent) {
+			alert("Please wait for page to load.");
+			return;
+		}
 		document.getElementById("printMapLink").innerHTML = "";
 		document.getElementById("printLegendLink").innerHTML = "";
 		var container = document.getElementById("printPreviewMap");
