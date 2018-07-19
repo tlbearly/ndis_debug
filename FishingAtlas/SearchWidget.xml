@@ -158,7 +158,7 @@
 			<expression>UPPER(FISH_PRESSURE) LIKE UPPER('%[value]%')</expression>
 			<graphicalexpression></graphicalexpression>
 			<searchfield>FISH_PRESSURE</searchfield>
-			<textsearchlabel>Search for:</textsearchlabel>
+			<textsearchlabel>Search for: (Low, Medium, High)</textsearchlabel>
 			<graphicalsearchlabel>Select one of the graphical search tools:</graphicalsearchlabel>
 			<fields>FA_NAME2,BOATING,FISH_PRESSURE,STOCKED,ACCESS_EASE,SURVEY_URL,DRIVING_URL,Illegal_Stocking,ELEV_FT_TXT,COUNTYNAME</fields>
 			<displayfields>Water Body,Boating,Fishing Pressure,Stocked,Ease of Access,Detailed fisheries info,Driving directions,Non-native Species Info,Elevation(ft),County</displayfields>
