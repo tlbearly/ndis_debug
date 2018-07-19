@@ -32,8 +32,8 @@
     <!-- REST endpoint to a GeometryService. This should be a service published by CPW and not pointing at an ESRI service.  Use to convert points to new projections. -->
     <geometryservice url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
     
-    <!-- Mobile download printservicegeo needs to be from same domain or it will not be able to rename the file -->
-	<printservicegeo>https://ndis-flex-2.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting</printservicegeo>
+    <!-- FishingAtas Letter Landscape, etc geopdf files do not exist on ndis-flex-2. Old note: Mobile download printservicegeo needs to be from same domain or it will not be able to rename the file with a download. This did not work on the Android app so this is no longer the case. -->
+	<printservicegeo>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting</printservicegeo>
 	<printservice>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printservice>
 	
 	<!-- Find a Place Service **NEW** -->
