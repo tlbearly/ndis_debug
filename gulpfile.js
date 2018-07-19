@@ -230,7 +230,7 @@ gulp.task('jsM', function(err) {
             './javascriptM/src/geo.js',
             './javascriptM/src/graphicFuncs.js',
             './javascriptM/src/identify.js',
-            //'./javascriptM/src/print.js',
+            './javascriptM/src/print.js',
             './javascriptM/src/readConfig.js',
             './javascriptM/src/search.js',
             './javascriptM/src/swipe.js',
@@ -316,6 +316,14 @@ gulp.task('identifyM', function(err) {
     ], err);
 });
 
+gulp.task('printM', function(err) {
+    pump([
+        gulp.src('./javascriptM/src/print.js'),
+        uglify(),
+        gulp.dest('../javascriptM')
+    ], err);
+});
+
 gulp.task('readConfigM', function(err) {
     pump([
         gulp.src('./javascriptM/src/readConfig.js'),
@@ -380,6 +388,7 @@ gulp.task('hb1298', ['hb1298D', 'hb1298M']);
 gulp.task('identify', ['identifyD', 'identifyM']);
 gulp.task('readConfig', ['readConfigD', 'readConfigM']);
 gulp.task('search', ['searchD', 'searchM']);
+gulp.task('print', ['printD', 'printM']);
 gulp.task('utilFuncs', ['utilFuncsD', 'utilFuncsM']);
 gulp.task('xmlUtils', ['xmlUtilsD', 'xmlUtilsM']);
 gulp.task('toc', ['tocD', 'tocM']);
