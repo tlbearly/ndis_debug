@@ -1,6 +1,7 @@
 // Minify css and js into one file.
 // Goto npmjs.com, click 'Install npm', then click 'download Node.js and npm'.
-// Keep up to date: npm install npm@latest -g
+// Goto https://nodejs.org/en/ and download latest version of node.js click on downloaded file.
+// ***Keep up to date: npm install npm@latest -g
 // npm install --save-dev gulp-css
 // npm install --save-dev gulp-uglify
 // npm install --save-dev gulp-concat
