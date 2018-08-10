@@ -557,6 +557,7 @@ function searchInit() {
 										query.outFields = searchObj[attr].fields.split(",");
 										query.returnGeometry = true;
 										query.outSpatialReference = map.spatialReference;
+										queryTask.requestOptions = {usePost:true}; // force POST instead of GET was failing on Trout: Cutbow
 										queryTask.execute(query, function(results) {
 											if (results.features.length == 0){
 												document.getElementById("searchLoadingImg").style.display="none";
