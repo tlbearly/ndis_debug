@@ -43,18 +43,22 @@ header("Pragma: no-cache");
         <link rel="canonical" href="https://ndis-flex-2.nrel.colostate.edu/">
 
         <!-- CSS files -->
-        <!-- When update esri version download css files also. Put in directory matching the version -->
-        <link rel="stylesheet" type="text/css" href="assets/css/3.23/iphone.css" />
-        <!--Download from: https://js.arcgis.com/3.23compact/dojox/mobile/themes/iphone/iphone.css"/-->
-        <link rel="stylesheet" type="text/css" href="assets/css/3.23/esri.css" />
-        <!--Download from: https://js.arcgis.com/3.23/esri/css/esri.css" /-->
-        <link rel="stylesheet" type="text/css" href="assets/css/3.23/image.css" />
-        <!--Download from: https://js.arcgis.com/3.23compact/dojox/image/resources/image.css"-->  
-        <link rel="stylesheet" href="javascriptM/toc/build/agsjs/css/agsjs.css" />
+        <!-- Because of an error on mobile, When update ESRI version, download css files also. Put in directory matching the version. -->
+        <!-- This is due the error: Uncaught DOMException: Failed to read the 'cssRules' property from 'CSSStyleSheet': Cannot access rules.-->
+        <!-- Replace all occurances of  url("  with  url("https://js.arcgis.com/3.24/dijit/themes/soria/ -->
+        <link rel="stylesheet" type="text/css" href="assets/css/3.24/iphone.css" />
+        <!--Download from: https://js.arcgis.com/3.24compact/dojox/mobile/themes/iphone/iphone.css"/-->
+        <link rel="stylesheet" type="text/css" href="assets/css/3.24/esri.css" />
+        <!--Download from: https://js.arcgis.com/3.24/esri/css/esri.css" /-->
+        <link rel="stylesheet" type="text/css" href="assets/css/3.24/image.css" />
+        <!--Download from: https://js.arcgis.com/3.24compact/dojox/image/resources/image.css"-->  
         <!-- Available themes: claro, tundra, soria, and nihilo.-->
         <!-- Feature Search combo box styles -->
-        <link rel="stylesheet" type="text/css" href="assets/css/3.23/soria.css" />
-        <!--Download from: https://js.arcgis.com/3.23/dijit/themes/soria/soria.css"/-->
+        <link rel="stylesheet" type="text/css" href="assets/css/3.24/soria.css" />
+        <!--Download from: https://js.arcgis.com/3.24/dijit/themes/soria/soria.css"/-->
+        
+        <link rel="stylesheet" href="javascriptM/toc/build/agsjs/css/agsjs.css" />
+        
         <script type="text/javascript">
             // agsjs is for legend/layerlist
             // dojo-firebug and dojo-debug-messages = true is for debugging-->
@@ -89,7 +93,7 @@ header("Pragma: no-cache");
             };
         </script>
         <!-- Load our javascript. If last parameter is true it will load asyncronously. Else the script is fetched and executed immediately. -->
-        <script src="https://js.arcgis.com/3.23compact"></script>
+        <script src="https://js.arcgis.com/3.24compact"></script>
         <!-- Load external javascript files here. -->
         <!--link rel="stylesheet" href="assets/css/layoutM.css?v=3.18"></script>
 		<script type="text/javascript" src="javascriptM/geo.js?v=3.18"></script>
@@ -525,7 +529,7 @@ header("Pragma: no-cache");
     </head>
 
     <body class="soria">
-        <noscript>You must have javascript enabled to run this site. Here are the <a href="http://www.enable-javascript.com/" target="_blank">
+        <noscript>You must have javascript enabled to run this site. Here are the <a href="https://www.enable-javascript.com/" target="_blank">
  instructions how to enable JavaScript in your web browser</a>.</noscript>
         <!-- Map -->
         <div id="mapView">
@@ -553,12 +557,13 @@ header("Pragma: no-cache");
             <div class="discContent mblSimpleDialogText">
                 <div id="disclaimerContent"></div>
                 <p>NOTE: The browser back button is not recommended for this site.</p>
-                <p><label><input id="showDisclaimer" data-dojo-type="dojox/mobile/CheckBox" type="checkbox" class="checkBoxButton" onClick="setCookie('noDisclaimer','1')" />
+                <p><label><input id="showDisclaimer" type="checkbox" class="checkBoxButton" onClick="setCookie('noDisclaimer','1')" />
+                    <!--input id="showDisclaimer" data-dojo-type="dojox/mobile/CheckBox" type="checkbox" class="checkBoxButton" onClick="setCookie('noDisclaimer','1')" /-->
 			  Do not show again. (This is stored in a cookie in your browser history.)</label>
                 </p>
                 <p align="center">
                     <button data-dojo-type="dojox/mobile/Button" type="button" onclick="require(['dijit/registry'],function(registry){registry.byId('disclaimerDialog').hide(); drawing=false;});">Agree</button>
-                    <button data-dojo-type="dojox/mobile/Button" type="button" onclick="loadPage('http://cpw.state.co.us/'); drawing=false;">Disagree</button>
+                    <button data-dojo-type="dojox/mobile/Button" type="button" onclick="loadPage('https://cpw.state.co.us/'); drawing=false;">Disagree</button>
                 </p>
             </div>
         </div>
@@ -625,7 +630,7 @@ header("Pragma: no-cache");
             <h2>Disable Your Pop-up Blocker</h2>
             Print will open PDF file(s) in a new tab. If you have pop-ups disabled you will not see your printout.
             <h2>Requires a PDF Reader</h2>
-            Since the printout is a PDF file, you must have a PDF Reader installed in your browser. Download either <a href="http://get.adobe.com/reader/" target="_blank">Adobe Reader</a> or <a href="http://www.foxitsoftware.com/Secure_PDF_Reader/"
+            Since the printout is a PDF file, you must have a PDF Reader installed in your browser. Download either <a href="https://get.adobe.com/reader/" target="_blank">Adobe Reader</a> or <a href="https://www.foxitsoftware.com/Secure_PDF_Reader/"
                 target="_blank">Foxit Reader</a>.
         </div>
         <!-- Print Dialog -->
@@ -864,7 +869,7 @@ header("Pragma: no-cache");
             <div data-dojo-type="dojox/mobile/ContentPane" style="margin:5px;text-align:left;">
                 <div id="errorMsg"></div>
                 <div id="errorXbtn" style="float:right;display:none;position:absolute;right:1px;top:3px;">
-                    <a href="javascript:closeAlert();"><img src="https://js.arcgis.com/3.23compact/esri/dijit/images/whitex.png" class="btn" /></a>
+                    <a href="javascript:closeAlert();"><img src="https://js.arcgis.com/3.24compact/esri/dijit/images/whitex.png" class="btn" /></a>
                 </div>
             </div>
         </div>
