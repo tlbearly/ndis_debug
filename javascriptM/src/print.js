@@ -89,7 +89,7 @@ function scrollBarMove() {
 	var move = (document.getElementById('previewContainer').scrollLeft / parseInt(previewMap.width+10)) * parentWidth+document.getElementById('previewContainer').scrollLeft+5+"px";
 	document.getElementById('scroll1').style.left=move;
 	document.getElementById('scroll2').style.left=move;
-	console.log("move bar:"+move);
+	//console.log("move bar:"+move);
 }
 
 function printScrollDown(){
@@ -206,13 +206,14 @@ function printShow(){
 					processedLayers++;
 					var visLayers = layer.visibleLayers;
 					var layerInfos = layer.layerInfos;
+					var m;
 					// add hidden group ids
 					for (j=0; j<layer.visibleLayers.length; j++) {
 						k=layer.visibleLayers[j];
 						do {
 							// Add hidden group sublayers for all levels
 							if (hideGroupSublayers.indexOf(layerInfos[k].name) > -1 && layerInfos[k].subLayerIds) {
-								for (var m=0; m<layerInfos[k].subLayerIds.length; m++){
+								for (m=0; m<layerInfos[k].subLayerIds.length; m++){
 									if (visLayers.indexOf(layerInfos[k].subLayerIds[m]) == -1)
 										visLayers.push(layerInfos[k].subLayerIds[m]);
 									// handle GMUs they are not always an offset of 1
@@ -276,7 +277,7 @@ function printShow(){
 						if (pos > -1 && layerInfos[m].subLayerIds)
 							visLayers.splice(pos,1); // remove 1 item at index pos
 					}								
-					layer.setVisibleLayers(visLayers.sort(function(a,b){return a-b}), false);
+					layer.setVisibleLayers(visLayers.sort(function(a,b){return a-b;}), false);
 					layer.refresh();
 					layer.spatialReference=sr;
 					
@@ -299,15 +300,15 @@ function printShow(){
 		
 		
 		// add draw graphics layers
+		var graphics_layer, arr;
 		for (i=0; i<map.graphicsLayerIds.length; i++){
 			if ((map.graphicsLayerIds[i].indexOf("drawgraphics")>-1) ||
 				(map.graphicsLayerIds[i].indexOf("drawtextgraphics")>-1)){
-				var graphics_layer = new GraphicsLayer();
+				graphics_layer = new GraphicsLayer();
 				graphics_layer.id = map.graphicsLayerIds[i];
 				graphics_layer.visible=true;
 				graphics_layer.spatialReference = previewMap.spatialReference;
 				var graphics = map.getLayer(map.graphicsLayerIds[i]).graphics;
-				var arr;
 				for (var a=0; a<graphics.length; a++){
 					arr = new Graphic(graphics[a].geometry,graphics[a].symbol,graphics[a].attributes,graphics[a].infoTemplate);
 					graphics_layer.add(arr);
@@ -319,11 +320,10 @@ function printShow(){
 			}
 		}
 		// add hb1298 points
-		if (typeof hb1298GraphicsLayer != "undefined") {
-			var graphics_layer = new GraphicsLayer();
+		/*if (typeof hb1298GraphicsLayer != "undefined") {
+			graphics_layer = new GraphicsLayer();
 			graphics_layer.visible=true;
 			graphics_layer.spatialReference = previewMap.spatialReference;
-			var arr;
 			for (var a=0; a<hb1298GraphicsLayer.graphics.length; a++){
 				arr = new Graphic(graphics[a].geometry,graphics[a].symbol,graphics[a].attributes,graphics[a].infoTemplate);
 				graphics_layer.add(arr);
@@ -332,7 +332,7 @@ function printShow(){
 			previewMap.addLayer(graphics_layer);
 			graphics_layer = null;
 			graphics=null;
-		}
+		}*/
 		
 		previewMap.spatialReference = sr;
 
@@ -363,11 +363,11 @@ function changePrintSize(){
 		//document.getElementById("printLegendLink").innerHTML = "";
 		var container = document.getElementById("printPreviewMap");
 		var orient = dom.byId("orient");
-		var selectedValue_orient = orientCombo.attr("displayedValue");;
+		var selectedValue_orient = orientCombo.attr("displayedValue");
 		var size = dom.byId("size");
 		var selectedValue_size = sizeCombo.attr("displayedValue")+" ";
 		if (selectedValue_size == "8.5 x 11 ") selectedValue_size = "Letter ";
-			if (selectedValue_size == "11 x 17 ") selectedValue_size = "Tabloid ";
+		else	if (selectedValue_size == "11 x 17 ") selectedValue_size = "Tabloid ";
 		var pt = previewMap.extent.getCenter();
 		var level = previewMap.getLevel();
 		
@@ -439,11 +439,16 @@ function changePrintSize(){
 		root.style.height = previewMap.height+"px";
 		container.style.width = previewMap.width+"px";
 		container.style.height = previewMap.height+"px";
-		if (document.getElementById("previewContainer").offsetWidth > previewMap.width)
-			document.getElementById("previewContainer").style.width = previewMap.width+"px";
+		
+		if (document.getElementById("previewContainer").offsetWidth > previewMap.width || document.getElementById("previewContainer").offsetWidth == 0)
+			document.getElementById("previewContainer").style.width = previewMap.width+10+"px";
+		else if (parseInt(document.getElementById("printPreviewMap").style.width) > parseInt(document.getElementById("previewContainer").style.width))
+			document.getElementById("previewContainer").style.width = previewMap.width+10+"px";
 		else
-			document.getElementById("previewContainer").style.width = document.body.clientWidth * .80+"px";
-		//document.getElementById("print_scroll").style.width = previewMap.width+"px";
+			document.getElementById("previewContainer").style.width = document.body.clientWidth * 0.80+"px";
+		if (parseInt(document.body.clientWidth * 0.80) < parseInt(document.getElementById("previewContainer").style.width))
+			document.getElementById("previewContainer").style.width = document.body.clientWidth * 0.80 + "px";
+			//document.getElementById("print_scroll").style.width = previewMap.width+"px";
 		// Adjust size of scroll bar for mobile preview map
 		var parentWidth = document.body.clientWidth;
 		if (parentWidth > parseInt(document.getElementById("previewContainer").style.maxWidth))
@@ -455,6 +460,17 @@ function changePrintSize(){
 		document.getElementById('scroll2').style.width =  parseInt((parentWidth / (previewMap.width+10)) * parentWidth) -20 +"px";
 		document.getElementById('scroll1').style.left="5px";
 		document.getElementById('scroll2').style.left="5px";
+		// Hide custom scroll bars if not needed
+		if ((parseInt(document.getElementById('printPreviewMap').style.width) > parseInt(document.getElementById('previewContainer').style.width)) ||
+			(parseInt(document.getElementById('printPreviewMap').style.width) > parseInt(document.getElementById('previewContainer').style.maxWidth)))
+		{
+			document.getElementById('scroll1').style.display="block";
+			document.getElementById('scroll2').style.display="block";
+		}
+		else {
+			document.getElementById('scroll1').style.display="none";
+			document.getElementById('scroll2').style.display="none";
+		}
 //console.log("parent width: "+parentWidth+"   scroll width: "+document.getElementById('scroll1').style.width);
 //console.log("map width:    "+parseInt(previewMap.width+10));
 		// first time it is -1, but it is set to main map, just not available yet.
@@ -489,7 +505,8 @@ function printMap(){
       PrintTask, PrintTemplate, PrintParameters,
       urlUtils, esriConfig, Graphic, Point,
       LegendLayer, GraphicsLayer, dom, registry) {
-	    try{
+			var pointWithText;
+			try{
 				//if (document.getElementById("pdf_name").value == ""){
 				//	document.getElementById("pdf_name").classList.add("error");
 				//	document.getElementById("pdf_name").placeholder = "Please enter a file name."
@@ -520,7 +537,7 @@ function printMap(){
 			var mvum=false;
 			document.getElementById("printMapLink").innerHTML = "";
 			//document.getElementById("printLegendLink").innerHTML = "";
-			var pointWithText = 0; // we need to add a layer to the map because of a bug in PrintTask, set this flag so we can remove it.
+			pointWithText = 0; // we need to add a layer to the map because of a bug in PrintTask, set this flag so we can remove it.
 			// get legend layers
 			var layer = previewMap.getLayersVisibleAtScale();
 			var legendArr = [];
@@ -689,7 +706,7 @@ function printMap(){
 			printTask.execute(params, printResult, printError);
 		}
 		catch(e){
-			for (var i=0; i<pointWithText; i++) removeDrawItem(); // remove extra text layer added for points with text because of bug in PrintTask
+			for (var j=0; j<pointWithText; j++) removeDrawItem(); // remove extra text layer added for points with text because of bug in PrintTask
 			alert("Error while printing: "+e.message,"Code Error",e);
 			document.getElementById("printLoading").style.display="none";
 			document.getElementById("printInst").style.display="none";
