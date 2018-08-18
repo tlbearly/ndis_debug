@@ -121,8 +121,8 @@ function printShow(){
 		document.getElementById("mapscale").style.display="inline";
 		document.getElementById("orientLabel").style.display="inline";
 		document.getElementById("orient").style.display="inline-table";
-		//document.getElementById("pdf_name_label").style.display="block";
-		//document.getElementById("pdf_name").style.display="block";
+		document.getElementById("pdf_name_label").style.display="block";
+		document.getElementById("pdf_name").style.display="block";
 		document.getElementById("previewContainer").style.display="block";
 		document.getElementById("previewTitle").style.display="block";
 		document.getElementById("scrollUpBtn").style.display="block";
@@ -507,12 +507,12 @@ function printMap(){
       LegendLayer, GraphicsLayer, dom, registry) {
 			var pointWithText;
 			try{
-				//if (document.getElementById("pdf_name").value == ""){
-				//	document.getElementById("pdf_name").classList.add("error");
-				//	document.getElementById("pdf_name").placeholder = "Please enter a file name."
-				//	return;
-				//}
-				//else {
+				if (document.getElementById("pdf_name").value == ""){
+					document.getElementById("pdf_name").classList.add("error");
+					document.getElementById("pdf_name").placeholder = "Please enter a file name."
+					return;
+				}
+				else {
 					document.getElementById("print_button").style.display="none";
 					document.getElementById("printLoading").style.display="inline-block";
 					document.getElementById("printInst").style.display="inline-block";
@@ -524,13 +524,13 @@ function printMap(){
 					document.getElementById("mapscale").style.display="none";
 					document.getElementById("orientLabel").style.display="none";
 					document.getElementById("orient").style.display="none";
-					//document.getElementById("pdf_name_label").style.display="none";
-					//document.getElementById("pdf_name").style.display="none";
+					document.getElementById("pdf_name_label").style.display="none";
+					document.getElementById("pdf_name").style.display="none";
 					document.getElementById("previewContainer").style.display="none";
 					document.getElementById("previewTitle").style.display="none";
 					document.getElementById("scrollUpBtn").style.display="none";
 					document.getElementById("scrollDownBtn").style.display="none";
-				//}
+				}
 			var done=true;
 			//var printLegendFlag = dom.byId("printLegendCB").style.display=="inline-block" ? true : false; // Is the legend checkbox displayed?
 			//if (!printLegendFlag) done=true; // turn off wait icon after printing map; don't wait for legend to print
@@ -593,9 +593,14 @@ function printMap(){
 			done=true; // no legend
 			legendTemplate="none";
 			template.format="pdf";
+			var outputName = document.getElementById("pdf_name").value;
+			if (outputName.substr(outputName.length-4) == ".pdf")
+				outputName = outputName.substr(0,outputName.length-4);
+			alert(outputName);
 			params.extraParameters = {
 				Georef_Info : "True",
-				Legend_Template: legendTemplate
+				Legend_Template: legendTemplate,
+				Output_Name: outputName
 			};
 			
 			// Geo referenced pdf, jpg, gif, or geo referenced tiff

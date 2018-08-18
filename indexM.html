@@ -692,8 +692,8 @@ header("Pragma: no-cache");
                               <option style="text-align:right" value="1128">1,128</option-->
                           </select></span>
                     <br/><br/>
-                    <!-- Remove pdf file name because download on an a tag does not working inside Android App. It does not download anything! -->
-                    <!--label id="pdf_name_label" for="pdf_name">PDF File Name:</label> <input id="pdf_name" style="color:#333;width:200px;margin:auto;" type="text" required/>
+                    <!-- "download" on an an href tag does not working inside Android App. It does not download anything! So I modified georefPrinting.py to except another parameter -->
+                    <label id="pdf_name_label" for="pdf_name">PDF File Name:</label> <input id="pdf_name" style="color:#333;width:200px;margin:auto;" type="text" required/>
                     <br/><br/-->
                     <!--label for="format">Format:</label> <select id="format" onchange="grayOutLegend(this)">
                         <option value="pdf">PDF</option> 
