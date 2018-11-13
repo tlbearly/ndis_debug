@@ -116,7 +116,6 @@ function displayLocation(position) {
 			if (!lastPoint) map.centerAndZoom(pt, 7); // zoom in on start 4-19-17 Updated lods used to be 13.
 			locGraphicsLayer.add(new Graphic(pt, locSymbol));
 			lastPoint = pt;
-			//alert("Location tracking is ON displayLocation","",null,false,true,2000);
 		}
 		catch(e){
 			// Set locate button to start tracking image
@@ -192,11 +191,10 @@ function init_geo()
 			{
 				navigator.geolocation.clearWatch(wpid);
 				wpid=false;
-				//alert("Location tracking is ON","",null,false,true,2000);
 			}
 			else // Else...We should only ever get here when location button has been toggled on
 			{
-				alert("Location tracking is ON","",null,false,true,2000);
+				//alert("Location tracking is ON","",null,false,true,2000);
 				get_pos();
 			}
 		}
@@ -206,7 +204,7 @@ function init_geo()
 			document.getElementById("LocateButton").className="";
 			navigator.geolocation.clearWatch(wpid);
 			wpid=false;
-			alert("Location tracking is OFF","",null,false,true,2000);
+			//alert("Location tracking is OFF","",null,false,true,2000);
 			if (locGraphicsLayer)
 				locGraphicsLayer.clear();
 		}
