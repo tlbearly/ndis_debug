@@ -409,7 +409,9 @@
 			  }
 	          // For Android, don't show the infoWindow twice. If this is a way point it is only called once.
 	          else if ((navigator.userAgent.indexOf('Android') != -1) && (map.infoWindow._title.innerHTML == "" ||
-	                  map.infoWindow._title.innerHTML == "No Information")) evt.stopImmediatePropagation();
+				map.infoWindow._title.innerHTML == "No Information")) {
+				   evt.stopImmediatePropagation(); // Somehow it was getting here and evt was null.
+			  }
 
 			  // reset Way Point flag 4-9-18 fixes bug of info window not showing when click on two way points with same name or same way point in a row.
 			  // set wayPt to true in wayPoints.js when a way point graphic is clicked on.
