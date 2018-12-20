@@ -216,7 +216,7 @@
 			<!-- Campground  -->
 			<layer label="Campground">
 	    	 	<id>47</id>
-	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
 	           	<geometry>point</geometry>
 		      	<fields>Name,Manager,CGPropertyName,CGReservable,URL1</fields>
 	    	  	<displaynames>Name,Manager,Property Name,Reservable,More Information</displaynames>
@@ -227,7 +227,7 @@
 			<!-- Emergency -->
 			<layer label="Emergency">
 	      		<id>25</id>
-	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
            		<geometry>point</geometry>
 	      		<fields>Name,Address,City,Phone</fields>
 	      		<displaynames>Name,Address,City,Phone</displaynames>
@@ -235,7 +235,7 @@
 			<!-- Field Office -->
 			<layer label="Field Office">
 	      		<id>14</id>
-	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
            		<geometry>point</geometry>
 	      		<fields>Name,Address,City,Phone</fields>
 	      		<displaynames>Name,Address,City,Phone</displaynames>
@@ -243,7 +243,7 @@
 			<!-- Chamber of Commerce or Welcome Center -->
 			<layer label="Chamber of Commerce or Welcome Center">
 	      		<id>36</id>
-	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
            		<geometry>point</geometry>
 	      		<fields>Name,Address,City,Phone</fields>
 	      		<displaynames>Name,Address,City,Phone</displaynames>

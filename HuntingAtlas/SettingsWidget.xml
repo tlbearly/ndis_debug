@@ -121,9 +121,9 @@
 	<use_gmus>true</use_gmus>
 	<gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/2</gmu_url>
 	<gmu_field>GMUID</gmu_field>
-	<sheep_gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/79</sheep_gmu_url>
+	<sheep_gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/79</sheep_gmu_url>
 	<sheep_gmu_field>BSGMU</sheep_gmu_field>
-	<goat_gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/80</goat_gmu_url>
+	<goat_gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/80</goat_gmu_url>
 	<goat_gmu_field>MGGMU</goat_gmu_field>
 		
 	<driving_directions>true</driving_directions>
@@ -137,7 +137,7 @@
 				<id>3</id>
 				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
         <vis_id>99</vis_id>
-				<vis_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</vis_url>
+				<vis_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</vis_url>
         <geometry>polygon</geometry>
 		    <fields>PropName</fields>
 		   	<displaynames>CPW Property Name</displaynames>
@@ -147,7 +147,7 @@
 		   	<id>4</id>
 	     	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
 				<vis_id>100</vis_id>
-	     	<vis_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</vis_url>
+	     	<vis_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</vis_url>
       	<geometry>polygon</geometry>
 		   	<fields>NAME,MANAGER</fields>
 		   	<displaynames>Property Name,Land Manager</displaynames>
@@ -168,7 +168,7 @@
 			<!--
 			<layer label="Small Game ONLY">
 				<id>97</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
 				<geometry>polygon</geometry>
 				<fields>COVER,URL</fields>
 				<displaynames>Cover,CPW Walk-in website</displaynames>
@@ -178,7 +178,7 @@
 			<!--
 			<layer label="Small Game AND Big Game">
 				<id>98</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
 				<geometry>polygon</geometry>
 				<fields>COVER,URL</fields>
 				<displaynames>Cover,CPW Walk-in website</displaynames>
@@ -217,7 +217,7 @@
 			<!-- Campground  -->
 			<layer label="Campground">
 	    	<id>47</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
 				<geometry>point</geometry>
 				<fields>Name,Manager,CGPropertyName,CGReservable,URL1</fields>
 				<displaynames>Name,Manager,Property Name,Reservable,More Information</displaynames>
@@ -225,7 +225,7 @@
 			<!-- Emergency -->
 			<layer label="Emergency">
 				<id>25</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
 				<geometry>point</geometry>
 				<fields>Name,Address,City,Phone</fields>
 				<displaynames>Name,Address,City,Phone</displaynames>
@@ -233,7 +233,7 @@
 			<!-- Field Office -->
 			<layer label="Field Office">
 				<id>14</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
 				<geometry>point</geometry>
 				<fields>Name,Address,City,Phone</fields>
 				<displaynames>Name,Address,City,Phone</displaynames>
@@ -241,7 +241,7 @@
 			<!-- Chamber of Commerce or Welcome Center -->
 			<layer label="Chamber of Commerce or Welcome Center">
 				<id>36</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
 				<geometry>point</geometry>
 				<fields>Name,Address,City,Phone</fields>
 				<displaynames>Name,Address,City,Phone</displaynames>
@@ -249,7 +249,7 @@
 			<!-- License Agent  -->
 			<layer label="License Agent">
 				<id>3</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</url>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
 				<geometry>point</geometry>
 				<fields>Name,Address,City,Phone</fields>
 				<displaynames>Name,Address,City,Phone</displaynames>
