@@ -528,12 +528,17 @@ function createMap() {
 					basemap: "streets",
 					sliderStyle: "small",
 					minScale: 9244649,
-					isPan: true,
+					navigationMode:"classic",
+					//disableMapNavigation: true,
+					isPan: false,
 					isClickRecenter: true,
+					//isDoubleClickZoom: false,
+					//isRubberBandZoom: false,
 					showInfoWindowOnClick: false,
 					lods: customLods
-				});
-				previewMap.on("extent-change", showPreviewMapScale);
+				});		
+				// previewMap extent cannot be changed by the user 
+				//previewMap.on("extent-change", showPreviewMapScale);
 				
 				// Start up location button
 				document.getElementById("LocateButton").addEventListener("click",init_geo);
@@ -563,6 +568,17 @@ function createMap() {
 							if (layer.layers[i].error) {
 								errFlag = true;
 								alert("Problem loading layer: " + layer.layers[i].layer.url + ". " + layer.layers[i].error.message + ". At javascript/readConfig.js");
+							}
+							// Turn off MVUM extra layers
+							else if (layer.layers[i].layer.url.indexOf("MVUM") > -1){
+								for (j = 0; j < layer.layers[i].layer.layerInfos.length; j++) {
+									if (layer.layers[i].layer.layerInfos[j].name == "Visitor Map Symbology") {
+										layer.layers[i].layer.layerInfos[j].defaultVisibility = false;
+									}
+									else if (layer.layers[i].layer.layerInfos[j].name =="Status") {
+										layer.layers[i].layer.layerInfos[j].defaultVisibility = false;
+									}
+								}
 							}
 						}
 						if (!errFlag) {}
@@ -594,7 +610,7 @@ function createMap() {
 						// Goto current location if no user specified place was found on the URL. 6-28-17
 						if (!queryObj.extent && !queryObj.place && !queryObj.keyword && !queryObj.map && navigator.geolocation) {
 							init_geo(); // uses code in geo.js
-							alert("Location tracking is ON","",null,false,true,2000);
+							//alert("Location tracking is ON","",null,false,true,2000);
 						}
 						if (labelPt && queryObj.label && queryObj.label != "") {
 							require(["esri/geometry/Point", "esri/graphicsUtils", "esri/geometry/Extent", "esri/layers/GraphicsLayer", "esri/graphic", "esri/symbols/PictureMarkerSymbol"], function (Point, graphicsUtils, Extent, GraphicsLayer, Graphic, PictureMarkerSymbol) {
