@@ -1147,6 +1147,17 @@ function readConfig() {
 									errFlag = true;
 									alert("Problem loading layer: " + layer.layers[i].layer.url + ". " + layer.layers[i].error.message + ". At javascript/readConfig.js", "Code Error");
 								}
+								// Turn off MVUM extra layers
+								else if (layer.layers[i].layer.url.indexOf("MVUM") > -1){
+									for (j = 0; j < layer.layers[i].layer.layerInfos.length; j++) {
+										if (layer.layers[i].layer.layerInfos[j].name == "Visitor Map Symbology") {
+											layer.layers[i].layer.layerInfos[j].defaultVisibility = false;
+										}
+										else if (layer.layers[i].layer.layerInfos[j].name =="Status") {
+											layer.layers[i].layer.layerInfos[j].defaultVisibility = false;
+										}
+									}
+								}
 							}
 							if (!errFlag) {
 								readSettingsWidget(); // initialize Identify, found in identify.js
