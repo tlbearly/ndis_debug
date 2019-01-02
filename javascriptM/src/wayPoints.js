@@ -28,40 +28,6 @@ function wayPointInit(){
 	});
 }
 function safeInput(txtBox) {
-	/*var ch=["~","|",";","#","^","%","\\","&"];
-	var msg="",count=0;
-	for (var i=0; i<ch.length; i++) {
-		if (txtBox.value.indexOf(ch[i])>-1){
-			switch (ch[i]) {
-				case "&":
-					txtBox.value=txtBox.value.replace(/&/g,"and");
-					break;
-				case "~":
-					txtBox.value=txtBox.value.replace(/~/g,"");
-					break;
-				case "|":
-					txtBox.value=txtBox.value.replace(/\|/g,"");
-					break;
-				case ";":
-					txtBox.value=txtBox.value.replace(/;/g,"");
-					break;
-				case "#":
-					txtBox.value=txtBox.value.replace(/#/g,"");
-					break;
-				case "^":
-					txtBox.value=txtBox.value.replace(/\^/g,"");
-					break;
-				case "%":
-					txtBox.value=txtBox.value.replace(/%/g,"");
-					break;
-				case "\\":
-					txtBox.value=txtBox.value.replace(/\\/g,"");
-					break;
-			}
-			msg += ch[i]+" ";
-			count++;
-		}
-	}*/
 	txtBox.value=txtBox.value.replace(/\"/g,"``");// encode "
 	txtBox.value=txtBox.value.replace(/\'/g,"`");// encode '
 	txtBox.value=txtBox.value.replace(/;/g,"");
@@ -72,12 +38,6 @@ function safeInput(txtBox) {
 	txtBox.value=txtBox.value.replace(regexp,""); // clean it
 	txtBox.value=txtBox.value.replace(/newline/g,"\n"); // preserve new line charactersS
 	return txtBox.value;
-	/*if (count>1)
-		alert(msg+"are not allowed. They were removed.","Note");
-	else if (count==1)
-		alert(msg+"is not allowed. It was removed.","Note");
-	if (count== 0) return true;
-	else return false;*/
 }
 function resizeTextBox(txtBox) {
 	// Make the Way Point popup have an expanding text box
