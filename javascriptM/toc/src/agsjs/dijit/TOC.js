@@ -118,7 +118,7 @@ define("agsjs/dijit/TOC",
 	  }*/
 	  
 	  // tlb this is a sub-layer that should be hidden if it's parent's, grandparent's, or great-grandparent's name is found in hideGroupSublayers array
-	  if (this.hiddenIds[this.rootLayerTOC.config.title] == null) this.hiddenIds[this.rootLayerTOC.config.title] = new Array();// tlb
+	  if (this.hiddenIds[this.rootLayerTOC.config.title] == null) this.hiddenIds[this.rootLayerTOC.config.title] = [];// tlb
 	  var hiddenLayer = false;
 	  if (this.rootLayerTOC.config.hideGroupSublayers) {
 		// parent
@@ -170,7 +170,7 @@ define("agsjs/dijit/TOC",
           node: this.containerNode,
           showFunc: coreFx.wipeIn,
           hideFunc: coreFx.wipeOut
-        })
+        });
       }
       if (!this._noCheckNode) {
         // typically _noCheckNode means it is a tiledlayer, or legend item that should not have a checkbox
@@ -446,7 +446,7 @@ define("agsjs/dijit/TOC",
               legs.unshift({
                 label: '[all other values]',
                 symbol: r.defaultSymbol
-              })
+              });
             }
             var af = r.attributeField + (r.normalizationField ? '/' + r.normalizationField : '');
             af += (r.attributeField2 ? '/' + r.attributeField2 : '') + (r.attributeField3 ? '/' + r.attributeField3 : '');
@@ -604,7 +604,7 @@ define("agsjs/dijit/TOC",
      */
     _createChildrenNodes: function(chdn, type){
       // ---tlb--- Insert Legend for MVUM---
-	  if (this.rootLayer.id == "Motor Vehicle Use Map")
+	  /*if (this.rootLayer.id == "Motor Vehicle Use Map")
 	  {	
 		var MVUMimg = domConstruct.create("img", {src: "assets/images/USFS_MVUM_legend_small.png"}, this.containerNode);
 		domStyle.set(MVUMimg, {
@@ -613,7 +613,7 @@ define("agsjs/dijit/TOC",
 			'display': 'inline-block'
 		});
 		return;
-	  }
+	  }*/
 	  // --- tlb end ---	
 		
 	  this.rootLayerTOC._currentIndent++;
@@ -796,7 +796,7 @@ define("agsjs/dijit/TOC",
 			for (var k=0; k<this.rootLayerTOC.tocWidget._rootLayerTOCs.length; k++)
 			  if (this.rootLayerTOC.tocWidget._rootLayerTOCs[k].config.title == "Hunter Reference") {
 				this.rootLayerTOC.tocWidget._rootLayerTOCs[k].rootLayer.setVisibleLayers(this.rootLayerTOC.tocWidget._rootLayerTOCs[k]._rootLayerNode._getVisibleLayers(), true);
-				this.rootLayerTOC.tocWidget._rootLayerTOCs[k]._rootLayerNode.rootLayerTOC._refreshLayer()
+				this.rootLayerTOC.tocWidget._rootLayerTOCs[k]._rootLayerNode.rootLayerTOC._refreshLayer();
 				this.rootLayerTOC.tocWidget._rootLayerTOCs[k]._rootLayerNode.rootLayerTOC._adjustToState();
 				break;
 			  }
@@ -957,8 +957,7 @@ define("agsjs/dijit/TOC",
         this.rootLayer.show();
       }*/
       return vis;
-    }
-    , _findTOCNode: function(layerId){
+    }, _findTOCNode: function(layerId){
       if (this.serviceLayer && this.serviceLayer.id == layerId) {
         return this;
       }
@@ -1027,6 +1026,13 @@ define("agsjs/dijit/TOC",
     },
     _processLegendError: function(err){
       this._createRootLayerTOC();
+      var map = err.message.substring(err.message.toLowerCase().indexOf("services/")+9,err.message.toLowerCase().indexOf("/mapserver"));
+      if (err.message.indexOf("HunterBase")>-1) map="Hunter Reference";
+      else if (err.message.indexOf("MVUM")>-1) map="MVUM";
+      else if (err.message.indexOf("GameSpecies")>-1) map="Game Species";
+      else if (err.message.indexOf("AnglerBase")>-1) map="Fishing Reference";
+      else if (err.message.indexOf("AnglerMain")>-1) map="Fishing Info";
+      alert("Problem loading "+map+" map. Please reload "+app,"Data Error");
     },
     _processLegendInfo: function(json){
       this._legendResponse = json;
