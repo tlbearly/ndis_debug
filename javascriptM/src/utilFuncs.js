@@ -11,21 +11,44 @@
 		parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousands_sep);
 
 		return parts.join(dec_point);
-	}
+	};
 	
 	  //************
 	  // Map Scale
 		//************
 		function setPreviewMapScale(list) {
-			previewMap.setScale(list[list.selectedIndex].value);
+			var scale=list.value;
+			previewMap.setScale(scale).then(function(){
+				changePrintSize(true);
+			});
+			/*	previewMap.setScale(scale);
+			setTimeout(function(){
+				changePrintSize(true);
+			},500);
+			*/
 		}
 		
 		function showPreviewMapScale(obj) {
-			if (obj.lod.level == 10) document.getElementById("mapscaleList").selectedIndex = 9;
-			else if (obj.lod.level == 11) document.getElementById("mapscaleList").selectedIndex = 10;
-			else if (obj.lod.level == 12) document.getElementById("mapscaleList").selectedIndex = 10;
-			else if (obj.lod.level == 13) document.getElementById("mapscaleList").selectedIndex = 11;
-			else document.getElementById("mapscaleList").selectedIndex = obj.lod.level;
+			// map level 10 is map scale 9027,
+			// map level 11 is map scale 4513
+			// map level 12 is map scale 2256
+			// map level 13 is map scale 1128
+			//
+			if (obj.lod.level >= 9) dijit.byId("mapscaleList").set("displayedValue","10k");
+			else if (obj.lod.level >= 8) dijit.byId("mapscaleList").set("displayedValue","24k");
+			else if (obj.lod.level >= 7) dijit.byId("mapscaleList").set("displayedValue","50k");
+			else if (obj.lod.level >= 6) dijit.byId("mapscaleList").set("displayedValue","100k");
+			else if (obj.lod.level >= 5) dijit.byId("mapscaleList").set("displayedValue","250k");
+			else if (obj.lod.level >= 4) dijit.byId("mapscaleList").set("displayedValue","500k");
+			else if (obj.lod.level >= 3) dijit.byId("mapscaleList").set("displayedValue","1M");
+			else if (obj.lod.level >= 2) dijit.byId("mapscaleList").set("displayedValue","2M");
+			else if (obj.lod.level >= 1) dijit.byId("mapscaleList").set("displayedValue","4M");
+			else dijit.byId("mapscaleList").set("displayedValue","9M");
+			//if (obj.lod.level == 10) document.getElementById("mapscaleList").selectedIndex = 9;
+			//else if (obj.lod.level == 11) document.getElementById("mapscaleList").selectedIndex = 10;
+			//else if (obj.lod.level == 12) document.getElementById("mapscaleList").selectedIndex = 10;
+			//else if (obj.lod.level == 13) document.getElementById("mapscaleList").selectedIndex = 11;
+			//else document.getElementById("mapscaleList").selectedIndex = obj.lod.level;
 		}
 /*	  function showMapScale(obj) {
 		if (obj.lod.level == 10) document.getElementById("mapscaleList").selectedIndex = 9;
@@ -88,8 +111,8 @@
 		// Convert a decimal degree point to degrees, minutes, seconds. 
 		// Return an array of latitude = arr[0] = 40° 30' 2.12345", longitude = arr[1]= 103° 25' 33.1122"
 		// if leadingZero is true add 0 to left of min and sec
-		var lonAbs = Math.abs(Math.round(ddPoint.x * 1000000.));
-		var latAbs = Math.abs(Math.round(ddPoint.y * 1000000.));
+		var lonAbs = Math.abs(Math.round(ddPoint.x * 1000000.0));
+		var latAbs = Math.abs(Math.round(ddPoint.y * 1000000.0));
 		var degY = Math.floor(latAbs / 1000000) + '° ';
 		var minY = Math.floor(  ((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60)  + '\' ';
 		var secY = Math.floor( Math.floor(((((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60) - Math.floor(((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60)) * 100000) *60/100000 ) + '"'; // latitude
@@ -121,8 +144,8 @@
 		// Convert a decimal degree point to degrees, decimal minutes.
 		// Return an array of latitude = arr[0] = 40° 30.12345', longitude = arr[1]= 103° 25.24567'
 		// if leadingZero is true add 0 to left of min and sec
-		var lonAbs = Math.abs(Math.round(ddPoint.x * 1000000.));
-		var latAbs = Math.abs(Math.round(ddPoint.y * 1000000.));
+		var lonAbs = Math.abs(Math.round(ddPoint.x * 1000000.0));
+		var latAbs = Math.abs(Math.round(ddPoint.y * 1000000.0));
 		var degY = Math.floor(latAbs / 1000000) + '° ';
 		//var minY = Math.floor(  ((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60)  + '\' '; // truncate minutes
 		var minY = (((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60).toFixed(5)  + '\' '; // decimal minutes
@@ -148,7 +171,7 @@
 		// array[2] is label in deg, min, sec as: 40° 30' 20.44" N, 104° 20' 5" W 
 		// or in degrees, decimal minutes as: 40° 30.1' N, 104° 20.01' W
 		var pos,pos2,pointX,pointY;
-		var arr = new Array();
+		var arr = [];
 		pointY = str.substring(0,str.indexOf(","));
 		pointX = str.substring(str.indexOf(",")+1,str.length);
 		pos = pointX.indexOf(":");
@@ -170,7 +193,7 @@
 		var minX;
 
 		// if Seconds. Check if dms or degrees decimal minutes
-		pos2 = pointX.substring(pos+1).indexOf(":")
+		pos2 = pointX.substring(pos+1).indexOf(":");
 		if (pos2 > -1) {
 			minX = Number(pointX.substr(pos+1, pos2));
 			secX = Number(pointX.substring(pos+pos2+2));
@@ -189,7 +212,7 @@
 		var minY;
 
 		// if Seconds. Check if dms or degrees decimal minutes
-		pos2 = pointY.substring(pos+1).indexOf(":")
+		pos2 = pointY.substring(pos+1).indexOf(":");
 		if (pos2 > -1) {
 			minY = Number(pointY.substr(pos+1, pos2));
 			secY = Number(pointY.substring(pos+pos2+2));
@@ -300,7 +323,7 @@
 		},2000);
 		// gray out clear button
 		if (searchGraphicsCount.length == 0) {
-			document.getElementById("findClear").style.opacity = .2;
+			document.getElementById("findClear").style.opacity = 0.2;
 			document.getElementById("findClear").style.filter = "alpha(opacity=20)";
 		}
 	}
@@ -329,7 +352,7 @@
 			try {
 				localStorage = window.localStorage;
 			} catch (e) {
-				alert("Your browser doesn't accept cookies. Failed to read user preferences and bookmarks. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
+				//alert("Your browser doesn't accept cookies. Failed to read user preferences and bookmarks. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
 				return "";
 			}
 			try {
@@ -338,7 +361,7 @@
 				else return result;
 			}
 			catch(e){
-				alert("Your browser doesn't accept cookies. Failed to read user preferences and bookmarks. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
+				//alert("Your browser doesn't accept cookies. Failed to read user preferences and bookmarks. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
 				return "";
 			}
 		}
@@ -352,7 +375,7 @@
 			try {
 				localStorage = window.localStorage;
 			} catch (e) {
-				alert("Your browser doesn't accept cookies. Failed to set user preferences or bookmarks. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
+				//alert("Your browser doesn't accept cookies. Failed to set user preferences or bookmarks. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
 				return "";
 			}
 			try{
@@ -364,8 +387,8 @@
 				e.code === 22) {
 				alert("Browser storage full. Try removing some "+app+" bookmarks.","Warning");
 			}
-			else
-				alert("Saving user preferences and bookmarks requires non-private browser mode. Please set this mode and try again. Also, this may be caused by your browser not accepting cookies. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
+			//else
+				//alert("Saving user preferences and bookmarks requires non-private browser mode. Please set this mode and try again. Also, this may be caused by your browser not accepting cookies. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
 			}
 		}
 	}
@@ -378,7 +401,7 @@
 			try {
 				localStorage = window.localStorage;
 			} catch (e) {
-				alert("Your browser doesn't accept cookies. Failed to remove user preferences or bookmarks. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
+				//alert("Your browser doesn't accept cookies. Failed to remove user preferences or bookmarks. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
 				return "";
 			}
 			localStorage.removeItem(cname);
@@ -399,7 +422,7 @@
 			return "";
 		}
 		catch(e){
-			alert("Your browser doesn't accept cookies. Failed to read user preferences and bookmarks. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
+			//alert("Your browser doesn't accept cookies. Failed to read user preferences and bookmarks. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
 			return "";
 		}
 	  }
@@ -420,7 +443,7 @@
 			document.cookie = cname + "=" + cvalue;
 		}
 		catch(e){
-			alert("Saving user preferences and bookmarks requires non-private browser mode. Please set this mode and try again. Also, this may be caused by your browser not accepting cookies. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
+			//alert("Saving user preferences and bookmarks requires non-private browser mode. Please set this mode and try again. Also, this may be caused by your browser not accepting cookies. See Help/Troubleshooting/Losing Your Saved Preferences for help on how to set your browser to accept cookies.","Warning");
 		}
 	  }
 	  
@@ -487,7 +510,7 @@ function sortArrayOfObj(item) {
 		else if (!isNaN(a[item]))
 			return a[item] - b[item];
 		return (a[item] < b[item]) ? -1 : (a[item] > b[item]) ? 1: 0;
-	}
+	};
 }
 function sortMultipleArryOfObj() {
 // Sort an array of objects by multiple fields
@@ -512,7 +535,7 @@ function sortMultipleArryOfObj() {
             i++;
         }
         return result;
-    }
+    };
 }
 
 Array.prototype.moveUp = function(value, by) {
@@ -552,12 +575,12 @@ Array.prototype.moveTo = function(value, newPos) {
 // detect mobile
 function detectmob() { 
 //  || navigator.userAgent.match(/iPad/i)
- if( navigator.userAgent.match(/Android/i)
- || navigator.userAgent.match(/webOS/i)
- || navigator.userAgent.match(/iPhone/i)
- || navigator.userAgent.match(/iPod/i)
- || navigator.userAgent.match(/BlackBerry/i)
- || navigator.userAgent.match(/Windows Phone/i)
+ if( navigator.userAgent.match(/Android/i) ||
+     navigator.userAgent.match(/webOS/i) ||
+     navigator.userAgent.match(/iPhone/i) ||
+     navigator.userAgent.match(/iPod/i) ||
+     navigator.userAgent.match(/BlackBerry/i) ||
+     navigator.userAgent.match(/Windows Phone/i)
  ){
     return true;
   }
