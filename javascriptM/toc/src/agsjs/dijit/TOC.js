@@ -22,7 +22,7 @@
 
 /*global dojo esri*/
 
-// reference: http://dojotoolkit.org/reference-guide/quickstart/writingWidgets.html
+// reference: https://dojotoolkit.org/reference-guide/quickstart/writingWidgets.html
 
 define("agsjs/dijit/TOC", 
 ["dojo/_base/declare",
@@ -1007,7 +1007,7 @@ define("agsjs/dijit/TOC",
       if (this.rootLayer.version >= 10.01) {
         url = this.rootLayer.url + '/legend';
       } else {
-        url = 'http://www.arcgis.com/sharing/tools/legend';
+        url = 'https://www.arcgis.com/sharing/tools/legend';
         var i = this.rootLayer.url.toLowerCase().indexOf('/rest/');
         var soap = this.rootLayer.url.substring(0, i) + this.rootLayer.url.substring(i + 5);
         url = url + '?soapUrl=' + escape(soap);
@@ -1032,7 +1032,7 @@ define("agsjs/dijit/TOC",
       else if (err.message.indexOf("GameSpecies")>-1) map="Game Species";
       else if (err.message.indexOf("AnglerBase")>-1) map="Fishing Reference";
       else if (err.message.indexOf("AnglerMain")>-1) map="Fishing Info";
-      alert("Problem loading "+map+" map. Please reload "+app,"Data Error");
+      alert("Problem loading "+map+" legend. Please reload "+app,"Data Error");
     },
     _processLegendInfo: function(json){
       this._legendResponse = json;

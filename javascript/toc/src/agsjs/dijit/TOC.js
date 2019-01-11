@@ -22,7 +22,7 @@
 
 /*global dojo esri*/
 
-// reference: http://dojotoolkit.org/reference-guide/quickstart/writingWidgets.html
+// reference: https://dojotoolkit.org/reference-guide/quickstart/writingWidgets.html
 
 define("agsjs/dijit/TOC", 
 ['dojo/_base/declare',
@@ -938,7 +938,7 @@ define("agsjs/dijit/TOC",
       if (this.rootLayer.version >= 10.01) {
         url = this.rootLayer.url + '/legend';
       } else {
-        url = 'http://www.arcgis.com/sharing/tools/legend';
+        url = 'https://www.arcgis.com/sharing/tools/legend';
         var i = this.rootLayer.url.toLowerCase().indexOf('/rest/');
         var soap = this.rootLayer.url.substring(0, i) + this.rootLayer.url.substring(i + 5);
         url = url + '?soapUrl=' + escape(soap);
@@ -963,7 +963,7 @@ define("agsjs/dijit/TOC",
       else if (err.message.indexOf("GameSpecies")>-1) map="Game Species";
       else if (err.message.indexOf("AnglerBase")>-1) map="Fishing Reference";
       else if (err.message.indexOf("AnglerMain")>-1) map="Fishing Info";
-      alert("Problem loading "+map+" map. Please reload "+app,"Data Error");
+      alert("Problem loading "+map+" legend. Please reload "+app,"Data Error");
     },
     _processLegendInfo: function(json){
       this._legendResponse = json;
@@ -1022,28 +1022,26 @@ define("agsjs/dijit/TOC",
     
       // sometimes IE may fail next step
       ///this._rootLayerNode = new agsjs.dijit._TOCNode({
-	  if (this.rootLayer.loaded){
-		this._rootLayerNode = new _TOCNode({
-	      rootLayerTOC: this,
-	      rootLayer: this.rootLayer
-	    });
-	    this._rootLayerNode.placeAt(this.domNode);
-	    //this._visHandler = dojo .connect(this.rootLayer, "onVisibilityChange", this, "_adjustToState");
-	    this._visHandler = this.rootLayer.on("visibility-change", lang.hitch(this, this._adjustToState));
-	    // this will make sure all TOC linked to a Map synchronized.
-	    if (this.rootLayer instanceof (ArcGISDynamicMapServiceLayer)) {
-	     // this._visLayerHandler = dojo .connect(this.rootLayer, "setVisibleLayers", this, "_onSetVisibleLayers");
-	     // 2013-10-17: in AMD aspect is used to replace connect to regular method, use recieveArgs=true to avoid argument shift and hitch to keep scope.
-		 this._visLayerHandler = aspect.after(this.rootLayer, "setVisibleLayers", lang.hitch(this, this._onSetVisibleLayers), true);
-	    }
-	    this._adjustToState();
-	    this._loaded = true;
-	    this.onLoad();
-	  } else {
-	  	//dojo .connect(this.rootLayer, 'onLoad', dojo .hitch(this, this._createRootLayerTOC));
-		this.rootLayer.on('load', lang.hitch(this, this._createRootLayerTOC));
-	  }
-	  
+      if (this.rootLayer.loaded){
+        this._rootLayerNode = new _TOCNode({
+          rootLayerTOC: this,
+          rootLayer: this.rootLayer
+        });
+        this._rootLayerNode.placeAt(this.domNode);
+        //this._visHandler = dojo .connect(this.rootLayer, "onVisibilityChange", this, "_adjustToState");
+        this._visHandler = this.rootLayer.on("visibility-change", lang.hitch(this, this._adjustToState));
+        // this will make sure all TOC linked to a Map synchronized.
+        if (this.rootLayer instanceof (ArcGISDynamicMapServiceLayer)) {
+        // this._visLayerHandler = dojo .connect(this.rootLayer, "setVisibleLayers", this, "_onSetVisibleLayers");
+        // 2013-10-17: in AMD aspect is used to replace connect to regular method, use recieveArgs=true to avoid argument shift and hitch to keep scope.
+      this._visLayerHandler = aspect.after(this.rootLayer, "setVisibleLayers", lang.hitch(this, this._onSetVisibleLayers), true);
+        }
+        this._adjustToState();
+        this._loaded = true;
+        this.onLoad();
+      } else {
+        this.rootLayer.on('load', lang.hitch(this, this._createRootLayerTOC));
+      }
     },
 	/**
 	 * @event
