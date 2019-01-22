@@ -1004,14 +1004,15 @@ define("agsjs/dijit/TOC",
     _getLegendInfo: function(){
     
       var url = '';
-      if (this.rootLayer.version >= 10.01) {
+      // the else is causing a CORS error each time. Always append /legend. tlb 1-15-19
+      //if (this.rootLayer.version >= 10.01) {
         url = this.rootLayer.url + '/legend';
-      } else {
-        url = 'https://www.arcgis.com/sharing/tools/legend';
-        var i = this.rootLayer.url.toLowerCase().indexOf('/rest/');
-        var soap = this.rootLayer.url.substring(0, i) + this.rootLayer.url.substring(i + 5);
-        url = url + '?soapUrl=' + escape(soap);
-      }
+      //} else {
+        //url = 'https://www.arcgis.com/sharing/tools/legend';
+        //var i = this.rootLayer.url.toLowerCase().indexOf('/rest/');
+        //var soap = this.rootLayer.url.substring(0, i) + this.rootLayer.url.substring(i + 5);
+        //url = url + '?soapUrl=' + escape(soap);
+      //}
       var handle = esri.request({
         url: url,
         content: {
