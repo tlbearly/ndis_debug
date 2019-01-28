@@ -190,7 +190,7 @@ function printShow(){
 						if (pos > -1 && layerInfos[m].subLayerIds)
 							visLayers.splice(pos,1); // remove 1 item at index pos
 					}								
-					layer.setVisibleLayers(visLayers.sort(function(a,b){return a-b}), false);
+					layer.setVisibleLayers(visLayers.sort(function(a,b){return a-b;}), false);
 					layer.refresh();
 					layer.spatialReference=sr;
 
@@ -206,6 +206,7 @@ function printShow(){
 						}
 						previewLayers=null;
 						correctOrder=null;
+					}
 				});
 			}
 		}
@@ -475,7 +476,7 @@ function printMap(){
 				}
 				document.getElementById("printMapLink").innerHTML = "Opened map in a new tab.";
 				done = true;
-			};
+			}
 			function printError(err){
 				registry.byId("print_button").set("label", "Print");
 				document.getElementById("printLoading").style.display="none";
@@ -522,7 +523,7 @@ function printMap(){
 					}
 					document.getElementById("printLegendLink").innerHTML = "Opened legend in a new tab.";
 					done = true;
-				};
+				}
 				function printError2(err){
 					registry.byId("print_button").set("label", "Print");
 					document.getElementById("printLoading").style.display="none";
@@ -544,4 +545,4 @@ function printMap(){
 			document.getElementById("printLoading").style.display="none";
 		}
 	});
-};
+}
