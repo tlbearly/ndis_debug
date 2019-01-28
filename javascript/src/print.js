@@ -1,4 +1,5 @@
 var prtDisclaimer="";
+var startTim;
 function printInit() {
 	// Read the PrintPdfWidget.xml file
 	var xmlhttp = createXMLhttpRequest();
@@ -56,6 +57,7 @@ function printShow(){
 		if (previewMap.getLayer("reference"))
 			previewMap.removeLayer(previewMap.getLayer("reference"));
 		var basemapId=0;
+		var basemap;
 		var basemapRefId=-1;
 		for (i=0;i<map.layerIds.length; i++){
 			if (map.getLayer(map.layerIds[i])._basemapGalleryLayerType && map.getLayer(map.layerIds[i])._basemapGalleryLayerType == "basemap")
@@ -69,7 +71,7 @@ function printShow(){
 			osmLayer = null;
 		}
 		else{
-			var basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapId]).url,{"id":"basemap","visible": true});
+			basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapId]).url,{"id":"basemap","visible": true});
 			basemap.spatialReference = map.spatialReference;
 			basemap.refresh();
 			previewMap.addLayer(basemap);
@@ -77,7 +79,7 @@ function printShow(){
 		}
 		// add basemap reference layer if there is one
 		if (basemapRefId != -1) {
-			var basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapRefId]).url,{"id":"reference","visible":true});
+			basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapRefId]).url,{"id":"reference","visible":true});
 			basemap.spatialReference = map.spatialReference;
 			basemap.refresh();
 			previewMap.addLayer(basemap);
@@ -113,6 +115,7 @@ function printShow(){
 				prev_layer.on("load", function(event) {
 					// wait for layerInfos to load
 					var layer = event.layer;
+					var m;
 					// Skip basemaps
 					if (layer.url.indexOf("World_Street_Map") > -1) return;
 					if (layer.id.indexOf("layer") == 0) return;
@@ -126,7 +129,7 @@ function printShow(){
 						do {
 							// Add hidden group sublayers for all levels
 							if (hideGroupSublayers.indexOf(layerInfos[k].name) > -1 && layerInfos[k].subLayerIds) {
-								for (var m=0; m<layerInfos[k].subLayerIds.length; m++){
+								for (m=0; m<layerInfos[k].subLayerIds.length; m++){
 									if (visLayers.indexOf(layerInfos[k].subLayerIds[m]) == -1)
 										visLayers.push(layerInfos[k].subLayerIds[m]);
 									// handle GMUs they are not always an offset of 1
@@ -190,7 +193,7 @@ function printShow(){
 						if (pos > -1 && layerInfos[m].subLayerIds)
 							visLayers.splice(pos,1); // remove 1 item at index pos
 					}								
-					layer.setVisibleLayers(visLayers.sort(function(a,b){return a-b}), false);
+					layer.setVisibleLayers(visLayers.sort(function(a,b){return a-b;}), false);
 					layer.refresh();
 					layer.spatialReference=sr;
 					
@@ -211,18 +214,21 @@ function printShow(){
 			}
 		}
 		
-		
+		var graphics_layer;
+		var graphics;
+		var arr;
+		var a;
 		// add draw graphics layers
 		for (i=0; i<map.graphicsLayerIds.length; i++){
 			if ((map.graphicsLayerIds[i].indexOf("drawgraphics")>-1) ||
 				(map.graphicsLayerIds[i].indexOf("drawtextgraphics")>-1)){
-				var graphics_layer = new GraphicsLayer();
+				graphics_layer = new GraphicsLayer();
 				graphics_layer.id = map.graphicsLayerIds[i];
 				graphics_layer.visible=true;
 				graphics_layer.spatialReference = previewMap.spatialReference;
-				var graphics = map.getLayer(map.graphicsLayerIds[i]).graphics;
-				var arr;
-				for (var a=0; a<graphics.length; a++){
+				graphics = map.getLayer(map.graphicsLayerIds[i]).graphics;
+				
+				for (a=0; a<graphics.length; a++){
 					arr = new Graphic(graphics[a].geometry,graphics[a].symbol,graphics[a].attributes,graphics[a].infoTemplate);
 					graphics_layer.add(arr);
 					arr=null;
@@ -234,11 +240,11 @@ function printShow(){
 		}
 		// add hb1298 points
 		if (typeof hb1298GraphicsLayer != "undefined") {
-			var graphics_layer = new GraphicsLayer();
+			graphics_layer = new GraphicsLayer();
 			graphics_layer.visible=true;
 			graphics_layer.spatialReference = previewMap.spatialReference;
-			var arr;
-			for (var a=0; a<hb1298GraphicsLayer.graphics.length; a++){
+			
+			for (a=0; a<hb1298GraphicsLayer.graphics.length; a++){
 				arr = new Graphic(graphics[a].geometry,graphics[a].symbol,graphics[a].attributes,graphics[a].infoTemplate);
 				graphics_layer.add(arr);
 				arr=null;
@@ -258,10 +264,12 @@ function printShow(){
 //previewMap.addLayer(testlayer);
 		
 		var pt = new Point(map.extent.xmax+((map.extent.xmin-map.extent.xmax)/2),map.extent.ymin+((map.extent.ymax-map.extent.ymin)/2),sr);
+		//var pt = map.extent.getCenter();
 		previewMap.centerAndZoom(pt,map.getLevel()).then(function(){
 			changePrintSize();
 			printDialog.show();
 		});
+		
 		pt=null;
 		sr=null;
 	});
@@ -379,22 +387,25 @@ function printMap(){
       PrintTask, PrintTemplate, PrintParameters,
       urlUtils, esriConfig, Graphic, Point,
       LegendLayer, GraphicsLayer, dom, registry) {
-	    try{
+			var i;
+			var pointWithText = 0; // we need to add a layer to the map because of a bug in PrintTask, set this flag so we can remove it.
+			try{
 			var done=false;
 			var printLegendFlag = dom.byId("printLegendCB").style.display=="inline-block" ? true : false; // Is the legend checkbox displayed?
 			if (!printLegendFlag) done=true; // turn off wait icon after printing map; don't wait for legend to print
 			registry.byId("print_button").set("label", "Creating...");
 			document.getElementById("printLoading").style.display="inline-block";
-			var mvum=false;
+			//var mvum=false;
 			document.getElementById("printMapLink").innerHTML = "";
 			document.getElementById("printLegendLink").innerHTML = "";
-			var pointWithText = 0; // we need to add a layer to the map because of a bug in PrintTask, set this flag so we can remove it.
+			//pointWithText = 0; // we need to add a layer to the map because of a bug in PrintTask, set this flag so we can remove it.
 			// get legend layers
 			var layer = previewMap.getLayersVisibleAtScale();
-			var legendArr = new Array();
+			var legendArr = [];
 			var legend;
-			for (var i=1; i<layer.length; i++) {
-				if (layer[i].visible && (layer[i].id != "Motor Vehicle Use Map") &&
+			for (i=1; i<layer.length; i++) {
+				//if (layer[i].visible && (layer[i].id != "Motor Vehicle Use Map") &&
+				if (layer[i].visible &&
 					(layer[i].id != "topo") &&
 					(layer[i].id != "streets") &&
 					(layer[i].id != "hybrid"))
@@ -413,7 +424,8 @@ function printMap(){
 						}
 						continue;
 					}
-					if (layer[i].visibleLayers && layer[i].url.indexOf("mvum") == -1) {
+					//if (layer[i].visibleLayers && layer[i].url.indexOf("mvum") == -1) {
+					if (layer[i].visibleLayers) {
 						legend = new LegendLayer();
 						legend.layerId = layer[i].id;
 						legend.subLayerIds = layer[i].visibleLayers;
@@ -421,7 +433,7 @@ function printMap(){
 						legend = null;
 					}
 				}
-				if (layer[i].visible && (layer[i].id == "Motor Vehicle Use Map")) mvum = true;
+				//if (layer[i].visible && (layer[i].id == "Motor Vehicle Use Map")) mvum = true;
 			}
 						
 			var printTask;
@@ -450,10 +462,10 @@ function printMap(){
 					legendTemplate="none";
 					template.format="pdf";
 				}
-				else if (mvum) {
-					legendTemplate = "Legend Letter "+selectedValue_orient+ " MVUM";
-					template.format = "pdf";
-				}
+				//else if (mvum) {
+				//	legendTemplate = "Legend Letter "+selectedValue_orient+ " MVUM";
+				//	template.format = "pdf";
+				//}
 				else {
 					legendTemplate = "Legend Letter "+selectedValue_orient;
 					template.format = "pdf";
@@ -506,6 +518,33 @@ function printMap(){
 			params.template = template;
 				
 			function printResult(result){
+				// 1-22-19 tlb  Add Google Analytics stats for georef printing 
+				var format = dom.byId("format");
+				if (format.options[format.selectedIndex].value=="geopdf"){
+					var millis = Date.now() - startTim;
+					//var date = new Date();
+					//var theDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " +  date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+					var s = previewMap.getScale();
+					var mapscale;
+					if (s < 9028) mapscale = "10k";
+					else if (s < 36112) mapscale = "24k";
+					else if (s < 72224) mapscale = "50k";
+					else if (s < 144448) mapscale = "100k";
+					else if (s < 288896) mapscale = "250k";
+					else if (s < 577791) mapscale = "500k";
+					else if (s < 1155582) mapscale = "1M";
+					else if (s < 2311163) mapscale = "2M";
+					else if (s < 4622325) mapscale = "4M";
+					else if (s < 9244649) mapscale = "9M";
+					var category = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML+" pdf ";//+" "+theDate;
+					if (printLegendFlag && document.getElementById("printLegend").checked) category += "legend "+mapscale;
+					else category += mapscale;
+					var action = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
+					var label = mapscale;
+					var value = Math.floor(millis/1000); // seconds to generate. Must be integer for Google Analytics
+					ga('send', 'event', category, action, label, value);
+					console.log("Time to create preview map = " + value + " seconds");
+				}
 				console.log("printing to "+result.url);
 				if (result.url.indexOf('tif') > -1 || result.url.indexOf('svgz') > -1){
 					document.getElementById("printInst").innerHTML = "Click on the link below to download the image file.";
@@ -524,8 +563,7 @@ function printMap(){
 				}
 				done=true;
 				//printDialog.hide();
-				
-			};
+			}
 			function printError(err){
 				registry.byId("print_button").set("label", "Print");
 				document.getElementById("printLoading").style.display="none";
@@ -535,7 +573,10 @@ function printMap(){
 				for (var i=0; i<pointWithText; i++) removeDrawItem(); // remove extra text layer added for points with text because of bug in PrintTask
 				printDialog.hide();
 			}
+
 			printTask.execute(params, printResult, printError);
+			// see how long it takes to generate the preview jpg. Display in Google Analytics and console
+			startTim = Date.now();
 			
 			
 			//************************
@@ -546,9 +587,9 @@ function printMap(){
 				var params2 = new PrintParameters();
 				var template2 = new PrintTemplate();
 				template2.exportOptions = { dpi: 300 };
-				if (mvum)
-					template2.layout = "Legend Letter "+selectedValue_orient+ " MVUM";
-				else
+				//if (mvum)
+				//	template2.layout = "Legend Letter "+selectedValue_orient+ " MVUM";
+				//else
 					template2.layout = "Legend Letter "+selectedValue_orient;
 				template2.format = "PDF";
 				template2.layoutOptions = {
@@ -573,7 +614,7 @@ function printMap(){
 					}
 					document.getElementById("printLegendLink").innerHTML = "Opened legend in a new tab.Link to <a href='"+result.url+"' target='_blank'>"+template.format.toUpperCase()+" File</a>";
 					done = true;
-				};
+				}
 				function printError2(err){
 					registry.byId("print_button").set("label", "Print");
 					document.getElementById("printLoading").style.display="none";
@@ -589,10 +630,10 @@ function printMap(){
 			}
 		}
 		catch(e){
-			for (var i=0; i<pointWithText; i++) removeDrawItem(); // remove extra text layer added for points with text because of bug in PrintTask
+			for (i=0; i<pointWithText; i++) removeDrawItem(); // remove extra text layer added for points with text because of bug in PrintTask
 			alert("Error while printing: "+e.message,"Code Error",e);
 			registry.byId("print_button").set("label", "Print");
 			document.getElementById("printLoading").style.display="none";
 		}
 	});
-};
+}
