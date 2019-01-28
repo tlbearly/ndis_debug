@@ -30,7 +30,8 @@
     <!-- REST endpoint to a GeometryService. This should be a service published by CPW and not pointing at an ESRI service.  Use to convert points to new projections. -->
     <geometryservice url="//ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
     
-	<printservicegeo>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting</printservicegeo>
+	<!--printservicegeo>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting</printservicegeo-->
+    <printservicegeo>https://ndis-flex-2.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting</printservicegeo>
 	<printservice>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printservice>
 	
 	<!-- Find a Place Service **NEW** -->
@@ -50,17 +51,17 @@
          <!-- Set opensublayer=comma delimited list of layer names under the mapservice checkbox to expand at the start. open must be true. -->
          <!--     example: open="true" opensublayer="Places of Interest,Township Range Sections" --> 
         <operationallayers>
-			<!--layer label="MVUM not complete" open="true" type="dynamic" visible="true" alpha="1"
-					url="https://apps.fs.fed.us/arcx/rest/services/EDW/EDW_MVUM_01/MapServer"/-->
-			<layer label="Motor Vehicle Use Map" open="false" type="dynamic" visible="false" alpha="0.85"
-					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/mvum/MapServer"/>
+			<!--layer label="Motor Vehicle Use Map" open="false" type="dynamic" visible="false" alpha="0.85"
+					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/mvum/MapServer"/-->
 			<!--url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/-->
 			<!-- Layer must be named "Hunter Reference".  It is used in widgets/Legend/toc/tocClasses/TocMapLayerItem.as -->
 			<layer label="Hunter Reference" open="true" type="dynamic" visible="true" alpha="0.8"
-					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer"/>
+					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer"/>
 			<!-- Layer must be named "Game Species".  It is used in widgets/Legend/toc/tocClasses/TocMapLayerItem.as -->
 			<layer label="Game Species" open="false" type="dynamic" visible="false" alpha="0.7"
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_BigGameSpecies_Map/MapServer"/>					
+			<layer label="Motor Vehicle Use Map" open="true" type="dynamic" visible="false" alpha="1"
+					url="https://apps.fs.fed.us/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/>
         </operationallayers>
 		
 		<hideGroupSublayers>Emergency,Field Office,Chamber of Commerce or Welcome Center,License Agent,Campgrounds and SWA Facilities,GMU boundary (Hunting Units)</hideGroupSublayers>
@@ -96,8 +97,9 @@
 
     <links>
     <!-- Note the icons and labels must all be different.  This is how it looks up the url. -->
-    	<link label="Go Mobile"
-    		url="https://ndismaps.nrel.colostate.edu/GoMobile.aspx%3Fsubtitle=Colorado%20Hunting%20Atlas%26app=huntingatlas"
+    	<!-- url gets replaced in readConfig.js to preserve url parameters -->
+		<link label="Go Mobile"
+    		url=""
 			icon="assets/images/i_mobile.png"/>
 		<link label="Big Game Brochure"
     		url="https://cpw.state.co.us/aboutus/Pages/RegulationsBrochures.aspx"
