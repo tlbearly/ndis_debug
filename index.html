@@ -21,9 +21,10 @@ header("Pragma: no-cache");
         <title>Colorado Parks and Wildlife Atlas</title>
 
         <!-- *** Keep ArcGIS API version up to date here *** -->
+		<!-- When update esri version download css files also, copy and paste code into Notepad. Put in directory matching the version. Search and replace url(" with url("js.arcgis.com/3.25/esri/dijit/ -->																																															   
         <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.25/esri/css/esri.css" />
         <!-- Import CSS stylesheet required for ResizeHandle module -->
-        <link rel="stylesheet" href="https://js.arcgis.com/3.25/dojox/layout/resources/ResizeHandle.css">
+        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.25/dojox/layout/resources/ResizeHandle.css">
         <!-- Available themes: claro, tundra, soria, and nihilo.-->
         <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.25/dijit/themes/claro/claro.css">
         <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.25/dijit/themes/tundra/tundra.css" /-->
@@ -33,7 +34,8 @@ header("Pragma: no-cache");
         <!-- icon in browser tab -->
         <link rel="shortcut icon" href="assets/images/favicon.png" />
         <link rel="icon" type="image/png" href="assets/images/favicon.png" />
-        <link rel="canonical" href="https://ndis-flex-2.nrel.colostate.edu/">
+        <!-- Point search engines to main site -->
+		<link rel="canonical" href="https://ndismaps.nrel.colostate.edu/">
         
         <script type="text/javascript">
             // agsjs is for legend/layerlist
@@ -42,7 +44,7 @@ header("Pragma: no-cache");
             var dojoConfig = {
                 //async: true,
                 // DEBUGING		
-                cacheBust: "v=" + Date.now(),
+                cacheBust: "v="+ Date.now(),
                 packages: [{
                     name: "javascript",
                     location: location.pathname.replace(/\/[^/]+$/, "") + "/javascript/src"
@@ -95,7 +97,7 @@ header("Pragma: no-cache");
         <script type="text/javascript" src="javascript/print.js?v=3.20"></script>
         <script type="text/javascript" src="javascript/readConfig.js?v=3.20"></script>
         <script type="text/javascript" src="javascript/resourceReport.js?v=3.16"></script>
-        <script type="text/javascript" src="javascript/search.js?v=3.11"></script-->
+        <script type="text/javascript" src="javascript/search.js?v=3.20"></script-->
         <!--script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCnamSJ8X7vZxYVby_V52kuveWx1jXx2SQ"></script><!-- for google maps elevation data. Used by Identify -->
         <!--script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script-->
         <!-- for google maps elevation data. Used by Identify -->
@@ -190,6 +192,7 @@ header("Pragma: no-cache");
                 require([
                         "dojo/parser",
                         "esri/config",
+                        "esri/urlUtils",
                         "dojo/dom",
                         "dojo/io-query",
                         "dijit/form/CheckBox",
@@ -205,7 +208,7 @@ header("Pragma: no-cache");
                         "dojox/layout/ResizeHandle",
                         "dojo/domReady!"
                     ],
-                    function(parser, esriConfig, dom, ioquery, CheckBox) {
+                    function(parser, esriConfig, urlUtils, dom, ioquery, CheckBox) {
                         // If not loaded as secure redirect to secure url
                         if (window.location.href.indexOf("https") < 0) {
                             var str = window.location.href;
@@ -231,6 +234,10 @@ header("Pragma: no-cache");
                         // set up cross domain permissions
                         esriConfig.defaults.io.proxyUrl = "/proxy/DotNet/proxy.ashx";
                         esriConfig.defaults.io.alwaysUseProxy = false;
+                        //urlUtils.addProxyRule({
+                        //    urlPrefix: "https://services.arcgisonline.com",
+                        //    proxyUrl: "/proxy/DotNet/proxy.ashx"
+                        //});
                         esri.config.defaults.io.timeout = 180000; // increase timeout for printing from 60 seconds (60,000) to 3 minutes
                         // report warning if old browser
                         if (oldversion())
@@ -329,38 +336,38 @@ header("Pragma: no-cache");
                                     <label for="printTitle" style="width:30px">Title:</label> <input id="printTitle" value="Colorado Parks and Wildlife Custom Map" type="text" size="21" /><br/><br/>
                                     <label for="printSubTitle" style="width:30px">Subtitle:</label> <input id="printSubTitle" type="text" size="18" /><br/><br/>
                                     <label for="size">Paper size:</label> <select id="size" onChange="changePrintSize()">
-                                        <option value="Letter ">8.5 x 11</option> 
-                                        <!--option value="Legal ">8.5 x 14</option--> 
-                                        <option value="Tabloid ">11 x 17</option>     
-                                        <!--option value="ANSI C ">17 x 22</option-->
-                                        <!--option value="ANSI D ">22 x 34</option-->
-				                    </select><br/><br/>
-                                    <label for="orient">Orientation:</label> <select id="orient" onChange="changePrintSize()">
-                                        <option value="Landscape">Landscape</option> 
-                                        <option value="Portrait">Portrait</option>     
-                                    </select><br/><br/>
-                                    <label for="format">Format:</label> <select id="format" onchange="grayOutLegend(this)">
-                                        <option value="pdf">PDF</option> 
-                                        <option value="geopdf">Geo PDF</option> 
-                                        <!--option value="png24">PNG24</option> 
-                                        <option value="PNG8">PNG8</option--> 
-                                        <option value="jpg">JPG</option> 
-                                        <option value="gif">GIF</option> 
-                                        <option value="geotiff">GEOTIFF</option> 
-                                        <!--option value="svg">SVG</option--> 
-                                    </select><br/><br/>
-                                    <!--label for="dpi">Dots per inch:</label> <select id="dpi">
-                                        <option value="300 ">300</option> 
-                                        <option value="96 ">96</option>     
-                                    </select><br/><br/-->
-                                    <!--label for="scalebar">Scalebar units:</label> <select id="scalebar">
-                                        <option value="Miles">Miles</option> 
-                                        <option value="Kilometers">Kilometers</option>     
-                                        <option value="Feet">Feet</option>
-                                        <option value="Meters">Meters</option>
-                                    </select><br/><br/-->
+										<option value="Letter ">8.5 x 11</option> 
+										<!--option value="Legal ">8.5 x 14</option--> 
+										<option value="Tabloid ">11 x 17</option>     
+										<!--option value="ANSI C ">17 x 22</option-->
+										<!--option value="ANSI D ">22 x 34</option-->
+									</select><br/><br/>
+									<label for="orient">Orientation:</label> <select id="orient" onChange="changePrintSize()">
+										<option value="Landscape">Landscape</option> 
+										<option value="Portrait">Portrait</option>     
+									</select><br/><br/>
+										<label for="format">Format:</label> <select id="format" onchange="grayOutLegend(this)">
+										<option value="pdf">PDF</option> 
+										<option value="geopdf">Geo PDF</option> 
+										<!--option value="png24">PNG24</option> 
+										<option value="PNG8">PNG8</option--> 
+										<option value="jpg">JPG</option> 
+										<option value="gif">GIF</option> 
+										<option value="geotiff">GEOTIFF</option> 
+										<!--option value="svg">SVG</option--> 
+									</select><br/><br/>
+									<!--label for="dpi">Dots per inch:</label> <select id="dpi">
+										<option value="300 ">300</option> 
+										<option value="96 ">96</option>     
+									</select><br/><br/-->
+									<!--label for="scalebar">Scalebar units:</label> <select id="scalebar">
+										<option value="Miles">Miles</option> 
+										<option value="Kilometers">Kilometers</option>     
+										<option value="Feet">Feet</option>
+										<option value="Meters">Meters</option>
+									</select><br/><br/-->
                                     <div id="printLegendCB" style="display:inline-block">
-                                        <label for="printLegend">Include legend:</label> <input id="printLegend" type="checkbox" checked="checked" /><br/><br/>
+                                        <label for="printLegend">Include legend:</label> <input id="printLegend" type="checkbox"/><br/><br/>
                                     </div>
                                     <div align="center">
                                         <button id="print_button" data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="printMap()">Print</button> <img id="printLoading" style="vertical-align:bottom; display:none" src="assets/images/loading.gif"
@@ -380,7 +387,7 @@ header("Pragma: no-cache");
                                 <!--/div-->
                             </td>
                             <td>
-                                <div id="printPreviewMap" class="map" data-dojo-type="dijit/layout/ContentPane" data-dojo-props='region:"center"' dir="ltr" style="width:490px;height:348px;margin-bottom:8px;border:1px solid black;position:relative;overflow:hidden;"></div>
+                                <div id="printPreviewMap" class="map" data-dojo-type="dijit/layout/ContentPane" data-dojo-props='region:"center"' dir="ltr" style="margin-bottom:8px;border:1px solid black;position:relative;"></div>
                             </td>
                         </tr>
                     </table>
@@ -429,16 +436,16 @@ header("Pragma: no-cache");
                         <li>National Grassland (for list of grasslands)</li>
                         <li>County (for a list of counties)</li>
                         <li>A Point in the following format: <select id="help_xy_proj" data-dojo-type="dijit/form/Select" onChange="require(['dijit/registry'],function(registry){if (registry.byId('pointUnits'))registry.byId('pointUnits').set('value',registry.byId('help_xy_proj').value);registry.byId('settings_xy_proj').set('value',registry.byId('help_xy_proj').value);settings.XYProjection=registry.byId('help_xy_proj').value;setCookie('prj', registry.byId('help_xy_proj').value);});">
-			  <option value="dd">Lat/Long decimal degrees as 40.1722,103.8336</option>
-			  <option value="dms">Lat/Long degrees, minutes, seconds as 40:10:20,103:50:1</option>
-			  <option value="dm">Lat/Long degrees, decimal minutes as 40:10.333,103:60.0167</option>
-			  <option value="32612">WGS84 UTM Zone 12N</option>
-			  <option value="32613">WGS84 UTM Zone 13N</option>
-			  <option value="26912">NAD83 UTM Zone 12N</option>
-			  <option value="26913">NAD83 UTM Zone 13N</option>
-			  <option value="26712">NAD27 UTM Zone 12N</option>
-			  <option value="26713">NAD27 UTM Zone 13N</option>
-			</select></li>
+						  <option value="dd">Lat/Long decimal degrees as 40.1722,103.8336</option>
+						  <option value="dms">Lat/Long degrees, minutes, seconds as 40:10:20,103:50:1</option>
+						  <option value="dm">Lat/Long degrees, decimal minutes as 40:10.333,103:60.0167</option>
+						  <option value="32612">WGS84 UTM Zone 12N</option>
+						  <option value="32613">WGS84 UTM Zone 13N</option>
+						  <option value="26912">NAD83 UTM Zone 12N</option>
+						  <option value="26913">NAD83 UTM Zone 13N</option>
+						  <option value="26712">NAD27 UTM Zone 12N</option>
+						  <option value="26713">NAD27 UTM Zone 13N</option>
+						</select></li>
                     </ul>
                     <p>To remove the last search location from the map: click on the "Clear" button.<br/> To clear the search box text: click in the search box.<br/>ESC will hide the drop down list of suggestions.</p>
                 </div>
@@ -581,7 +588,7 @@ header("Pragma: no-cache");
 
                 <!-- HB1298 REPORT -->
                 <div data-dojo-type="dijit/TitlePane" id="hb1298Pane" data-dojo-props='title: "<img id=\"hb1298Icon\" alt=\"hb1298 report icon\" src=\"assets/images/i_bookmark3.png\"/> HB1298 Report", open: false' tooltip="Click to open/close Report panel" style="display:none;position:relative;"
-                    onclick="if (!openedHB1298) {openedHB1298=true;loadjscssfile('javascript/hb1298.js?v=3.16', 'js');}">
+                    onclick="if (!openedHB1298) {openedHB1298=true;loadjscssfile('javascript/hb1298.js?v=3.17', 'js');}">
                     <span title="HB1298 Report Help" onClick="hb1298Help_Dialog.show();"><img alt='help button' class="help_icon" src="assets/images/i_help.png"></span>
                     <div style="width: 100%;">
                         <div>Make sure popup-blocker is disabled for this site because the report will open in a new tab.</div><br/><br/>
@@ -656,12 +663,16 @@ header("Pragma: no-cache");
                     <div id="addressDiv" style="position:relative;min-height:0px;width:100%;min-width:100%;max-width:100%;">
                         <span title="Address Help" onClick="addressHelpDialog.show();"><img alt='help button' class="help_icon" src="assets/images/i_help.png"></span>
                         <label for="streetTxt">Street<span style="color:red">*</span>: </label>
-                        <input type="text" required="true" id="streetTxt" name="streetTxt" size="38" /><br/><br/>
-                        <label for="cityTxt">City<span style="color:red">*</span>: </label>
-                        <input type="text" required="true" id="cityTxt" name="cityTxt" />
-                        <label for="zipTxt"> Zip: </label>
-                        <input id="zipTxt" name="zipTxt" size="10" /><br/><br/>
-                        <p style="text-align: center;">
+                        <input type="text" required="true" id="streetTxt" name="streetTxt" size="37" /><br/><br/>
+                        <div style="float:left;margin-bottom: 15px;">
+                            <label for="cityTxt">City<span style="color:red">*</span>: </label>
+                            <input type="text" required="true" id="cityTxt" name="cityTxt">
+                        </div>
+                        <div style="float:left;margin-bottom: 15px;">
+                            <span style="float:left;">&nbsp;</span><label for="zipTxt">Zip: </label>
+                            <input id="zipTxt" name="zipTxt" size="10">
+                        </div><br><br>
+                        <p style="text-align: center;clear:both;">
                             <button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="lookupAddress()">Find</button>
                             <button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="require(['dojo/dom'],function(dom){dom.byId('streetTxt').value='';dom.byId('cityTxt').value='';dom.byId('zipTxt').value='';});" title="Clear address form">Reset</button>
                             <button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="clearAddress()" title="Remove last address image from the map.">Remove</button>
