@@ -542,8 +542,43 @@ function printMap(){
 					var action = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
 					var label = mapscale;
 					var value = Math.floor(millis/1000); // seconds to generate. Must be integer for Google Analytics
-					ga('send', 'event', category, action, label, value);
-					console.log("Time to create preview map = " + value + " seconds");
+					// Calculate size of file for Google Analytics stats
+					if (window.XMLHttpRequest) {
+						var xhr = new XMLHttpRequest();
+						xhr.open("HEAD", result.url, true); // Notice "HEAD" instead of "GET", to get only the header
+						xhr.onreadystatechange = function() {
+								if (this.readyState == this.DONE) {
+										var mb = parseInt(xhr.getResponseHeader("Content-Length"));
+										category += " "+(mb/1048576).toFixed(1)+" mb";
+										for (var i=0; i<previewMap.layerIds.length; i++){
+											switch ( previewMap.layerIds[i]){
+												case "Motor Vehicle Use Map":
+													category += " MVUM";
+													break;
+												case "Hunter Reference":
+													category += " Hunt_Ref";
+													break;
+												case "Game Species":
+													category += " Game_Sp";
+													break;
+												case "Fishing Info":
+													category += " Fish_Info";
+													break;
+												case "Reference":
+													category += " Fish_Ref";
+													break;
+											}
+										}
+										console.log("Time to create map = " + value + " seconds for "+category);
+										ga('send', 'event', category, action, label, value);
+								}
+						};
+						xhr.send();
+					}
+					else{
+						console.log("Time to create map = " + value + " seconds for "+category);
+						ga('send', 'event', category, action, label, value);
+					}
 				}
 				console.log("printing to "+result.url);
 				if (result.url.indexOf('tif') > -1 || result.url.indexOf('svgz') > -1){
@@ -572,6 +607,15 @@ function printMap(){
 				document.getElementById("printLegendLink").innerHTML = "";
 				for (var i=0; i<pointWithText; i++) removeDrawItem(); // remove extra text layer added for points with text because of bug in PrintTask
 				printDialog.hide();
+			}
+			//Do not allow printing outside of Colorado
+			if (!fullExtent.contains(previewMap.extent)){
+				alert ("Printing is only allowed for Colorado.","Warning");
+				registry.byId("print_button").set("label", "Print");
+				document.getElementById("printLoading").style.display="none";
+				document.getElementById("printMapLink").innerHTML = "";
+				document.getElementById("printLegendLink").innerHTML = "";
+				return;
 			}
 
 			printTask.execute(params, printResult, printError);
