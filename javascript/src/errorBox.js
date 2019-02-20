@@ -12,14 +12,27 @@ navigator.sayswho= (function(){
         if(tem!= null) return 'Opera '+tem[1];
 		// Check for Edge
 		tem=ua.match(/Edge\/(\d+)/i);
-		if(tem != null) return "Edge "+tem[1]
+		if(tem != null) return "Edge "+tem[1];
     }
     M= M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
     if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
     if (M[0] == "MSIE" && !document.all) return "IE 11";
 	return M.join(' ');
 })();
-
+function checkMailTo(){
+	// Added 2-20-19
+	// When the Report button is clicked it uses href mailto:... to try to load the default mail application.
+	// If it fails it does nothing. Trap for this and give instructions on how to set it up.
+	var t;
+	window.blur(function(){
+		// The browser responded, so stop the timer
+		clearTimeout(t);
+	});
+	t = setTimeout(function(){
+		// The browser did not repond after 1/2 a second so display notice
+		alert("You have not setup a default mail client for this browser. To report an error, send an email to ndisadmin@nrel.colostate.edu.","Notice");
+	},500);
+}
 function oldversion(){
 	var ua = navigator.userAgent, tem;
     var M = ua.match(/(Opera|Chrome|Safari|Firefox|MSIE|Trident(?=\/))\/?\s*(\d+)/i) || [];
@@ -75,7 +88,7 @@ function alert(){
 		msg = msg.replace(/'/g, ""); // single quotes causing email to ndisadmin to be cut off
 		if (title=="Code Error" || title=="URL Graphics Error" || title=="URL Extent Error") email="tamara.bearly@colostate.edu";
 		msg += "%0D%0A%0D%0AApp: "+app+"%0D%0AReferrer URL: "+ref+"%0D%0ACurrent URL: "+loc+"%0D%0ABrowser: "+navigator.sayswho+"%0D%0AOp Sys: "+navigator.platform+"%0D%0ABrowser Info: "+navigator.userAgent+"%0D%0A";
-		document.getElementById("errMsg").innerHTML +="<a href='mailto:"+email+"?subject="+app+": "+title+"&body="+msg+"'/>Email this error to ndisadmin</a><br/><br/>";
+		document.getElementById("errMsg").innerHTML +="<a href='mailto:"+email+"?subject="+app+": "+title+"&body="+msg+"' onClick='checkMailTo()'/>Email this error to ndisadmin</a><br/><br/>";
 		
 	}
 	if (title == "Code Error") title="Error Message";

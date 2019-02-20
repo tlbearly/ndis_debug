@@ -22,6 +22,20 @@ navigator.sayswho = (function () {
 		return "IE 11";
 	return M.join(' ');
 })();
+function checkMailTo(){
+	// Added 2-20-19
+	// When the Report button is clicked it uses href mailto:... to try to load the default mail application.
+	// If it fails it does nothing. Trap for this and give instructions on how to set it up.
+	var t;
+	window.blur(function(){
+		// The browser responded, so stop the timer
+		clearTimeout(t);
+	});
+	t = setTimeout(function(){
+		// The browser did not repond after 1/2 a second so display notice
+		alert("You have not setup a default mail client for this browser. To report an error, send an email to ndisadmin@nrel.colostate.edu.","Notice");
+	},500);
+}
 function alert() {
 	// Arguments: message, title, error object, show X button?, fade?, mili-seconds before fade
 	var msg,
@@ -80,7 +94,7 @@ function alert() {
 			if (title == "Data Error")
 				email = "ndisadmin@nrel.colostate.edu";
 			msg += "%0D%0A%0D%0AApp: " + app + "%0D%0AReferrer URL: " + ref + "%0D%0ACurrent URL: " + loc + "%0D%0ABrowser: " + navigator.sayswho + "%0D%0AOp Sys: " + navigator.platform + "%0D%0ABrowser Info: " + navigator.userAgent + "%0D%0A";
-			dom.byId("errorMsg").innerHTML += " <a href='mailto:" + email + "?subject=Mobile " + app + ": " + title + "&body=" + msg + "'/><button class='mblButton' data-dojo-type='dojox/mobile/Button'>Report</button></a><br/>";
+			dom.byId("errorMsg").innerHTML += " <a href='mailto:" + email + "?subject=Mobile " + app + ": " + title + "&body=" + msg + "' onClick='checkMailTo()'/><button class='mblButton' data-dojo-type='dojox/mobile/Button'>Report</button></a><br/>";
 		}
 		registry.byId("errorMsgBox").show();
 		if (fade) {
