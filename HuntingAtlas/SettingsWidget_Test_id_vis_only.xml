@@ -144,7 +144,7 @@
 			<layer label="CPW Public Access Properties">
 				<id>3</id>
 				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
-        <vis_id>99</vis_id>
+        <vis_id>96</vis_id>
 				<vis_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_Map/MapServer/</vis_url>
     		<geometry>polygon</geometry>
       	<fields>PropName</fields>
