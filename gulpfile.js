@@ -390,6 +390,7 @@ gulp.task('identify', ['identifyD', 'identifyM']);
 gulp.task('readConfig', ['readConfigD', 'readConfigM']);
 gulp.task('search', ['searchD', 'searchM']);
 gulp.task('print', ['printD', 'printM']);
+gulp.task('bookmark', ['bookmarkD', 'BookmarkM']);
 gulp.task('utilFuncs', ['utilFuncsD', 'utilFuncsM']);
 gulp.task('xmlUtils', ['xmlUtilsD', 'xmlUtilsM']);
 gulp.task('toc', ['tocD', 'tocM']);
