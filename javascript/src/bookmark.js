@@ -136,11 +136,12 @@ function loadBookmark(cfg) {
 			var sr = new SpatialReference(map.spatialReference);
 			for (var m = 1; m < value.length; m++) {
 				if (value[m].indexOf("layer=") > -1) {
+					value[m]=value[m].substring(6); // strip off layer=
 					// clean from XSS attacks
 					regexp=/([^a-zA-Z0-9 =\-\|,\._()])/g;
 					value[m] = value[m].replace(regexp,"");
 					var pos = value[m].indexOf("|");
-					var basemap = value[m].substring(6, pos);
+					var basemap = value[m].substring(0, pos);
 					var title;
 					for (var g = 0; g < basemapGallery.basemaps.length; g++) {
 						if (basemap == basemapGallery.basemaps[g].id) {
@@ -262,40 +263,46 @@ function loadBookmark(cfg) {
 						}
 					}
 				} else if (value[m].indexOf("point=") > -1){
+					value[m]=value[m].substring(6); // strip off point=
 					// clean from XSS attacks
 					regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_\*()])/g;
 					value[m] = value[m].replace(regexp,"");
-					addPoints(value[m].substring(6), sr);
+					addPoints(value[m], sr);
 				}
 				else if (typeof addHB1298Points === "function" && value[m].indexOf("hb1298=") > -1){
+					value[m]=value[m].substring(7); // strip off hb1298=
 					// clean from XSS attacks
 					regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_\*()])/g;
 					value[m] = value[m].replace(regexp,"");
-					addHB1298Points(value[m].substring(7));
+					addHB1298Points(value[m]);
 				}
 				else if (value[m].indexOf("line=") > -1){
+					value[m]=value[m].substring(5); // strip off line=
 					// clean from XSS attacks
 					regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_\*()])/g;
 					value[m] = value[m].replace(regexp,"");
-					addLines(value[m].substring(5), sr);
+					addLines(value[m], sr);
 				}
 				else if (value[m].indexOf("poly=") > -1){
+					value[m]=value[m].substring(5); // strip off poly=
 					// clean from XSS attacks
 					regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
 					value[m] = value[m].replace(regexp,"");
-					addPolys(value[m].substring(5), sr);
+					addPolys(value[m], sr);
 				}
 				else if (value[m].indexOf("rect=") > -1){
+					value[m]=value[m].substring(5); // strip off rect=
 					// clean from XSS attacks
 					regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
 					value[m] = value[m].replace(regexp,"");
-					addRects(value[m].substring(5), sr);
+					addRects(value[m], sr);
 				}
 				else if (value[m].indexOf("text=") > -1){
+					value[m]=value[m].substring(5); // strip off text=
 					// clean from XSS attacks
 					regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
 					value[m] = value[m].replace(regexp,"");
-					addLabels(value[m].substring(5), sr);
+					addLabels(value[m], sr);
 				}
 			}
 			var toc = registry.byId("tocDiv");

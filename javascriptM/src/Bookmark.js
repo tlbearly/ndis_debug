@@ -438,12 +438,13 @@ map.spatialReference ); }
 					var sr = new SpatialReference(map.spatialReference);
 					for (var m = 1; m < value.length; m++) {
 						if (value[m].indexOf("layer=") > -1) {
+							value[m]=value[m].substring(6); // strip off layer=
 							// clean from XSS attacks
 							regexp=/([^a-zA-Z0-9 =\-\|,\._()])/g;
 							value[m] = value[m].replace(regexp,"");
 							var basemapGallery = registry.byId("basemapGallery");
 							pos = value[m].indexOf("|");
-							var basemap = value[m].substring(6, pos);
+							var basemap = value[m].substring(0, pos);
 							var title;
 							
 							for (var g = 0; g < basemapGallery.basemaps.length; g++) {
@@ -565,17 +566,19 @@ map.spatialReference ); }
 							}
 						} else if (value[m].indexOf("point=") > -1){
 							require(["javascript/graphicFuncs"],function(graphicFuncs){
+								value[m]=value[m].substring(6); // strip off point=
 								// clean from XSS attacks
 								regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_\*()])/g;
 								value[m] = value[m].replace(regexp,"");
-								graphicFuncs.addPoints(value[m].substring(6), sr);
+								graphicFuncs.addPoints(value[m], sr);
 							});
 						}
 						else if (typeof addHB1298Points === "function" && value[m].indexOf("hb1298=") > -1){
+							value[m]=value[m].substring(7); // strip off hb1298=
 							// clean from XSS attacks
 							regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_\*()])/g;
 							value[m] = value[m].replace(regexp,"");
-							addHB1298Points(value[m].substring(7));
+							addHB1298Points(value[m]);
 						}
 						// if add these need to clean from xss attacks. See indexM.html for regexp
 						//else if (value[m].indexOf("line=") > -1)
