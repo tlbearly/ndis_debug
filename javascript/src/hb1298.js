@@ -54,8 +54,8 @@ function getHB1298Points() {
 
 function setupIdentify(theWellLabel) {
     //setup generic identify parameters
-    require(["dijit/registry", "esri/tasks/IdentifyParameters", "esri/tasks/IdentifyTask", "dojo/_base/array", "dojo/promise/all", "esri/SpatialReference", "esri/geometry/Extent"],
-        function(registry, IdentifyParameters, IdentifyTask, array, all, SpatialReference, Extent) {
+    require(["dijit/registry", "esri/tasks/IdentifyParameters", "esri/tasks/IdentifyTask", "dojo/promise/all", "esri/SpatialReference", "esri/geometry/Extent"],
+        function(registry, IdentifyParameters, IdentifyTask, all, SpatialReference, Extent) {
             var identifyParams = new IdentifyParameters();
             identifyParams.tolerance = 1;
             identifyParams.returnGeometry = false;
@@ -75,8 +75,8 @@ function setupIdentify(theWellLabel) {
             function hb1298IdentifySuccess(e) {}
 
             var deferreds;
-            require(["dojo/_base/array", "dojo/promise/all"], function(array, all) {
-                deferreds = array.map(hb1298LayerIds, function(layer) {
+            require(["dojo/promise/all"], function(all) {
+                deferreds = hb1298LayerIds.map(function(layer) {
                     if (layer) {
                         identifyParams.layerIds = [layer.ids];
                         var task = new IdentifyTask(layer.url);
@@ -106,7 +106,7 @@ function setupIdentify(theWellLabel) {
                         return;
                     }
                     // Read all of the data into array object data.
-                    array.map(results, function(result) {
+                    results.map(function(result) {
                         // Test for no data
                         if (result.length == 0) return;
 
