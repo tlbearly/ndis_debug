@@ -461,7 +461,7 @@
 		
 		function displayContent(){
 		// Check if have cached infoTemplate content, then show it. Else do identify task then cache results in groupContent.
-			require(["esri/tasks/IdentifyTask","dojo/_base/array","dojo/DeferredList","dojo/_base/Deferred"], function(IdentifyTask,array,DeferredList,Deferred) {
+			require(["esri/tasks/IdentifyTask","dojo/_base/array","dojo/DeferredList","dojo/Deferred"], function(IdentifyTask,array,DeferredList,Deferred) {
 				if (groupContent[identifyGroup]){
 					map.infoWindow.setContent(groupContent[identifyGroup]);
 					// Adjust the height of the Way Point description text box to fit the text.

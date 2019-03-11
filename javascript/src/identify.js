@@ -367,7 +367,7 @@ function setInfoWindowHeader() {
 
 function displayContent() {
     // Loop through each layer found at the map click
-    require(["dojo/_base/array", "esri/tasks/IdentifyTask", "dojo/DeferredList", "dojo/_base/Deferred"], function(array, IdentifyTask, DeferredList, Deferred) {
+    require(["esri/tasks/IdentifyTask", "dojo/promise/all", "dojo/Deferred"], function(IdentifyTask, all, Deferred) {
         if (groupContent[identifyGroup]) {
             map.infoWindow.setContent(groupContent[identifyGroup]);
             hideLoading("");
@@ -410,7 +410,7 @@ function displayContent() {
                     var vis_layers = [];
                     identifyParams.layerIds = item.vis_ids.slice(); // get list of ids used in the map
                     // Loop through each top layer in the TOC that is visible at this scale
-                    array.forEach(layers, function(layer) {
+                    layers.forEach(function(layer) {
                         if (layer.url == url) {
                             if (layer.visible == true) {
                                 skip = false;
@@ -482,7 +482,7 @@ function displayContent() {
             }
         }
         if (deferreds && deferreds.length > 0) {
-            var dlist = new DeferredList(deferreds);
+            var dlist = all(deferreds);
             dlist.then(handleQueryResults);
         } else {
             // display empty info popup
@@ -515,7 +515,7 @@ function handleQueryResults(results) {
     //	layerId
     //	layerName
     //	value
-    require(["dojo/_base/array"], function(array) {
+    //require(["dojo/_base/array"], function(array) {
         try {
             if (!results) {
                 alert("Error in identify.js/handleQueryResults. IdentifyTask returned null.", "Data Error");
@@ -523,9 +523,9 @@ function handleQueryResults(results) {
             }
             var title, title_subject;
             // Count database calls
-            array.forEach(results, function(result) {
-                if (result[1] && result[1].length > 0) {
-                    array.forEach(result[1], function(r) {
+            results.forEach(function(result) {
+                if (result && result.length > 0) {
+                    result.forEach(function(r) {
                         if (typeof identifyLayers[identifyGroup][r.layerName] != 'undefined')
                             if (typeof identifyLayers[identifyGroup][r.layerName].database != 'undefined') numDatabaseCalls++;
                     });
@@ -546,9 +546,9 @@ function handleQueryResults(results) {
             var tmpStr;
 
             // Write the content for the identify 
-            array.forEach(results, function(result) {
-                if (result[1].length > 0) {
-                    array.forEach(result[1], function(r) {
+            results.forEach(function(result) {
+                if (result.length > 0) {
+                    result.forEach(function(r) {
                         var feature = r.feature;
                         var infoTemplate;
                         feature.attributes.layerName = r.layerName;
@@ -708,7 +708,7 @@ function handleQueryResults(results) {
             alert(e.message + " in javascript/identify.js handleQueryResults().", "Code Error", e);
             hideLoading("");
         }
-    });
+    //});
 }
 
 function highlightFeature(id) {

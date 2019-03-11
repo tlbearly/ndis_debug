@@ -490,7 +490,7 @@
 
 	  function displayContent() {
 	      // Check if have cached infoTemplate content, then show it. Else do identify task then cache results in groupContent.
-	      require(["esri/tasks/IdentifyTask", "dojo/_base/array", "dojo/DeferredList", "dojo/_base/Deferred"], function(IdentifyTask, array, DeferredList, Deferred) {
+	      require(["esri/tasks/IdentifyTask", "dojo/promise/all", "dojo/Deferred"], function(IdentifyTask, all, Deferred) {
 	          if (groupContent[identifyGroup]) {
 	              map.infoWindow.setContent(groupContent[identifyGroup]);
 	              // Adjust the height of the Way Point description text box to fit the text.
@@ -538,7 +538,8 @@
 	                      var vis_layers = [];
 	                      identifyParams.layerIds = item.vis_ids.slice(); // get list of ids used in the map
 	                      // Loop through each top layer in the TOC that is visible at this scale
-	                      array.forEach(layers, function(layer) {
+	                	  //array.forEach(layers, function(layer) { //tlb 3-6-19 remove dojo/_base/array
+						  layers.forEach(function(layer){
 	                          if (layer.url == url) {
 	                              if (layer.visible == true) {
 	                                  skip = false;
@@ -591,7 +592,7 @@
 	              }
 	          }
 	          if (deferreds && deferreds.length > 0) {
-	              var dlist = new DeferredList(deferreds);
+				  var dlist = all(deferreds);
 	              dlist.then(handleQueryResults);
 	          } else {
 	              // display empty info popup
@@ -618,7 +619,7 @@
 
 	  function handleQueryResults(results) {
 	      // results contains an array for the selected identifyGroup
-	      // in which results[i][1] contains an array of objects:
+	      // in which results[i] contains an array of objects:
 	      // 	displayFieldName
 	      //	feature: attributes, geometry, infoTemplate, symbol
 	      //	geometryType
@@ -626,13 +627,13 @@
 	      //	layerName
 	      //	value
 
-	      require(["dojo/_base/array"], function(array) {
+	      //require(["dojo/_base/array"], function(array) {
 	          try {
 				function findGroupInResults(results) {
 					for (i = 0; i < results.length; i++) {
-						if (results[i][1] && results[i][1].length > 0) {
-							for (j = 0; j < results[i][1].length; j++) {
-								if (identifyLayers[identifyGroup][results[i][1][j].layerName]) {
+						if (results[i] && results[i].length > 0) {
+							for (j = 0; j < results[i].length; j++) {
+								if (identifyLayers[identifyGroup][results[i][j].layerName]) {
 									notfound = false;
 									return;
 								}
@@ -647,9 +648,9 @@
 	              theResults = results; // save the results for change identify group call
 	              var title, title_subject;
 	              // Count database calls
-	              array.forEach(results, function(result) {
-	                  if (result[1] && result[1].length > 0) {
-	                      array.forEach(result[1], function(r) {
+	              results.forEach(function(result) {
+	                  if (result && result.length > 0) {
+	                      result.forEach(function(r) {
 	                          if (typeof identifyLayers[identifyGroup][r.layerName] != 'undefined')
 	                              if (typeof identifyLayers[identifyGroup][r.layerName].database != 'undefined') numDatabaseCalls++;
 	                      });
@@ -669,23 +670,23 @@
 
 	              findGroupInResults(results);
 	              if (notfound) title = "No " + identifyGroup;
-	              else if (results[i][1][j].displayFieldName == "WATERCODE") {
+	              else if (results[i][j].displayFieldName == "WATERCODE") {
 	                  title = "";
 	                  // Use lake name from All Lakes layer if it was included in SettingsWidget.xml
-	                  for (var k = 0; k < results[i][1].length; k++) {
-	                      if (results[i][1][k].layerName.toUpperCase() == "ALL LAKES") {
-	                          title = results[i][1][k].value;
+	                  for (var k = 0; k < results[i].length; k++) {
+	                      if (results[i][k].layerName.toUpperCase() == "ALL LAKES") {
+	                          title = results[i][k].value;
 	                          break;
 	                      }
 	                  }
-	                  if (title == "") title = results[i][1][j].layerName;
-	              } else if (results[i][1][j].displayFieldName == "LOC_ID") title = results[i][1][j].layerName;
-	              else if (results[i][1][j].displayFieldName == "GMUID") title = "GMU " + results[i][1][j].feature.attributes[results[i][1][j].displayFieldName];
-	              else if (results[i][1][j].layerName.indexOf("Land Management") != -1 && results[i][1][j].feature.attributes[results[i][1][j].displayFieldName] == "")
-	                  title = results[i][1][j].feature.attributes["MANAGER"];
-	              else if (results[i][1][j].layerName.indexOf("Mule Deer") > -1) title = "Mule Deer Ranges";
-				  else if (results[i][1][j].layerName.indexOf("Elk") > -1) title = "Elk Ranges";
-	              else title = results[i][1][j].feature.attributes[results[i][1][j].displayFieldName];
+	                  if (title == "") title = results[i][j].layerName;
+	              } else if (results[i][j].displayFieldName == "LOC_ID") title = results[i][j].layerName;
+	              else if (results[i][j].displayFieldName == "GMUID") title = "GMU " + results[i][j].feature.attributes[results[i][j].displayFieldName];
+	              else if (results[i][j].layerName.indexOf("Land Management") != -1 && results[i][j].feature.attributes[results[i][j].displayFieldName] == "")
+	                  title = results[i][j].feature.attributes["MANAGER"];
+	              else if (results[i][j].layerName.indexOf("Mule Deer") > -1) title = "Mule Deer Ranges";
+				  else if (results[i][j].layerName.indexOf("Elk") > -1) title = "Elk Ranges";
+	              else title = results[i][j].feature.attributes[results[i][j].displayFieldName];
 
 	              map.infoWindow.setTitle(title);
 				  lastTitle = title;
@@ -713,9 +714,9 @@
 	              // Write the content for the identify 
 	              var tmpStr;
 	              var str = getIdentifyHeader(identifyGroup);
-	              array.forEach(results, function(result) {
-	                  if (result[1].length > 0) {
-	                      array.forEach(result[1], function(r) {
+	              results.forEach(function(result) {
+	                  if (result.length > 0) {
+	                      result.forEach(function(r) {
 	                          var feature = r.feature;
 	                          feature.attributes.layerName = r.layerName;
 
@@ -873,7 +874,7 @@
 	          } catch (e) {
 	              alert(e.message + " in javascript/identify.js handleQueryResults().", "Code Error", e);
 	          }
-	      });
+	      //});
 	  }
 
 	  function highlightFeature(id) {

@@ -487,7 +487,7 @@
 		
 		function displayContent(){
 		// Check if have cached infoTemplate content, then show it. Else do identify task then cache results in groupContent.
-			require(["esri/tasks/IdentifyParameters","esri/tasks/IdentifyTask","dojo/_base/array","dojo/DeferredList","dojo/_base/Deferred","dojo/query"], function(IdentifyParameters,IdentifyTask,array,DeferredList,Deferred,query) {
+			require(["esri/tasks/IdentifyParameters","esri/tasks/IdentifyTask","dojo/_base/array","dojo/DeferredList","dojo/Deferred","dojo/query"], function(IdentifyParameters,IdentifyTask,array,DeferredList,Deferred,query) {
 					// Scroll contentPane to top so it does not show a blank page if they had scrolled down on the contentPane before.
 					if (query("div.esriMobileInfoView",map.domNode)[0]){
 						// Code for Safari
