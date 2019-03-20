@@ -10,7 +10,6 @@ define([
     "dojo/dom-construct",
     "dijit/registry",
     "dojox/mobile/SimpleDialog",
-    "dojo/_base/window",
     "dojo/dom-class"
 ], function(
     declare,
@@ -24,7 +23,6 @@ define([
     domConstruct,
     registry,
     SimpleDialog,
-    win,
     domClass
 ) {
     // Use this if you have widgets in the template like a tab container that will be initialize in here.
