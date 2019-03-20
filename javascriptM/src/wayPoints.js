@@ -11,7 +11,7 @@ var wayPointHelp=null;
 
 function wayPointInit(){
 	// Way Point Help Window
-	require(["dojo/_base/window","javascript/HelpWin"],function(win,HelpWin){
+	require(["javascript/HelpWin"],function(HelpWin){
 		// Add to help later: ' Bookmark also allows uploading and downloading kml or kmz files with the '+
 		//		'current way points and map extent. These can be created in google maps.'+
 		wayPointHelp = new HelpWin({
@@ -23,7 +23,7 @@ function wayPointInit(){
 				'points in your browser\'s bookmarks or cache.'+
 				'<br/><br/>'
 		});
-		win.body().appendChild(wayPointHelp.domNode);
+		document.body.appendChild(wayPointHelp.domNode);
 		wayPointHelp.startup();
 	});
 }
