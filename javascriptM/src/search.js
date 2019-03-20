@@ -6,7 +6,7 @@ function searchInit() {
 	var fishSpeciesGraphicalName = "Fish species in known fishing spots";
 	document.getElementById("searchLoadingImg").style.display="block";
 	// Feature Search Help Window
-	require(["dojo/_base/window","javascript/HelpWin"],function(win,HelpWin){
+	require(["javascript/HelpWin"],function(HelpWin){
 		searchHelp = new HelpWin({
 			label: "Feature Search Help",
 			content: 'Search for a named location by feature type. Allows searching for <b>township, range, and section</b>. The Fishing Atlas '+
@@ -14,7 +14,7 @@ function searchInit() {
 				'type, matches will be suggested. To remove the highlighted features from the map, press the Clear button on the main menu. '+
 				'<br/><br/>'
 		});
-		win.body().appendChild(searchHelp.domNode);
+		document.body.appendChild(searchHelp.domNode);
 		searchHelp.startup();
 	});
 	// lookup feature types available and fill drop down list.
