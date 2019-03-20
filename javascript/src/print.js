@@ -395,7 +395,7 @@ function printMap(){
 			if (!printLegendFlag) done=true; // turn off wait icon after printing map; don't wait for legend to print
 			registry.byId("print_button").set("label", "Creating...");
 			document.getElementById("printLoading").style.display="inline-block";
-			//var mvum=false;
+			var mvum=false;
 			document.getElementById("printMapLink").innerHTML = "";
 			document.getElementById("printLegendLink").innerHTML = "";
 			//pointWithText = 0; // we need to add a layer to the map because of a bug in PrintTask, set this flag so we can remove it.
@@ -404,8 +404,12 @@ function printMap(){
 			var legendArr = [];
 			var legend;
 			for (i=1; i<layer.length; i++) {
+				if (ourMVUM && (layer[i].id == "Motor Vehicle Use Map")){
+					// Do not add the legend. Will use MVUM print template
+					if (layer[i].visible) mvum = true;
+				}
 				//if (layer[i].visible && (layer[i].id != "Motor Vehicle Use Map") &&
-				if (layer[i].visible &&
+				else if (layer[i].visible &&
 					(layer[i].id != "topo") &&
 					(layer[i].id != "streets") &&
 					(layer[i].id != "hybrid"))
@@ -424,7 +428,8 @@ function printMap(){
 						}
 						continue;
 					}
-					//if (layer[i].visibleLayers && layer[i].url.indexOf("mvum") == -1) {
+					//if (layer[i].visibleLayers && (layer[i].url.indexOf("mvum") == -1) {
+					// allow MVUM to generate it's own legend
 					if (layer[i].visibleLayers) {
 						legend = new LegendLayer();
 						legend.layerId = layer[i].id;
@@ -433,7 +438,7 @@ function printMap(){
 						legend = null;
 					}
 				}
-				//if (layer[i].visible && (layer[i].id == "Motor Vehicle Use Map")) mvum = true;
+				//if (ourMVUM && layer[i].visible && (layer[i].id == "Motor Vehicle Use Map")) mvum = true;
 			}
 						
 			var printTask;
@@ -457,15 +462,16 @@ function printMap(){
 				template.format = format.options[format.selectedIndex].value;
 				if (template.format != "geopdf"){
 					legendTemplate="none";
+					template.exportOptions = { dpi: 300 };// does not do anything????
 				}
 				else if (template.format=="geopdf" && !document.getElementById("printLegend").checked) {
 					legendTemplate="none";
 					template.format="pdf";
 				}
-				//else if (mvum) {
-				//	legendTemplate = "Legend Letter "+selectedValue_orient+ " MVUM";
-				//	template.format = "pdf";
-				//}
+				else if (ourMVUM && mvum) {
+					legendTemplate = "Legend Letter "+selectedValue_orient+ " MVUM";
+					template.format = "pdf";
+				}
 				else {
 					legendTemplate = "Legend Letter "+selectedValue_orient;
 					template.format = "pdf";
@@ -519,6 +525,7 @@ function printMap(){
 				
 			function printResult(result){
 				// 1-22-19 tlb  Add Google Analytics stats for georef printing 
+				var i;
 				var format = dom.byId("format");
 				if (format.options[format.selectedIndex].value=="geopdf"){
 					var millis = Date.now() - startTim;
@@ -537,48 +544,72 @@ function printMap(){
 					else if (s < 4622325) mapscale = "4M";
 					else if (s < 9244649) mapscale = "9M";
 					var category = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML+" pdf ";//+" "+theDate;
-					if (printLegendFlag && document.getElementById("printLegend").checked) category += "legend "+mapscale;
-					else category += mapscale;
+					if (printLegendFlag && document.getElementById("printLegend").checked) category += "legend ";//+mapscale;
+					//else category += mapscale;
+					var pagesize = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
 					var action = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
-					var label = mapscale;
 					var value = Math.floor(millis/1000); // seconds to generate. Must be integer for Google Analytics
+					// Add map services used
+					var label=""; // Map Services
+					for (i=0; i<previewMap.layerIds.length; i++){
+						switch ( previewMap.layerIds[i]){
+							case "Motor Vehicle Use Map":
+								label += "M";
+								break;
+							case "Hunter Reference":
+							  label += "R";
+								break;
+							case "Game Species":
+								label += "G";
+								break;
+							case "Fishing Info":
+								label += "F";
+								break;
+							case "Reference":
+								label += "R";
+								break;
+						}
+					}
+					category += label;
+					var mapservices = label;
+					var custom;
 					// Calculate size of file for Google Analytics stats
-					if (window.XMLHttpRequest) {
+					/*if (window.XMLHttpRequest) {
 						var xhr = new XMLHttpRequest();
 						xhr.open("HEAD", result.url, true); // Notice "HEAD" instead of "GET", to get only the header
 						xhr.onreadystatechange = function() {
 								if (this.readyState == this.DONE) {
-										var mb = parseInt(xhr.getResponseHeader("Content-Length"));
-										category += " "+(mb/1048576).toFixed(1)+" mb";
-										for (var i=0; i<previewMap.layerIds.length; i++){
-											switch ( previewMap.layerIds[i]){
-												case "Motor Vehicle Use Map":
-													category += " MVUM";
-													break;
-												case "Hunter Reference":
-													category += " Hunt_Ref";
-													break;
-												case "Game Species":
-													category += " Game_Sp";
-													break;
-												case "Fishing Info":
-													category += " Fish_Info";
-													break;
-												case "Reference":
-													category += " Fish_Ref";
-													break;
-											}
-										}
-										console.log("Time to create map = " + value + " seconds for "+category);
-										ga('send', 'event', category, action, label, value);
+										var mb = Math.round(parseInt(xhr.getResponseHeader("Content-Length"))/1048576);
+										console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale+" "+mb+"MB");
+										// In Google Analytics, Admin, Properties, Custom Definitions, Custom Dimensions(text) & Custom Metrics(integer)
+										// Set up: 
+										//		dimension2=Page Size, Hit, Active
+										//		dimension3=Map Services, Hit, Active
+										//		dimension4=Map Scale, Hit, Active
+										//		metric1=Seconds, Hit, Active
+										//		metric2=MB, Hit, Active
+										custom = {
+											'metric1':value,
+											'metric2': mb,
+											'dimension2':pagesize,
+											'dimension3':mapservices,
+											'dimension4':mapscale
+										};
+										ga('send', 'event', category, action, label, value, custom);
 								}
 						};
 						xhr.send();
 					}
-					else{
-						console.log("Time to create map = " + value + " seconds for "+category);
-						ga('send', 'event', category, action, label, value);
-					}
+					else{*/
+						custom = {
+							'metric1':value,
+							'dimension2':pagesize,
+							'dimension3':mapservices,
+							'dimension4':mapscale
+						};
+						console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale);
+						ga('send', 'event', category, action, label, value,custom);
+					//}
 				}
 				console.log("printing to "+result.url);
 				if (result.url.indexOf('tif') > -1 || result.url.indexOf('svgz') > -1){
@@ -590,7 +621,7 @@ function printMap(){
 					window.open(result.url,"_blank");
 					document.getElementById("printMapLink").innerHTML = "Opened map in a new tab.<br/>Link to <a href='"+result.url+"' target='_blank'>"+template.format.toUpperCase()+" File</a>";
 				}
-				for (var i=0; i<pointWithText; i++) removeDrawItem(); // remove extra text layer added for points with text because of bug in PrintTask
+				for (i=0; i<pointWithText; i++) removeDrawItem(); // remove extra text layer added for points with text because of bug in PrintTask
 				// Hide loading icon and change Printing... label back to Print.
 				if (done){
 					registry.byId("print_button").set("label", "Print");
@@ -631,9 +662,9 @@ function printMap(){
 				var params2 = new PrintParameters();
 				var template2 = new PrintTemplate();
 				template2.exportOptions = { dpi: 300 };
-				//if (mvum)
-				//	template2.layout = "Legend Letter "+selectedValue_orient+ " MVUM";
-				//else
+				if (ourMVUM && mvum)
+					template2.layout = "Legend Letter "+selectedValue_orient+ " MVUM";
+				else
 					template2.layout = "Legend Letter "+selectedValue_orient;
 				template2.format = "PDF";
 				template2.layoutOptions = {

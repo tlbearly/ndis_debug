@@ -2,27 +2,30 @@ var prtDisclaimer="";
 var sizeCombo,orientCombo;
 var outputName="";
 var startTim;
+/****************************************** */
+/*  Quickly add or remove large print sizes */
+var useLargeSizes = false; // if true gives page sizes 17x22 and 22x34 also.
+
 function printInit() {
 	require(["dojo/store/Memory","dijit/form/ComboBox", "dijit/form/Select"],function(Memory,ComboBox,Select){
-	// Create dojox combo boxes
-	/*var sizeStore = new Memory({
-		idProperty: "name",
-		data: [{name:"8.5 x 11"},
-					{name: "11 x 17"},
-					{name: "17 x 22"},
-				  {name: "22 x 34"}]
-		});*/
-		var sizeStore = new Memory({
-			idProperty: "name",
-			data: [{name:"8.5 x 11"},
-						{name: "11 x 17"}]
+		// Create dojox combo boxes
+		var sizeStore;
+		if (useLargeSizes){
+			sizeStore = new Memory({
+				idProperty: "name",
+				data: [{name:"8.5 x 11"},
+							{name: "11 x 17"},
+							{name: "17 x 22"},
+							{name: "22 x 34"}]
 			});
-
-		/*<option value="Letter ">8.5 x 11</option-->
-                        <!--option value="Legal ">8.5 x 14</option--> 
-                        <!--option value="Tabloid ">11 x 17</option-->     
-                        <!--option value="ANSI C ">17 x 22</option-->
-                        <!--option value="ANSI D ">22 x 34</option-->*/
+		}
+		else{
+			sizeStore = new Memory({
+				idProperty: "name",
+				data: [{name:"8.5 x 11"},
+							{name: "11 x 17"}]
+			});
+		}
 		sizeCombo = new Select({
 			id: "size",
 			name: "size",
@@ -123,6 +126,7 @@ function printShow(){
 			document.getElementById("print_button").style.display="block";
 			document.getElementById("printMapLink").innerHTML = "";
 			document.getElementById("print_link").style.display="none";
+			document.getElementById("printMB").style.display="none";
 			//document.getElementById("pdf_name").classList.remove("error");
 			//document.getElementById("previewContainer").addEventListener("scroll",scrollBarMove);
 			document.getElementById("print_instr").style.display="block";
@@ -134,16 +138,17 @@ function printShow(){
 			document.getElementById("orient").style.display="inline-table";
 			document.getElementById("pdf_name_label").style.display="block";
 			document.getElementById("pdf_name").style.display="block";
+			
 			document.getElementById("pdf_name").onclick=function(){
 				 // scroll to bottom so that the file name input box is not hidden by the keyboard
 				document.getElementById("printScroll").scrollTop=2000;
-			}
+			};
 			document.getElementById("pdf_name").onkeyup=function(e){
 				// listen for the enter key or button press on mobile keyboard and hide keyboard
 				if (e.keyCode == 13) {
 					document.getElementById("pdf_name").blur();
 				}
-			}
+			};
 			//document.getElementById("previewContainer").style.display="block";
 			document.getElementById("printPreview").style.display="block";
 			document.getElementById("previewCkBx").style.display="block";
@@ -411,51 +416,59 @@ function changePrintSize(scaleChange){
 				largest = pgHeight;
 			}
 			// Set page size to display scale
-			if (largest <= 11){
-				if (selectedValue_size != "8.5 x 11"){
-					selectedValue_size = "8.5 x 11";
-					sizeCombo.set("value","8.5 x 11");
-					return;
+			if (!useLargeSizes){
+				if (largest <= 11){
+					if (selectedValue_size != "8.5 x 11"){
+						selectedValue_size = "8.5 x 11";
+						sizeCombo.set("value","8.5 x 11");
+						return;
+					}
+				}
+				else {
+					if (selectedValue_size != "11 x 17"){
+						selectedValue_size = "11 x 17";
+						sizeCombo.set("value","11 x 17");
+						return;
+					}
 				}
 			}
 			else {
-				if (selectedValue_size != "11 x 17"){
-					selectedValue_size = "11 x 17";
-					sizeCombo.set("value","11 x 17");
-					return;
+				// if using large sizes
+				if (largest <= 11){
+					if (selectedValue_size != "8.5 x 11"){
+						selectedValue_size = "8.5 x 11";
+						sizeCombo.set("value","8.5 x 11");
+						return;
+					}
+				}
+				else if (largest <= 17){
+					if (selectedValue_size != "11 x 17"){
+						selectedValue_size = "11 x 17";
+						sizeCombo.set("value","11 x 17");
+						return;
+					}
+				}
+				else if (largest <= 22){
+					if (selectedValue_size != "17 x 22"){
+						selectedValue_size = "17 x 22";
+						sizeCombo.set("value","17 x 22");
+						return;
+					}
+				}
+				else {
+					if (selectedValue_size != "22 x 34"){
+						selectedValue_size = "22 x 34";
+						sizeCombo.set("value","22 x 34");
+						return;
+					}
 				}
 			}
-
-		/*
-			// if using large sizes uncomment this
-			else if (largest <= 17){
-				if (selectedValue_size != "11 x 17"){
-					selectedValue_size = "11 x 17";
-					sizeCombo.set("value","11 x 17");
-					return;
-				}
-			}
-			else if (largest <= 22){
-				if (selectedValue_size != "17 x 22"){
-					selectedValue_size = "17 x 22";
-					sizeCombo.set("value","17 x 22");
-					return;
-				}
-			}
-			else {
-				if (selectedValue_size != "22 x 34"){
-					selectedValue_size = "22 x 34";
-					sizeCombo.set("value","22 x 34");
-					return;
-				}
-			}*/
 		}
 
 		if (selectedValue_size == "8.5 x 11") selectedValue_size = "Letter ";
 		else	if (selectedValue_size == "11 x 17") selectedValue_size = "Tabloid ";
-		// uncomment for large sizes
-		//else if (selectedValue_size == "17 x 22") selectedValue_size = "ANSIC ";
-		//else if (selectedValue_size == "22 x 34") selectedValue_size = "ANSID ";
+		else if (selectedValue_size == "17 x 22") selectedValue_size = "ANSIC ";
+		else if (selectedValue_size == "22 x 34") selectedValue_size = "ANSID ";
 		//var pt = map.extent.getCenter();
 		//var level = previewMap.getLevel();
 		
@@ -469,9 +482,6 @@ function changePrintSize(scaleChange){
 				previewMap.width=979;
 				previewMap.height=696;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
-				//previewMap.width =  document.body.clientWidth - 69;// (- 10 position -2 border -5 padding -5 inner border) * 2
-				//previewMap.height = 7.25 * (previewMap.width/10.2);
-				//registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 			// 17 x 11
 			// 17-.8 x 11-1.25
@@ -491,11 +501,8 @@ function changePrintSize(scaleChange){
 				previewMap.width=2035;
 				previewMap.height=1464;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
-				//previewMap.width =  document.body.clientWidth - 69;// (- 10 position -2 border -5 padding -5 inner border) * 2
-				//previewMap.height = 15.25 * (previewMap.width/21.2);
-				//registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
-				// 34-.8 x 22-1.25
+			// 34-.8 x 22-1.25
 			// 33.2 x 20.25 inch image (without borders)
 			// 3187.2 x 1944 pixels in screen resolution (inches * 96)
 			// 407 x 293 20% of that
@@ -612,6 +619,11 @@ function printMap(){
 				return;
 			}
 			else {
+				if (!fullExtent.contains(previewMap.extent)){
+					alert ("Printing is only allowed for Colorado.","Warning");
+					document.getElementById("previewLoading").style.display="none";
+					return;
+				}
 				document.getElementById("previewCkBx").style.display="none";
 				document.getElementById("print_instr").style.display="none";
 				document.getElementById("printPreview").style.display="none";
@@ -650,15 +662,16 @@ function printMap(){
 				var percent = Math.round(tim/min * 100);
 				document.getElementById("perDone").innerHTML = percent + "%";
 				document.getElementById("printBar").style.width = percent + "%";
-				if (percent >= 100){
+				if (percent > 100){
 					document.getElementById("printBar").style.width = 0;
 					tim = 0;
+					document.getElementById("perDone").innerHTML = "0%";
 				}
 			}, 2000);
 			var done=true;
 			//var printLegendFlag = dom.byId("printLegendCB").style.display=="inline-block" ? true : false; // Is the legend checkbox displayed?
 			//if (!printLegendFlag) done=true; // turn off wait icon after printing map; don't wait for legend to print
-			//var mvum=false;
+			var mvum=false;
 			document.getElementById("printMapLink").innerHTML = "";
 			//document.getElementById("printLegendLink").innerHTML = "";
 			pointWithText = 0; // we need to add a layer to the map because of a bug in PrintTask, set this flag so we can remove it.
@@ -687,9 +700,12 @@ function printMap(){
 						}
 						continue;	
 					}
-					// allow MVUM to generate it's own legend
 					//if (layer[i].visibleLayers && layer[i].url.indexOf("mvum") == -1) {
-					if (layer[i].visibleLayers) {
+					if (ourMVUM && layer[i].visibleLayers && (layer[i].url.indexOf("mvum")) > -1) {
+						// Do not add the legend. Will add an image in toc.js
+					}
+					// allow MVUM to generate it's own legend
+					else if (layer[i].visibleLayers) {
 						legend = new LegendLayer();
 						legend.layerId = layer[i].id;
 						legend.subLayerIds = layer[i].visibleLayers;
@@ -697,7 +713,7 @@ function printMap(){
 						legend = null;
 					}
 				}
-				//if (layer[i].visible && (layer[i].id == "Motor Vehicle Use Map")) mvum = true;
+				if (ourMVUM && layer[i].visible && (layer[i].id == "Motor Vehicle Use Map")) mvum = true;
 			}
 						
 			var printTask;
@@ -805,12 +821,79 @@ function printMap(){
 				var millis = Date.now() - startTim;
 				//var date = new Date();
 				//var theDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " +  date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
-				var category = sizeCombo.attr('displayedValue')+" pdf "+dijit.byId("mapscaleList").attr('displayedValue');//+" "+theDate;
+				//var label = dijit.byId("mapscaleList").attr('displayedValue'); // mapscale
+				var category = sizeCombo.attr('displayedValue')+" pdf ";
+				var mapscale = dijit.byId("mapscaleList").attr('displayedValue');
 				var action = sizeCombo.attr('displayedValue'); // page size
-				var label = dijit.byId("mapscaleList").attr('displayedValue'); // mapscale
 				var value = Math.floor(millis/1000); // seconds to generate. Must be integer for Google Analytics
-				ga('send', 'event', category, action, label, value);
-				console.log("Time to create map = " + value + " seconds");
+				// Add map services used
+				var label=""; // Map Services
+				for (var i=0; i<previewMap.layerIds.length; i++){
+					switch ( previewMap.layerIds[i]){
+						case "Motor Vehicle Use Map":
+							label += "M";
+							break;
+						case "Hunter Reference":
+							label += "R";
+							break;
+						case "Game Species":
+							label += "G";
+							break;
+						case "Fishing Info":
+							label += "F";
+							break;
+						case "Reference":
+							label += "R";
+							break;
+					}
+				}
+				category += label;
+				var mapservices = label;
+				var custom;
+				var mb = -1;
+				// Calculate size of file for Google Analytics stats
+				if (window.XMLHttpRequest) {
+					var xhr = new XMLHttpRequest();
+					xhr.open("HEAD", result.url, true); // Notice "HEAD" instead of "GET", to get only the header
+					xhr.onreadystatechange = function() {
+						if (this.readyState == this.DONE) {
+							// add file size
+							console.log("content-length=");
+							console.log(xhr.getResponseHeader("Content-Length"));
+							mb = Math.round(parseInt(xhr.getResponseHeader("Content-Length"))/1048576);
+							console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale+" "+mb+"MB");
+							// In Google Analytics, Admin, Properties, Custom Definitions, Custom Dimensions(text) & Custom Metrics(integer)
+							// Set up: 
+							//		dimension2=Page Size, Hit, Active
+							//		dimension3=Map Services, Hit, Active
+							//		dimension4=Map Scale, Hit, Active
+							//		metric1=Seconds, Hit, Active
+							//		metric2=MB, Hit, Active
+							custom = {
+								'metric1':value,
+								'metric2': mb,
+								'dimension2':sizeCombo.attr('displayedValue'),
+								'dimension3':mapservices,
+								'dimension4':mapscale
+							};
+							ga('send', 'event', category, action, label, value, custom);
+							document.getElementById("printMB").innerHTML = "File size is "+mb+"MB.";
+							document.getElementById("printMB").style.display="block";
+						}
+					};
+					xhr.send();
+				}
+				else{
+					console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale);
+					custom = {
+						'metric1':value,
+						'dimension2':sizeCombo.attr('displayedValue'),
+						'dimension3':mapservices,
+						'dimension4':mapscale
+					};
+					ga('send', 'event', category, action, label, value, custom);
+				}
+				
 				console.log("printing to "+result.url);
 				/*if (result.url.indexOf('tif') > -1 || result.url.indexOf('svgz') > -1){
 					document.getElementById("printInst").innerHTML = "Click on the link below to download the image file.";
@@ -821,7 +904,7 @@ function printMap(){
 					window.open(result.url,"_blank");
 					document.getElementById("printMapLink").innerHTML = "Done. If download does not start automatically use the link below.<br/>Link to <a href='"+result.url+"' target='_blank'>"+template.format.toUpperCase()+" File</a>";
 				}*/
-				for (var i=0; i<pointWithText; i++) removeDrawItem(); // remove extra text layer added for points with text because of bug in PrintTask
+				for (i=0; i<pointWithText; i++) removeDrawItem(); // remove extra text layer added for points with text because of bug in PrintTask
 				// Hide loading icon and change Printing... label back to Print.
 				if (done){
 					document.getElementById("print_link").href=result.url+"?v="+Date.now();
@@ -891,8 +974,8 @@ function showPrintPreview(){
 		template.layout = app+" "+selectedValue_size+selectedValue_orient; // huntingatlas Letter Portrait
 		printTask = new PrintTask(printGeoServiceUrl);
 		template.preserveScale = true; // for legend to work. This is removed for the map in the python code in geo GP print service.
-		template.format = "jpg";
-		template.exportOptions = { dpi: 72 };
+		template.format = "prev";
+		template.exportOptions = { dpi: 300 };
 		template.showAttribution = false;
 		template.layoutOptions = {
 			titleText: titleTxt,
@@ -907,14 +990,74 @@ function showPrintPreview(){
 		function previewResult(result){
 			// Add Google Analytics stats for georef printing preview jpg
 			var millis = Date.now() - startTim;
-			//var date = new Date();
-			//var theDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " +  date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
-			var category = sizeCombo.attr('displayedValue')+" jpg "+dijit.byId("mapscaleList").attr('displayedValue');//+" "+theDate;
+			var category = sizeCombo.attr('displayedValue')+" jpg ";
 			var action = sizeCombo.attr('displayedValue'); // page size
-			var label = dijit.byId("mapscaleList").attr('displayedValue'); // mapscale
+			var mapscale = dijit.byId("mapscaleList").attr('displayedValue'); // mapscale
 			var value = Math.floor(millis/1000); // seconds to generate. Must be integer for Google Analytics
-			ga('send', 'event', category, action, label, value);
-			console.log("Time to create preview map = " + value + " seconds");
+			// Add map services used
+			var label=""; // Map Services
+			for (var i=0; i<previewMap.layerIds.length; i++){
+				switch ( previewMap.layerIds[i]){
+					case "Motor Vehicle Use Map":
+						label += "M";
+						break;
+					case "Hunter Reference":
+						label += "R";
+						break;
+					case "Game Species":
+						label += "G";
+						break;
+					case "Fishing Info":
+						label += "F";
+						break;
+					case "Reference":
+						label += "R";
+						break;
+				}
+			}
+			category += label;
+			var mapservices = label;
+			var custom;
+			var mb = -1;
+			// Calculate size of file for Google Analytics stats
+			if (window.XMLHttpRequest) {
+				var xhr = new XMLHttpRequest();
+				xhr.open("HEAD", result.url, true); // Notice "HEAD" instead of "GET", to get only the header
+				xhr.onreadystatechange = function() {
+					if (this.readyState == this.DONE) {
+						// add file size
+						mb = Math.round(parseInt(xhr.getResponseHeader("Content-Length"))/1048576);
+						console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale+" "+(xhr.getResponseHeader("Content-Length")/1048576).toFixed(2)+"MB");
+						// In Google Analytics, Admin, Properties, Custom Definitions, Custom Dimensions(text) & Custom Metrics(integer)
+						// Set up: 
+						//		dimension2=Page Size, Hit, Active
+						//		dimension3=Map Services, Hit, Active
+						//		dimension4=Map Scale, Hit, Active
+						//		metric1=Seconds, Hit, Active
+						//		metric2=MB, Hit, Active
+						custom = {
+							'metric1':value,
+							'metric2': mb,
+							'dimension2':sizeCombo.attr('displayedValue'),
+							'dimension3':mapservices,
+							'dimension4':mapscale
+						};
+						ga('send', 'event', category, action, label, value, custom);
+					}
+				};
+				xhr.send();
+			}
+			else{
+				console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale);
+				custom = {
+					'metric1':value,
+					'dimension2':sizeCombo.attr('displayedValue'),
+					'dimension3':mapservices,
+					'dimension4':mapscale
+				};
+				ga('send', 'event', category, action, label, value, custom);
+			}
+			console.log("Time to create preview map = " + value + " seconds for "+category);
 			console.log("printing to "+result.url);
 			document.getElementById("print_img").src=result.url;
 			document.getElementById("previewLoading").style.display="none";
@@ -923,7 +1066,7 @@ function showPrintPreview(){
 			document.getElementById("previewLoading").style.display="none";
 			alert("Error loading preview: "+err,"Code Error",err);
 		}
-		if (!initExtent.contains(previewMap.extent)){
+		if (!fullExtent.contains(previewMap.extent)){
 			alert ("Printing is only allowed for Colorado.","Warning");
 			document.getElementById("previewLoading").style.display="none";
 			return;
