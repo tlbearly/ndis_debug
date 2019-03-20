@@ -70,6 +70,7 @@ header("Pragma: no-cache");
 		// VERSION add next line to dojoConfig to update version.
 		// cacheBust: "v=3.17",
 		var dojoConfig = {
+      // aync: when set to true, document.body did not exist in readConfig
 			// FOR DEBUGGING
 			//cacheBust: Date.now(),
 			//packages: [
@@ -81,7 +82,8 @@ header("Pragma: no-cache");
 			//	"dojo-debug-messages": true
 			//}
 			// Version for Bookmarks, HelpWin, graphicFuncs
-			cacheBust: "v=3.20",
+			cacheBust: "v="+ Date.now(),
+			async:false,
 			packages: [
 				{ name: "javascript",location: location.pathname.replace(/\/[^/]+$/, "")+ "/javascriptM/src" },
 				{ name: "agsjs",location: location.pathname.replace(/\/[^/]+$/, "")+ "/javascriptM/toc/src/agsjs" },
@@ -98,12 +100,12 @@ header("Pragma: no-cache");
         <!--script>
 		<script type="text/javascript" src="javascriptM/geo.js?v=3.20"></script>
 		<script type="text/javascript" src="javascriptM/disclaimer.js?v=3.20a"></script>
-		<script type="text/javascript" src="javascriptM/errorBox.js?v=3.19"></script>
+		<script type="text/javascript" src="javascriptM/errorBox.js?v=3.21"></script>
 		<script type="text/javascript" src="javascriptM/xmlUtils.js?v=3.11"></script>
 		<script type="text/javascript" src="javascriptM/findPlace.js?v=3.19"></script>
 		<script type="text/javascript" src="javascriptM/identify.js?v=3.20a"></script>
-		<script type="text/javascript" src="javascriptM/print.js?v=3.20a"></script>
-		<script type="text/javascript" src="javascriptM/readConfig.js?v=3.20a"></script>
+		<script type="text/javascript" src="javascriptM/print.js?v=3.21"></script>
+		<script type="text/javascript" src="javascriptM/readConfig.js?v=3.21"></script>
 		<script type="text/javascript" src="javascriptM/search.js?v=3.20"></script>
 		<script type="text/javascript" src="javascriptM/swipe.js?v=3.11"></script>
 		<script type="text/javascript" src="javascriptM/utilFuncs.js?v=3.20a"></script>
@@ -138,7 +140,7 @@ header("Pragma: no-cache");
 			var queryObj;
 			var map, mapLayers=[], legendLayers=[];
 			var previewMap; // print preview map
-			var initExtent, wkid;
+			var initExtent, wkid, fullExtent;
 			var geometryService,geometryService2;
 			var myFindService;
 			var printGeoServiceUrl; // set in readConfig.js from printservice tag in config.xml
@@ -158,6 +160,7 @@ header("Pragma: no-cache");
 			var app;
 			var settings;
 			var mapBasemap="streets";
+			var ourMVUM=false; // When USFS MVUM map services are down use ours.
 			// Calculate the widest width on the mobile device
 			//var maxPhoneSize = window.innerHeight || document.body.clientHeight;
 			//var phoneWidth = window.innerWidth || document.body.clientWidth;
@@ -612,6 +615,7 @@ header("Pragma: no-cache");
 				<br/><br/>	
 				<div align="center">
 							<a id="print_link" href="" target="map" class="mblButton" style="margin:0;display:none;width:120px;text-decoration: none;">Download PDF</a>
+							<span id="printMB" style="display:none;margin-top: 20px"></span>
 							<span id="printInst"style="display:none;">
 									Creating PDF<br/><br/>
 									<div id="progress" style="display: inline-block"><div id="printBar"></div></div> <span id="perDone" style="position: relative;top:-5px">0%</span><br/>
