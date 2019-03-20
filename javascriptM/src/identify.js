@@ -626,8 +626,6 @@
 	      //	layerId
 	      //	layerName
 	      //	value
-
-	      //require(["dojo/_base/array"], function(array) {
 	          try {
 				function findGroupInResults(results) {
 					for (i = 0; i < results.length; i++) {
@@ -874,7 +872,6 @@
 	          } catch (e) {
 	              alert(e.message + " in javascript/identify.js handleQueryResults().", "Code Error", e);
 	          }
-	      //});
 	  }
 
 	  function highlightFeature(id) {
