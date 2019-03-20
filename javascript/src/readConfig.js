@@ -94,13 +94,13 @@ function lookupAddress() {
 }
 function onAddressResults(evt) {
 	try{
-		require(["dojo/dom","esri/symbols/SimpleMarkerSymbol", "esri/symbols/PictureMarkerSymbol", "esri/graphic", "esri/symbols/Font", "esri/symbols/TextSymbol", "dojo/_base/array", "dojo/_base/Color"], function (dom, SimpleMarkerSymbol, PictureMarkerSymbol, Graphic, Font, TextSymbol, arrayUtils, Color) {
+		require(["dojo/dom","esri/symbols/SimpleMarkerSymbol", "esri/symbols/PictureMarkerSymbol", "esri/graphic", "esri/symbols/Font", "esri/symbols/TextSymbol", "dojo/_base/Color"], function (dom, SimpleMarkerSymbol, PictureMarkerSymbol, Graphic, Font, TextSymbol, Color) {
 			hideLoading();
 			dom.byId("addressLoading").style.display = "none";
 			var candidate;
 			var symbol = new PictureMarkerSymbol("assets/images/i_address.png", 30, 30);
 			var geom;
-			arrayUtils.every(evt, function (candidate) {
+			evt.every(function (candidate) {
 				if (candidate.score > 40) {
 					var addressGraphicsLayer;
 					require(["esri/layers/GraphicsLayer", "dojo/_base/Color"], function (GraphicsLayer, Color) {
@@ -168,7 +168,7 @@ function clearAddress() {
 // Read config.xml file
 //**********************
 function readConfig() {
-	require(["dojo/dom", "dojo/io-query", "esri/layers/ArcGISDynamicMapServiceLayer", "esri/tasks/GeometryService", "esri/SpatialReference", "esri/tasks/ProjectParameters", "esri/map", "esri/geometry/Extent", "esri/dijit/Popup", "esri/symbols/SimpleFillSymbol", "esri/tasks/locator", "dijit/form/CheckBox", "agsjs/dijit/TOC", "esri/symbols/SimpleLineSymbol", "esri/layers/ArcGISTiledMapServiceLayer", "esri/dijit/BasemapGallery", "esri/dijit/Basemap", "esri/dijit/BasemapLayer", "esri/arcgis/utils", "esri/dijit/Gallery", "dojo/_base/array", "dojo/sniff"], function (dom, ioquery, ArcGISDynamicMapServiceLayer, GeometryService, SpatialReference, ProjectParameters, Map, Extent, Popup, SimpleFillSymbol, Locator, CheckBox, TOC, SimpleLineSymbol, ArcGISTiledMapServiceLayer, BasemapGallery, Basemap, BasemapLayer, arcgisUtils, Gallery, array, has) {
+	require(["dojo/dom", "dojo/io-query", "esri/layers/ArcGISDynamicMapServiceLayer", "esri/tasks/GeometryService", "esri/SpatialReference", "esri/tasks/ProjectParameters", "esri/map", "esri/geometry/Extent", "esri/dijit/Popup", "esri/symbols/SimpleFillSymbol", "esri/tasks/locator", "dijit/form/CheckBox", "agsjs/dijit/TOC", "esri/symbols/SimpleLineSymbol", "esri/layers/ArcGISTiledMapServiceLayer", "esri/dijit/BasemapGallery", "esri/dijit/Basemap", "esri/dijit/BasemapLayer", "esri/arcgis/utils", "esri/dijit/Gallery", "dojo/sniff"], function (dom, ioquery, ArcGISDynamicMapServiceLayer, GeometryService, SpatialReference, ProjectParameters, Map, Extent, Popup, SimpleFillSymbol, Locator, CheckBox, TOC, SimpleLineSymbol, ArcGISTiledMapServiceLayer, BasemapGallery, Basemap, BasemapLayer, arcgisUtils, Gallery, has) {
 		var xmlDoc;
 		var ext;
 		//----------------------------------------------------------------
@@ -234,10 +234,147 @@ function readConfig() {
 			}
 		}
 			
+		// tlb 2/19/19 Test if layers exist before adding them
+		function testLayers(){
+			// handle errors in layer loading
+			require(["dojo/promise/all","dojo/Deferred","dojo/json"],function(all,Deferred,JSON){
+				function cancelRequest(request){
+					if (request.status==0)
+						request.abort();
+				}
+				function testService(layer) {
+						var deferred = new Deferred();
+						var request = new XMLHttpRequest();
+						try {
+							request.open("get", layer.url + "?f=json");
+							var timer = setTimeout(cancelRequest.bind(null, request),1000); // timeout after 1 second
+						}
+						catch (error) {
+								console.error(error);
+								deferred.resolve({ layer: layer, resolution: false });
+								return deferred.promise;
+						}
+						request.onloadend = function () {
+								if (this.status !== 200) {
+										//console.log("Could not load " + layer.id);
+										deferred.resolve({ layer: layer, resolution: false });
+								} else {
+										var response = JSON.parse(this.response);
+										if (response.error) {
+												//console.log("Could not load " + layer.id);
+												deferred.resolve({ layer: layer, resolution: false });
+										} else {
+												deferred.resolve({ layer: layer, resolution: true });
+										}
+								}
+						};
+						request.send();
+						return deferred.promise;
+				}
+			
+				var promises = [];
+				var layersToAdd = [];
+				var layers = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer");
+				var mvum1Index=-1,mvum2Index;
+				for (var i=0; i<layers.length; i++){
+					layersToAdd[i] = {
+						"id": layers[i].getAttribute("label"),
+						"url": layers[i].getAttribute("url")
+					};
+					// Save the index to MVUM
+					if (layersToAdd[i].id.indexOf("Motor Vehicle")>-1) mvum1Index = i;
+				}
+				// if no MVUM don't add additional services to try
+				if (mvum1Index > -1){
+					// Test 2 additional MVUM to use if one is down
+					mvum2Index = layersToAdd.length;
+					layersToAdd[layersToAdd.length] = {
+						"id": "Motor Vehicle Use Map",
+						"url": "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"
+					};
+					layersToAdd[layersToAdd.length] = {
+						"id": "Motor Vehicle Use Map",
+						"url": "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/mvum/MapServer"
+					};
+				}
+				layersToAdd.forEach(function (layer) {
+					promises.push(testService(layer));
+				});
+				
+				// Process Map Service Responses - Up or Down
+				var allPromises = new all(promises);
+				allPromises.then(function (response) {
+					var errflag = false; // did any layer have problems? addMapLayers will replace xmlDoc layers with these in response
+					var mvumflag = false;
+					var rmLayers = [];
+					for (var i=0; i<response.length; i++) {
+						if (response[i].layer.id.indexOf("Motor Vehicle")>-1) mvumflag = true;
+						else mvumflag = false;
+						if (response[i].resolution) {
+							// layer did not have errors
+							if (mvumflag == true){
+								// The given MVUM worked
+								if (mvum1Index == i) {
+									response.pop();
+									response.pop();
+								}
+								// The second MVUM worked replace this URL and remove the last 2 MVUM maps
+								else if (mvum2Index == i) {
+									console.log("Layer loaded: "+response[i].layer.id+" "+response[i].layer.url);
+									response[mvum1Index].layer.url = response[i].layer.url;
+									response[mvum1Index].resolution = true;
+									response.pop();
+									response.pop();
+									errflag = true;
+								}
+								// The third MVUM worked replace this URL and remove the last 2 MVUM maps
+								else {
+									console.log("Layer loaded: "+response[i].layer.id+" "+response[i].layer.url);
+									response[mvum1Index].layer.url = response[i].layer.url;
+									response[mvum1Index].resolution = true;
+									response.pop();
+									response.pop();
+									errflag = true;
+									ourMVUM = true;// set flag because will need to move this layer to the bottom later.
+								}
+							}
+						}
+						// layer is down
+						else {
+							console.log("Layer failed to load: "+response[i].layer.id+" "+response[i].layer.url);
+							// Not MVUM since that is handled above
+							if (response[i].layer.id.indexOf("Motor Vehicle")==-1){
+								alert(response[i].layer.id+" service is not reponding.","Data Error");
+								rmLayers.push(response[i].layer.id); // index of layers to remove
+							}
+						}
+					}
+					// Remove map services that were down, from the response array
+					if (rmLayers.length > 0){
+						errflag = true;
+						for (j=0;j<rmLayers.length;j++){
+							for (i=0;i<response.length;i++){
+								if (rmLayers[j] == response[i].layer.id){	
+									response.splice(i,1);
+									break;
+								}
+							}
+						}
+					}
+					// Pass services to use. If there were services that were down errflag = true.
+					addMapLayers(response,errflag,ourMVUM);
+				});
+			});
+		}
 		//******************
 		//  Add Map Layers
 		//******************
-		function addMapLayers() {
+		function addMapLayers(response,errflag,ourMVUM) {
+			// tlb 2/19/19 Called from testLayers which will see if the mapservice is up.
+			// Passes 2 new parameters:
+			//   response: an object containing id and url
+			//   errflag: a boolean. If true some map services were down. Update xmlDoc
+			//   ourMVM: a boolean. If true both of USFS MVUM services are down use ours, but will need to switch the order. Put on bottom.
 			// Add layer after it has loaded
 			function layerLoadHandler(event) {
 				try {
@@ -266,33 +403,36 @@ function readConfig() {
 								}
 							}
 						}
-						for (j = 0; j < layerInfos.length; j++) {
-							// If layer is found in the visLayers make it visible.
-							if (layerObj[event.layer.id].visLayers.indexOf(layerInfos[j].id) != -1)
-								layerInfos[j].defaultVisibility = true;
-							// Else if this is not the top layer and it has no sub-layers set default visibility
-							else if (layerInfos[j].parentLayerId != -1 && !layerInfos[j].subLayerIds) {
-								// if this is a gmu layer make sure it is the one that was turned on in visLayers
-								if (layerInfos[j].name.substr(layerInfos[j].name.length - 3, 3).indexOf("GMU") > -1) {
-									// handle this later below when all layers have loaded. Need to wait for Game Species to load. If GMU layer is not set was not working.
-								}
-								// use the default value for sub menu item layers that are under a menu item that is unchecked
-								else if ((layerInfos[j].defaultVisibility == true) && (layerObj[event.layer.id].visLayers.indexOf(layerInfos[j].parentLayerId) === -1)) {
-									layerObj[event.layer.id].visLayers.push(j);
-									// If by default it is visible see if the name of the parent is a number (varies with extent) and make it visible also
-									if (num.indexOf(parseInt(layerInfos[layerInfos[j].parentLayerId].name.substr(0, 1))) > -1) {
-										layerObj[event.layer.id].visLayers.push(layerInfos[j].parentLayerId);
-										layerInfos[layerInfos[j].parentLayerId].defaultVisibility = true;
+						// 2-19-19 use default visibility for old MVUM
+						if (!ourMVUM){
+							for (j = 0; j < layerInfos.length; j++) {
+								// If layer is found in the visLayers make it visible.
+								if (layerObj[event.layer.id].visLayers.indexOf(layerInfos[j].id) != -1)
+									layerInfos[j].defaultVisibility = true;
+								// Else if this is not the top layer and it has no sub-layers set default visibility
+								else if (layerInfos[j].parentLayerId != -1 && !layerInfos[j].subLayerIds) {
+									// if this is a gmu layer make sure it is the one that was turned on in visLayers
+									if (layerInfos[j].name.substr(layerInfos[j].name.length - 3, 3).indexOf("GMU") > -1) {
+										// handle this later below when all layers have loaded. Need to wait for Game Species to load. If GMU layer is not set was not working.
 									}
-								}
-							// Else this is a top level toc menu item and not found in the visible list, make it not visible.
-							} else
-								layerInfos[j].defaultVisibility = false;
-						}
-						event.layer.setVisibleLayers(layerObj[event.layer.id].visLayers.sort(function (a, b) {
+									// use the default value for sub menu item layers that are under a menu item that is unchecked
+									else if ((layerInfos[j].defaultVisibility == true) && (layerObj[event.layer.id].visLayers.indexOf(layerInfos[j].parentLayerId) === -1)) {
+										layerObj[event.layer.id].visLayers.push(j);
+										// If by default it is visible see if the name of the parent is a number (varies with extent) and make it visible also
+										if (num.indexOf(parseInt(layerInfos[layerInfos[j].parentLayerId].name.substr(0, 1))) > -1) {
+											layerObj[event.layer.id].visLayers.push(layerInfos[j].parentLayerId);
+											layerInfos[layerInfos[j].parentLayerId].defaultVisibility = true;
+										}
+									}
+								// Else this is a top level toc menu item and not found in the visible list, make it not visible.
+								} else
+									layerInfos[j].defaultVisibility = false;
+							}
+							event.layer.setVisibleLayers(layerObj[event.layer.id].visLayers.sort(function (a, b) {
 								return a - b;
 							}));
-						event.layer.refresh();
+							event.layer.refresh();
+						} // if not ourMVUM
 					}
 					collapsedFlg = true;
 					if (event.layer.visible)
@@ -356,7 +496,37 @@ function readConfig() {
 			}
 			try {
 				var myLayer;
-				var i;
+				var i,j;
+				// tlb 2/19/19 Replace MVUM layers or remove layers if the the service was down
+				if (errflag){
+					var rmLayers = [];
+					for (i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length; i++){
+						var found = false;
+						// get index of matching layer in response array
+						for(j=0; j<response.length;j++) {
+							if (response[j].layer.id == xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label")){
+								found = true;
+								xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].setAttribute("url", response[j].layer.url);
+								break;
+							}
+						}
+						// If the service was not up remove it from xmlDoc
+						if (!found)rmLayers.push(i);
+					}
+					for (i=rmLayers.length-1;i>=0;i--){
+						var element = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[rmLayers[i]];
+						element.parentNode.removeChild(element);
+					}
+					// If both USFS MVUMs are down, use ours but move it to the top. Will reverse the legend so it will be on the top.
+					if (ourMVUM){
+						var topElem = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[0];
+						var mvumElem = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length-1];
+						mvumElem.parentNode.insertBefore(mvumElem, topElem); // null will insert it at the top. It also removes the old location.
+						xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[0].setAttribute("open",false);
+						xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[0].setAttribute("alpha",0.85);
+					}
+				}
+
 				// &layer= basemap | id | opacity | visible layers , id | opacity | visible layers , repeat...
 				// &layer= streets|layer2|.8|3-5-12,layer3|.65|2-6-10-12
 				// get array of layers without the basemap stuff;
@@ -384,7 +554,7 @@ function readConfig() {
 								"visible": layerArr[3] == "1" ? true : false
 							};
 						// Convert visLayers from strings to int using bitwise conversion
-						for (var j = 0; j < layerObj[layerArr[0]].visLayers.length; j++)
+						for (j = 0; j < layerObj[layerArr[0]].visLayers.length; j++)
 							layerObj[layerArr[0]].visLayers[j] = layerObj[layerArr[0]].visLayers[j] | 0;
 					}
 				}
@@ -643,7 +813,8 @@ function readConfig() {
 						linkStr += '<span class="link"><a href="' + link[i].getAttribute("url").replace("%3F", "?").replace("%26", "&") + '" target="_new"><img src="' + link[i].getAttribute("icon") + '"/>' + link[i].getAttribute("label") + '</a></span>';
 				}
 				dom.byId("links").innerHTML = linkStr;
-				addMapLayers();
+				testLayers(); // will call addMapLayers if they exist 2/19/19
+				//addMapLayers(); 2/19/19
 			});
 		}
 
@@ -757,7 +928,7 @@ function readConfig() {
 					});
 					basemapGallery.on("load", function () {
 						var items = [];
-						array.forEach(basemapGallery.basemaps, function (basemap) {
+						basemapGallery.basemaps.forEach(function (basemap) {
 							// Rename ids and display titles. Ids are used for map link
 							if (basemap.title == "Imagery with Labels") {
 								basemap.id = "hybrid";
@@ -1047,6 +1218,17 @@ function readConfig() {
 					try {
 						ext = xmlDoc.getElementsByTagName("map")[0].getAttribute("initialextent").split(" ");
 						wkid = parseInt(xmlDoc.getElementsByTagName("map")[0].getAttribute("wkid").trim());
+						// save Colorado extent. This is used in print to see if they are trying to print outside of Colorado.
+						// initExtent is not always the full extent. For example if they had an extent on the URL it does not use this one.
+						fullExtent = new Extent({
+							"xmin": parseFloat(ext[0]),
+							"ymin": parseFloat(ext[1]),
+							"xmax": parseFloat(ext[2]),
+							"ymax": parseFloat(ext[3]),
+							"spatialReference": {
+								"wkid": wkid
+							}
+						});
 					} catch (e) {
 						alert("Warning: Missing tag attributes initalextent or wkid for the map tag in " + app + "/config.xml file. " + e.message, "Data Error");
 					}

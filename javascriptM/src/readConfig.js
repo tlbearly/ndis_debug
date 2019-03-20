@@ -22,8 +22,149 @@ function createMap() {
 					e.message + "\npoints=" + queryObj.point, "URL Graphics Error", e);
 			}
 		}
-		function addMapLayers() {
+
+		// tlb 2/19/19 Test if layers exist before adding them
+		function testLayers(){
+			// handle errors in layer loading
+			require(["dojo/promise/all","dojo/Deferred","dojo/json"],function(all,Deferred,JSON){
+				function cancelRequest(request){
+					if (request.status==0)
+						request.abort();
+				}
+				function testService(layer) {
+						var deferred = new Deferred();
+						var request = new XMLHttpRequest();
+						try {
+							request.open("get", layer.url + "?f=json");
+							var timer = setTimeout(cancelRequest.bind(null, request),1000); // timeout after 1 second
+						}
+						catch (error) {
+								console.error(error);
+								deferred.resolve({ layer: layer, resolution: false });
+								return deferred.promise;
+						}
+						request.onloadend = function () {
+								if (this.status !== 200) {
+										//console.log("Could not load " + layer.id);
+										deferred.resolve({ layer: layer, resolution: false });
+								} else {
+										var response = JSON.parse(this.response);
+										if (response.error) {
+												//console.log("Could not load " + layer.id);
+												deferred.resolve({ layer: layer, resolution: false });
+										} else {
+												deferred.resolve({ layer: layer, resolution: true });
+										}
+								}
+						};
+						request.send();
+						return deferred.promise;
+				}
+			
+				var promises = [];
+				var layersToAdd = [];
+				var layers = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer");
+				var mvum1Index=-1,mvum2Index;
+				for (var i=0; i<layers.length; i++){
+					layersToAdd[i] = {
+						"id": layers[i].getAttribute("label"),
+						"url": layers[i].getAttribute("url")
+					};
+					// Save the index to MVUM
+					if (layersToAdd[i].id.indexOf("Motor Vehicle")>-1) mvum1Index = i;
+				}
+				// if no MVUM don't add additional services to try
+				if (mvum1Index > -1){
+					// Test 2 additional MVUM to use if one is down
+					mvum2Index = layersToAdd.length;
+					layersToAdd[layersToAdd.length] = {
+						"id": "Motor Vehicle Use Map",
+						"url": "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"
+					};
+					layersToAdd[layersToAdd.length] = {
+						"id": "Motor Vehicle Use Map",
+						"url": "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/mvum/MapServer"
+					};
+				}
+				layersToAdd.forEach(function (layer) {
+					promises.push(testService(layer));
+				});
+				
+				// Process Map Service Responses - Up or Down
+				var allPromises = new all(promises);
+				allPromises.then(function (response) {
+					var errflag = false; // did any layer have problems? addMapLayers will replace xmlDoc layers with these in response
+					var mvumflag = false;
+					var rmLayers = [];
+					for (var i=0; i<response.length; i++) {
+						if (response[i].layer.id.indexOf("Motor Vehicle")>-1) mvumflag = true;
+						else mvumflag = false;
+						if (response[i].resolution) {
+							// layer did not have errors
+							if (mvumflag == true){
+								// The given MVUM worked
+								if (mvum1Index == i) {
+									response.pop();
+									response.pop();
+								}
+								// The second MVUM worked replace this URL and remove the last 2 MVUM maps
+								else if (mvum2Index == i) {
+									console.log("Layer loaded: "+response[i].layer.id+" "+response[i].layer.url);
+									response[mvum1Index].layer.url = response[i].layer.url;
+									response[mvum1Index].resolution = true;
+									response.pop();
+									response.pop();
+									errflag = true;
+								}
+								// The third MVUM worked replace this URL and remove the last 2 MVUM maps
+								else {
+									console.log("Layer loaded: "+response[i].layer.id+" "+response[i].layer.url);
+									response[mvum1Index].layer.url = response[i].layer.url;
+									response[mvum1Index].resolution = true;
+									response.pop();
+									response.pop();
+									errflag = true;
+									ourMVUM = true;// set flag because will need to move this layer to the bottom later.
+								}
+							}
+						}
+						// layer is down
+						else {
+							console.log("Layer failed to load: "+response[i].layer.id+" "+response[i].layer.url);
+							// Not MVUM since that is handled above
+							if (response[i].layer.id.indexOf("Motor Vehicle")==-1){
+								alert(response[i].layer.id+" service is not reponding.","Data Error");
+								rmLayers.push(response[i].layer.id); // index of layers to remove
+							}
+						}
+					}
+					// Remove map services that were down, from the response array
+					if (rmLayers.length > 0){
+						errflag = true;
+						for (j=0;j<rmLayers.length;j++){
+							for (i=0;i<response.length;i++){
+								if (rmLayers[j] == response[i].layer.id){	
+									response.splice(i,1);
+									break;
+								}
+							}
+						}
+					}
+					// Pass services to use. If there were services that were down errflag = true.
+					addMapLayers(response,errflag,ourMVUM);
+				});
+			});
+		}
+
+
+		function addMapLayers(response,errflag,ourMVUM) {
+			// tlb 2/19/19 Called from testLayers which will see if the mapservice is up.
+			// Passes 2 new parameters:
+			//   response: an object containing id and url
+			//   errflag: a boolean. If true some map services were down. Update xmlDoc
+			//   ourMVM: a boolean. If true both of USFS MVUM services are down use ours, but will need to switch the order. Put on bottom.
 			function layerLoadHandler(event) {
+				// For layers loaded from URL set layer visibility
 				try {
 					var j, layerInfos;
 					var num = new Array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
@@ -51,25 +192,28 @@ function createMap() {
 								}
 							}
 						}
-						for (j = 0; j < layerInfos.length; j++) {
-							if (layerObj[event.layer.id].visLayers.indexOf(layerInfos[j].id) != -1)
-								layerInfos[j].defaultVisibility = true;
-							else if (layerInfos[j].parentLayerId != -1 && !layerInfos[j].subLayerIds) {
-								if (layerInfos[j].name.substr(layerInfos[j].name.length - 3, 3).indexOf("GMU") > -1) {}
-								else if ((layerInfos[j].defaultVisibility == true) && (layerObj[event.layer.id].visLayers.indexOf(layerInfos[j].parentLayerId) === -1)) {
-									layerObj[event.layer.id].visLayers.push(j);
-									if (num.indexOf(parseInt(layerInfos[layerInfos[j].parentLayerId].name.substr(0, 1))) > -1) {
-										layerObj[event.layer.id].visLayers.push(layerInfos[j].parentLayerId);
-										layerInfos[layerInfos[j].parentLayerId].defaultVisibility = true;
+						// 2-19-19 use default visibility for old MVUM
+						if (!ourMVUM){
+							for (j = 0; j < layerInfos.length; j++) {
+								if (layerObj[event.layer.id].visLayers.indexOf(layerInfos[j].id) != -1)
+									layerInfos[j].defaultVisibility = true;
+								else if (layerInfos[j].parentLayerId != -1 && !layerInfos[j].subLayerIds) {
+									if (layerInfos[j].name.substr(layerInfos[j].name.length - 3, 3).indexOf("GMU") > -1) {}
+									else if ((layerInfos[j].defaultVisibility == true) && (layerObj[event.layer.id].visLayers.indexOf(layerInfos[j].parentLayerId) === -1)) {
+										layerObj[event.layer.id].visLayers.push(j);
+										if (num.indexOf(parseInt(layerInfos[layerInfos[j].parentLayerId].name.substr(0, 1))) > -1) {
+											layerObj[event.layer.id].visLayers.push(layerInfos[j].parentLayerId);
+											layerInfos[layerInfos[j].parentLayerId].defaultVisibility = true;
+										}
 									}
-								}
-							} else
-								layerInfos[j].defaultVisibility = false;
-						}
-						event.layer.setVisibleLayers(layerObj[event.layer.id].visLayers.sort(function (a, b) {
-								return a - b;
-							}));
-						event.layer.refresh();
+								} else
+									layerInfos[j].defaultVisibility = false;
+							}
+							event.layer.setVisibleLayers(layerObj[event.layer.id].visLayers.sort(function (a, b) {
+									return a - b;
+								}));
+							event.layer.refresh();
+						} // end if !ourMVUM
 					}
 					collapsedFlg = true;
 					if (event.layer.visible)
@@ -132,7 +276,7 @@ function createMap() {
 				}
 			}
 			try {	
-				var myLayer, i;
+				var myLayer, i,j;
 				// If loading layers from URL load layerObj
 				if (queryObj.layer && queryObj.layer != "") {
 					// &layer= basemap | id | opacity | visible layers , id | opacity | visible layers , repeat...
@@ -158,13 +302,43 @@ function createMap() {
 								"visible" : layerArr[3] == "1" ? true : false
 							};
 						// Change visLayers from string to integer
-						for (var j = 0; j < layerObj[layerArr[0]].visLayers.length; j++)
+						for (j = 0; j < layerObj[layerArr[0]].visLayers.length; j++)
 							layerObj[layerArr[0]].visLayers[j] = layerObj[layerArr[0]].visLayers[j] | 0;
+					}
+				}
+				// tlb 2/19/19 Replace MVUM layers or remove layers if the the service was down
+				if (errflag){
+					var rmLayers = [];
+					for (i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length; i++){
+						var found = false;
+						// get index of matching layer in response array
+						for(j=0; j<response.length;j++) {
+							if (response[j].layer.id == xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label")){
+								found = true;
+								xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].setAttribute("url", response[j].layer.url);
+								break;
+							}
+						}
+						// If the service was not up, remove it from xmlDoc
+						if (!found)rmLayers.push(i);
+					}
+					for (i=rmLayers.length-1;i>=0;i--){
+						var element = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[rmLayers[i]];
+						element.parentNode.removeChild(element);
+					}
+					// If both USFS MVUMs are down, use ours but move it to the top. Will reverse the legend so it will be on the top.
+					if (ourMVUM){
+						var topElem = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[0];
+						var mvumElem = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length-1];
+						mvumElem.parentNode.insertBefore(mvumElem, topElem); // null will insert it at the top. It also removes the old location.
+						xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[0].setAttribute("open",false);
+						xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[0].setAttribute("alpha",0.85);
 					}
 				}
 				var collapsedFlg;
 				var layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer");
 				var oslArr;
+			
 				for (i = 0; i < layer.length; i++) {
 					loadedFromCfg = true;
 					var id = layer[i].getAttribute("label");
@@ -205,6 +379,7 @@ function createMap() {
 									"id" : id,
 									"visible" : false
 								});
+									
 						else
 							myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
 									"opacity" : Number(layer[i].getAttribute("alpha")),
@@ -238,6 +413,7 @@ function createMap() {
 						oslArr = null;
 					}
 				}
+				
 				if (loadedFromCfg) {
 					map.addLayers(mapLayers);
 					legendLayers.reverse();
@@ -286,6 +462,7 @@ function createMap() {
 							});
 							me.placeAt(dom.byId("toolsMenu")); // use when all are added from config.xml
 							//me.startup();
+							drawInit(); // tlb 2/19/19 move below widgets
 						}
 						else if (label == "Bookmark") {										
 							if (icon == null) icon = "assets/images/i_bookmark.png";
@@ -333,7 +510,7 @@ function createMap() {
 					}
 				}));
 				
-				/*require(["dojox/mobile/SimpleDialog","dojo/_base/window"],function(Dialog, win){
+				/*require(["dojox/mobile/SimpleDialog"],function(Dialog){
 					linkPopup = new Dialog({
 						class: "discContainer",
 						style: "height:calc(100vh - 15px);height:-webkit-calc(100vh - 15px);height:-moz-calc(100vh - 15px);",
@@ -343,7 +520,7 @@ function createMap() {
 						document.getElementById("linkIframe").src = src;
 						this.show();
 					};
-					win.body().appendChild(linkPopup.domNode);
+					document.body.appendChild(linkPopup.domNode);
 					var content = domConstruct.create("div", {
 						class: "mblSimpleDialogText discContent",
 						style: "top: 0; position:absolute;",
@@ -605,8 +782,9 @@ function createMap() {
 								}
 							});
 						}
-						addMapLayers();
-						drawInit();
+						testLayers(); // will call addMapLayers if they exist 2/19/19
+						//addMapLayers(); 2/19/19
+						//drawInit(); // tlb 2/18/19 move below widgets
 						// Goto current location if no user specified place was found on the URL. 6-28-17
 						if (!queryObj.extent && !queryObj.place && !queryObj.keyword && !queryObj.map && navigator.geolocation) {
 							init_geo(); // uses code in geo.js
@@ -878,6 +1056,17 @@ function createMap() {
 					}
 					wkid = parseInt(xmlDoc.getElementsByTagName("map")[0].getAttribute("wkid").trim());
 					cfgExtent = xmlDoc.getElementsByTagName("map")[0].getAttribute("initialextent").split(" ");
+					// 1/29/19 save Colorado extent. This is used in print to see if they are trying to print outside of Colorado.
+					// initExtent is not always the full extent. For example if they had an extent on the URL it does not use this one.
+					fullExtent = new Extent({
+						"xmin": parseFloat(cfgExtent[0]),
+						"ymin": parseFloat(cfgExtent[1]),
+						"xmax": parseFloat(cfgExtent[2]),
+						"ymax": parseFloat(cfgExtent[3]),
+						"spatialReference": {
+							"wkid": wkid
+						}
+					});
 					if (queryObj.extent && queryObj.extent != "") {
 						require(["esri/geometry/Extent", "esri/tasks/ProjectParameters", "esri/SpatialReference"], function (Extent, ProjectParameters, SpatialReference) {
 							try {
@@ -947,8 +1136,8 @@ function openBookmark(){
 	if (!bmCreated){
 		// Create Bookmark Pane
 		showLoading();
-		require(["dojox/mobile/ContentPane","dojo/dom","dojo/dom-construct","dojo/_base/window","javascript/Bookmark", "javascript/HelpWin", "dojox/mobile/SimpleDialog","dojox/mobile/Heading","dojox/mobile/ToolBarButton"],
-		function(ContentPane,dom,domConstruct,win,Bookmark,HelpWin,Dialog,Heading,ToolBarButton){
+		require(["dojox/mobile/ContentPane","dojo/dom","dojo/dom-construct","javascript/Bookmark", "javascript/HelpWin", "dojox/mobile/SimpleDialog","dojox/mobile/Heading","dojox/mobile/ToolBarButton"],
+		function(ContentPane,dom,domConstruct,Bookmark,HelpWin,Dialog,Heading,ToolBarButton){
 			var bmPane = new ContentPane({
 				id: "bookmarkPane",
 				'class': "scrollPane",
@@ -956,7 +1145,7 @@ function openBookmark(){
 				"<span data-dojo-type=\"dojox/mobile/ToolBarButton\" data-dojo-props='icon:\"assets/images/leftarrow.png\"' onclick=\"slideLeft(document.getElementById('bookmarkPane'));\"></span>"+
 				"<span data-dojo-type=\"dojox/mobile/ToolBarButton\"  alt='help button' style='float:right;' data-dojo-props='icon:\"assets/images/helpBtn.png\"' onclick=\"bmHelp.show()\"></span>"+
 				"</h1><p id='bmLoading' align='center' style='margin-top: 50px;'><img src='assets/images/loading.gif'/></p>"
-			}).placeAt(win.body()).startup();
+			}).placeAt(document.body).startup();
 			bmCreated = true; // already created
 			slideRight(document.getElementById("bookmarkPane"));
 			/*var bmContainer = domConstruct.create("div", {id: "bmContainer", "class": "scrollContainer"}, "bookmarkPane", "last");*/
@@ -978,7 +1167,7 @@ function openBookmark(){
 				label: "Bookmark Help",
 				content: bookmarkWidget.defaultHelp
 			});
-			win.body().appendChild(bmHelp.domNode);
+			document.body.appendChild(bmHelp.domNode);
 			bmHelp.startup();
 		});
 	}
@@ -988,7 +1177,7 @@ function openBookmark(){
 
 var basemapHelp=null;					
 function initBasemaps() {
-	require(["esri/dijit/BasemapGallery", "esri/dijit/Gallery", "dojo/_base/array","dojo/_base/window","javascript/HelpWin"], function (BasemapGallery, Gallery, array,win,HelpWin) {
+	require(["esri/dijit/BasemapGallery", "esri/dijit/Gallery", "javascript/HelpWin"], function (BasemapGallery, Gallery, HelpWin) {
 		document.getElementById("basemapLoading").style.display = "block";
 		/*mapBasemap = "streets";
 		// read basemap from URL if &layer= is found.
@@ -1011,7 +1200,7 @@ function initBasemaps() {
 			});
 		basemapGallery.on("load", function () {
 			var items = [];
-			array.forEach(basemapGallery.basemaps, function (basemap) {
+			basemapGallery.basemaps.forEach(function (basemap) {
 				if (basemap.title == "Imagery with Labels") {
 					basemap.id = "hybrid";
 					basemap.title = "Aerial";
@@ -1088,7 +1277,7 @@ function initBasemaps() {
 				content: 'Click on an image to set the basemap or background map. The selected basemap is highlighted in orange.'+
 					'<br/><br/>'
 			});
-			win.body().appendChild(basemapHelp.domNode);
+			document.body.appendChild(basemapHelp.domNode);
 			basemapHelp.startup();
 		});
 	});
@@ -1096,7 +1285,7 @@ function initBasemaps() {
 
 var tocHelp=null;
 function initTOC() {
-	require(["agsjs/dijit/TOC","dojo/_base/window","javascript/HelpWin"], function (TOC,win,HelpWin) {
+	require(["agsjs/dijit/TOC","javascript/HelpWin"], function (TOC,HelpWin) {
 		try {
 			document.getElementById("tocLoading").style.display = "block";
 			var toc = new TOC({
@@ -1119,7 +1308,7 @@ function initTOC() {
 					'will collapse, hiding their content, when unchecked.'+
 					'<br/><br/>'
 			});
-			win.body().appendChild(tocHelp.domNode);
+			document.body.appendChild(tocHelp.domNode);
 			tocHelp.startup();
 		} catch (e) {
 			alert("Problem loading TOC: " + e.message + " in javascript/readConfig.js or toc/src/agsjs/dijit/TOC.js", "Code Error");
