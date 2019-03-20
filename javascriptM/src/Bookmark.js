@@ -11,7 +11,6 @@ define([
 	"dojo/dom-construct",
 	"dijit/registry",
 	"dijit/form/Button",
-	"dojo/_base/window",
 	"dojox/mobile",
 	"dojox/mobile/compat",
 	"dojox/mobile/parser",
@@ -32,7 +31,6 @@ define([
 	domConstruct,
 	registry,
 	Button,
-	win,
 	mobile,
 	compat,
 	parser,
@@ -70,8 +68,8 @@ define([
 		
 		_loadKml: function(){
 			// if user enters a URL to a kml or kmz file load it into the map and convert to our graphics and add bookmark
-			require(["esri/layers/KMLLayer","esri/geometry/webMercatorUtils","esri/graphicsUtils","dojo/_base/array","esri/symbols/SimpleLineSymbol",
-				"esri/symbols/SimpleMarkerSymbol","dojo/_base/Color"], function (KMLLayer,webMercatorUtils,graphicsUtils,array,SimpleLineSymbol,SimpleMarkerSymbol,Color) {
+			require(["esri/layers/KMLLayer","esri/geometry/webMercatorUtils","esri/graphicsUtils","esri/symbols/SimpleLineSymbol",
+				"esri/symbols/SimpleMarkerSymbol","dojo/_base/Color"], function (KMLLayer,webMercatorUtils,graphicsUtils,SimpleLineSymbol,SimpleMarkerSymbol,Color) {
 				showLoading();
 				esri.config.defaults.io.proxyUrl = "/proxy/DotNet/proxy.ashx";
 				esriConfig.defaults.io.alwaysUseProxy = false;
@@ -87,7 +85,7 @@ define([
 				slideLeft(document.getElementById('bookmarkPane'));
 				
 				/*var layers = kmlLayer.getLayers();
-				array.forEach(layers, function(layer){
+				layers.forEach(function(layer){
 					if (layer.declaredClass === "esri.layers.FeatureLayer") {
 					}
 					else if (layer.declaredClass === "esri.layers.MapImageLayer") {
@@ -125,7 +123,7 @@ point.x + toleraceInMapCoords,
 point.y + toleraceInMapCoords,
 map.spatialReference ); }
 								
-								/*array.forEach(layer.graphics,function(g){
+								/*layer.graphics.forEach(function(g){
 									var symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE,7,new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([0,0,200]), 1),new Color([0,0,255,0.6]));
 									addPoint(g.geometry,g.attributes.name,g.attributes.description,symbol);
 									alert("loaded point "+g.attributes.name);
