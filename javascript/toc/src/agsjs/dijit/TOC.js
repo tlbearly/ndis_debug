@@ -29,7 +29,6 @@ define("agsjs/dijit/TOC",
 "dojo/has",
 "dojo/aspect",
 "dojo/_base/lang",
-"dojo/_base/array",
 "dojo/dom-construct",
 "dojo/dom-class",
 "dojo/dom-style",
@@ -45,12 +44,11 @@ define("agsjs/dijit/TOC",
  "esri/config",
  "esri/layers/ArcGISDynamicMapServiceLayer",
  "esri/layers/ArcGISTiledMapServiceLayer",
- "dojo/_base/sniff"], function(
+ "dojo/sniff"], function(
   declare, 
   has,
   aspect,
   lang,
-  array,
   domConstruct,
   domClass,
   domStyle,
@@ -257,7 +255,7 @@ define("agsjs/dijit/TOC",
       // if it is a group layer and no child layer is visible, then collapse
       if (this.data._subLayerInfos) {
         var noneVisible = true;
-        array.every(this.data._subLayerInfos, function(info){
+        this.data._subLayerInfos.every(function(info){
           if (info.visible) {
             noneVisible = false;
             return false;
@@ -541,7 +539,7 @@ define("agsjs/dijit/TOC",
      */
     _createChildrenNodes: function(chdn, type){
       // ---tlb--- Insert Legend for MVUM---
-	  /*if (this.rootLayer.id == "Motor Vehicle Use Map")
+	  if (ourMVUM && this.rootLayer.id == "Motor Vehicle Use Map")
 	  {	
 		var MVUMimg = domConstruct.create("img", {src: "assets/images/USFS_MVUM_legend_small.png"}, this.containerNode);
 		domStyle.set(MVUMimg, {
@@ -550,7 +548,7 @@ define("agsjs/dijit/TOC",
 			'display': 'inline-block'
 		});
 		return;
-	  }*/
+	  }
 	  // --- tlb end ---	
 		
 	  this.rootLayerTOC._currentIndent++;
@@ -685,7 +683,7 @@ define("agsjs/dijit/TOC",
      }
       
       if (this._childTOCNodes.length > 0) {
-        array.forEach(this._childTOCNodes, function(child){
+        this._childTOCNodes.forEach(function(child){
           child._adjustToState();
         });
       }
@@ -783,7 +781,7 @@ define("agsjs/dijit/TOC",
     },
 	// tlb When a radio button is clicked on set the other radio buttons to toggle collapsed 
 	_setRadioToggle: function(childNodes,parentId) {
-	  array.forEach(childNodes, function(node) {
+	  childNodes.forEach(function(node) {
 		if (node.serviceLayer.parentLayerId == parentId) {
 		  var o= (node.checkNode && node.checkNode.checked);
 		  if (domClass.contains(node.iconNode, 'dijitTreeExpandoClosed') ||
@@ -824,7 +822,7 @@ define("agsjs/dijit/TOC",
 	},
 	_setSubLayerVisibilitiesFromGroup: function(lay){
 		if (lay._subLayerInfos && lay._subLayerInfos.length > 0 ){
-			array.forEach(lay._subLayerInfos, function(info){
+			lay._subLayerInfos.forEach(function(info){
               info.visible = lay.visible;
 			  if (info._subLayerInfos && info._subLayerInfos.length > 0){
 			  	this._setSubLayerVisibilitiesFromGroup(info);
@@ -834,7 +832,7 @@ define("agsjs/dijit/TOC",
 	},
     _getVisibleLayers: function(){
       var vis = [];
-      /*tlb array.forEach(this.rootLayer.layerInfos, function(layerInfo){
+      /*tlb this.rootLayer.layerInfos.forEach(function(layerInfo){
        if (layerInfo.subLayerIds) {
           // if a group layer is set to vis, all sub layer will be drawn regardless it's sublayer status
           return;
@@ -974,12 +972,12 @@ define("agsjs/dijit/TOC",
         // generally id = index, this is to assure we find the right layer by ID
         // note: not all layers have an entry in legend response.
         var layerLookup = {};
-        array.forEach(layer.layerInfos, function(layerInfo){
+        layer.layerInfos.forEach(function(layerInfo){
           layerLookup['' + layerInfo.id] = layerInfo;
           // used for later reference.
           layerInfo.visible = layerInfo.defaultVisibility;
 		  if (layer.visibleLayers && !layerInfo.subLayerIds) {
-            if (array.indexOf(layer.visibleLayers, layerInfo.id) == -1) {
+            if (layer.visibleLayers.indexOf(layerInfo.id) == -1) {
               layerInfo.visible = false;
             } else {
               layerInfo.visible = true;
@@ -988,7 +986,7 @@ define("agsjs/dijit/TOC",
         });
         // attached legend Info to layer info
         if (json.layers) {
-          array.forEach(json.layers, function(legInfo){
+          json.layers.forEach(function(legInfo){
             var layerInfo = layerLookup['' + legInfo.layerId];
             if (layerInfo && legInfo.legend) {
               layerInfo._legends = legInfo.legend;
@@ -996,10 +994,10 @@ define("agsjs/dijit/TOC",
           });
         }
         // nest layer Infos
-        array.forEach(layer.layerInfos, function(layerInfo){
+        layer.layerInfos.forEach(function(layerInfo){
           if (layerInfo.subLayerIds) {
             var subLayerInfos = [];
-            array.forEach(layerInfo.subLayerIds, function(id, i){
+            layerInfo.subLayerIds.forEach(function(id, i){
               subLayerInfos[i] = layerLookup[id];
               subLayerInfos[i]._parentLayerInfo = layerInfo;
             });
@@ -1010,7 +1008,7 @@ define("agsjs/dijit/TOC",
         
         //finalize the tree structure in _tocInfos, skipping all sublayers because they were nested already.
         var tocInfos = [];
-        array.forEach(layer.layerInfos, function(layerInfo){
+        layer.layerInfos.forEach(function(layerInfo){
           if (layerInfo.parentLayerId == -1) {
             tocInfos.push(layerInfo);
           }
@@ -1068,12 +1066,12 @@ define("agsjs/dijit/TOC",
 		var childNodes = this._rootLayerNode._childTOCNodes; // tlb
 		var radioLayers = this.config.radioLayers; // tlb
 		var tocNode = this._rootLayerNode; // tlb
-        array.forEach(this.rootLayer.layerInfos, function(layerInfo){
+    this.rootLayer.layerInfos.forEach(function(layerInfo){
 		  // tlb
 		  var scale = map.getScale();
 		  var outScale = (layerInfo.maxScale != 0 && scale < parseInt(layerInfo.maxScale)) || (layerInfo.minScale != 0 && scale > parseInt(layerInfo.minScale));
 		  // end tlb
-          if (array.indexOf(visLayers, layerInfo.id) != -1) {
+          if (visLayers.indexOf(layerInfo.id) != -1) {
             layerInfo.visible = true;
 			// tlb added next if statement and function call. Not working!!!!!!!!!!!!!!!
 			//If this is a radio button expand it's legend and collapse others
@@ -1085,7 +1083,7 @@ define("agsjs/dijit/TOC",
 				tocNode._setRadioToggle(childNodes,layerInfo._parentLayerInfo.parentLayerId);
 			*/
 		  // tlb check if not out of scale and parent is visible. It was unchecking boxes that were out of scale and set to disabled. These should be checked but disabled.
-          } else if (!layerInfo._subLayerInfos && !outScale && array.indexOf(visLayers,layerInfo.parentLayerId) != -1) {
+          } else if (!layerInfo._subLayerInfos && !outScale && visLayers.indexOf(layerInfo.parentLayerId) != -1) {
             layerInfo.visible = false;
           }
         });
@@ -1196,7 +1194,7 @@ define("agsjs/dijit/TOC",
     },
     _checkLoad: function(){
       var loaded = true;
-      array.every(this._rootLayerTOCs, function(widget){
+      this._rootLayerTOCs.every(function(widget){
         if (!widget._loaded) {
           loaded = false;
           return false;
@@ -1209,7 +1207,7 @@ define("agsjs/dijit/TOC",
       }
     },
     _adjustToState: function(){
-      array.forEach(this._rootLayerTOCs, function(widget){
+      this._rootLayerTOCs.forEach(function(widget){
         widget._adjustToState2(); // tlb added second function that refreshes visible map layers
       });
     },
@@ -1235,7 +1233,7 @@ define("agsjs/dijit/TOC",
 	 */
 	findTOCNode: function(layer, serviceLayerId){
 		var w;
-		array.every(this._rootLayerTOCs, function(widget){
+		this._rootLayerTOCs.every(function(widget){
 			if(widget.rootLayer == layer){
 				w = widget;
 				return false;
