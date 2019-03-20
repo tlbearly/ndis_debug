@@ -342,7 +342,7 @@ require(["esri/tasks/IdentifyParameters","esri/symbols/SimpleLineSymbol","esri/s
 			
 	function displayContent(){
 		// Loop through each layer found at the map click
-		require(["dojo/_base/array","esri/tasks/IdentifyTask","dojo/DeferredList","dojo/_base/Deferred"], function(array,IdentifyTask,DeferredList,Deferred) {
+		require(["dojo/_base/array","esri/tasks/IdentifyTask","dojo/DeferredList","dojo/Deferred"], function(array,IdentifyTask,DeferredList,Deferred) {
 			if (groupContent[identifyGroup]){
 				map.infoWindow.setContent(groupContent[identifyGroup]);
 				hideLoading("");
