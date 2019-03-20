@@ -53,7 +53,6 @@
         <operationallayers>
 			<!--layer label="Motor Vehicle Use Map" open="false" type="dynamic" visible="false" alpha="0.85"
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/mvum/MapServer"/-->
-			<!--url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/-->
 			<!-- Layer must be named "Hunter Reference".  It is used in widgets/Legend/toc/tocClasses/TocMapLayerItem.as -->
 			<layer label="Hunter Reference" open="true" type="dynamic" visible="true" alpha="0.8"
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer"/>
@@ -61,7 +60,9 @@
 			<layer label="Game Species" open="false" type="dynamic" visible="false" alpha="0.7"
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_BigGameSpecies_Map/MapServer"/>					
 			<layer label="Motor Vehicle Use Map" open="true" type="dynamic" visible="false" alpha="1"
-					url="https://apps.fs.fed.us/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/>
+                    url="https://apps.fs.fed.us/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/>
+					<!--url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/--> <!-- old service -->
+                    <!--url="https://apps.fs.fed.us/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/--> <!-- new service -->
         </operationallayers>
 		
 		<hideGroupSublayers>Emergency,Field Office,Chamber of Commerce or Welcome Center,License Agent,Campgrounds and SWA Facilities,GMU boundary (Hunting Units)</hideGroupSublayers>
