@@ -185,7 +185,7 @@ function setupIdentify(theWellLabel)
 						}
 						function openPDF(){
 							// If the file is too large this crashes in Chrome
-							require(["dojo/has", "dojo/_base/sniff"], function(has){
+							require(["dojo/has", "dojo/sniff"], function(has){
 								// does not work in IE use savePDF. has("ie") returns false for IE version 11+, use trident instead.
 								if (has("trident")) savePDF();
 								else{
