@@ -393,8 +393,8 @@
 		  // graphicsCounter is the searchGraphicsCounter or drawGraphicsCounter so it can erase the last added layer
 		  // graphicsArr is an array of graphics names
 		  require(["esri/graphic", "esri/symbols/Font", "esri/symbols/TextSymbol",
-				"dojo/_base/array", "dojo/_base/Color"], function (
-				Graphic, Font, TextSymbol, arrayUtils, Color) {
+				"dojo/_base/Color"], function (
+				Graphic, Font, TextSymbol, Color) {
 			label = label.replace("/n"," "); // replace carriage returns with space for flex bookmarks
 			var yellow = new Color([255,255,153,1.0]);
 			var font = new Font(
