@@ -49,6 +49,21 @@
                 <h4><a href="<%=app%>/help.html">Help</a> &#149;
                     <a href="<%=app%>/definitions.html">Map Information</a></h4>
 
+                    <h2>Version 3.21 Released March 2019</h2>
+                    <ul>
+                        <li><strong>What's New in the <%=subtitle%>:</strong><br/>
+                            <ul>
+                                <li>New ability on Mobile to download the current map as a georeferenced PDF.</li>
+                                <li>New transparent MVUM that is up to date. Served from the USFS map service.</li>
+                                <li>If the MVUM service is down, it will default to the old version.</li>
+                                <li>Printing now defaults to having no legend for faster prints.</li>
+                                <li>Faster georeferenced PDF printing.</li>
+                                <li>Added instructions for reporting an error if the default mail client is not set up.</li>
+                                <li>Fixed printing error when layers were loaded from the URL.</li>
+                                <li>Fixed problem with bookmarked polygons and rectangles showing solid fill and missing labels for bookmarked text.</li>
+                            </ul>
+                        </li>
+                    </ul>
                 <h2>Version 3.18 Released May 2018</h2>
                 <ul>
                     <li><strong>What's New in the <%=subtitle%>:</strong><br/>
