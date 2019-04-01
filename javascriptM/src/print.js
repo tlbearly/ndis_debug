@@ -619,6 +619,15 @@ function printMap(){
 				return;
 			}
 			else {
+				// Read the output pdf file name from user input. Remove .pdf if it is there.
+				outputName = document.getElementById("pdf_name").value;
+				outputName = outputName.replace(/([^a-zA-Z0-9\-_\. ])/g,""); 
+				if (outputName.substr(outputName.length-4) == ".pdf")
+					outputName = outputName.substr(0,outputName.length-4);
+				if (outputName == ""){
+					alert("Please enter valid file name.","Warning")
+					return;
+				}
 				if (!fullExtent.contains(previewMap.extent)){
 					alert ("Printing is only allowed for Colorado.","Warning");
 					document.getElementById("previewLoading").style.display="none";
@@ -736,10 +745,6 @@ function printMap(){
 			done=true; // no legend
 			legendTemplate="none";
 			template.format="pdf";
-			// Read the output pdf file name from user input. Remove .pdf if it is there.
-			outputName = document.getElementById("pdf_name").value;
-			if (outputName.substr(outputName.length-4) == ".pdf")
-				outputName = outputName.substr(0,outputName.length-4);	
 			params.extraParameters = {
 				Georef_Info : "True",
 				Legend_Template: legendTemplate,
