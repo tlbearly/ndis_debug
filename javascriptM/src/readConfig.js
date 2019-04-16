@@ -77,10 +77,10 @@ function createMap() {
 				if (mvum1Index > -1){
 					// Test 2 additional MVUM to use if one is down
 					mvum2Index = layersToAdd.length;
-					layersToAdd[layersToAdd.length] = {
-						"id": "Motor Vehicle Use Map",
-						"url": "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"
-					};
+					//layersToAdd[layersToAdd.length] = {
+					//	"id": "Motor Vehicle Use Map",
+					//	"url": "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"
+					//};
 					layersToAdd[layersToAdd.length] = {
 						"id": "Motor Vehicle Use Map",
 						"url": "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/mvum/MapServer"
@@ -104,28 +104,29 @@ function createMap() {
 							if (mvumflag == true){
 								// The given MVUM worked
 								if (mvum1Index == i) {
-									response.pop();
-									response.pop();
+									response.pop(); // pop 2nd MVUM
+									//response.pop(); // pop 3rd MVUM
 								}
 								// The second MVUM worked replace this URL and remove the last 2 MVUM maps
 								else if (mvum2Index == i) {
 									console.log("Layer loaded: "+response[i].layer.id+" "+response[i].layer.url);
 									response[mvum1Index].layer.url = response[i].layer.url;
 									response[mvum1Index].resolution = true;
-									response.pop();
-									response.pop();
+									response.pop(); // pop 2nd MVUM
+									//response.pop(); // pop 3rd MVUM
 									errflag = true;
+									ourMVUM = true;// set flag because will need to move this layer to the bottom of TOC later.
 								}
 								// The third MVUM worked replace this URL and remove the last 2 MVUM maps
-								else {
-									console.log("Layer loaded: "+response[i].layer.id+" "+response[i].layer.url);
-									response[mvum1Index].layer.url = response[i].layer.url;
-									response[mvum1Index].resolution = true;
-									response.pop();
-									response.pop();
-									errflag = true;
-									ourMVUM = true;// set flag because will need to move this layer to the bottom later.
-								}
+								//else {
+								//	console.log("Layer loaded: "+response[i].layer.id+" "+response[i].layer.url);
+								//	response[mvum1Index].layer.url = response[i].layer.url;
+								//	response[mvum1Index].resolution = true;
+								//	response.pop();
+								//	response.pop();
+								//	errflag = true;
+								//	ourMVUM = true;// set flag because will need to move this layer to the bottom later.
+								//}
 							}
 						}
 						// layer is down
@@ -159,10 +160,10 @@ function createMap() {
 
 		function addMapLayers(response,errflag,ourMVUM) {
 			// tlb 2/19/19 Called from testLayers which will see if the mapservice is up.
-			// Passes 2 new parameters:
-			//   response: an object containing id and url
-			//   errflag: a boolean. If true some map services were down. Update xmlDoc
-			//   ourMVM: a boolean. If true both of USFS MVUM services are down use ours, but will need to switch the order. Put on bottom.
+			// Passes 3 new parameters:
+			//   response: an object containing id and url of map services that were up
+			//   errflag: a boolean. If true any map services were down. Update xmlDoc
+			//   ourMVM: a boolean. If true USFS MVUM service is down use ours, but will need to switch the order. Put on bottom.
 			function layerLoadHandler(event) {
 				// For layers loaded from URL set layer visibility
 				try {
@@ -326,7 +327,7 @@ function createMap() {
 						var element = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[rmLayers[i]];
 						element.parentNode.removeChild(element);
 					}
-					// If both USFS MVUMs are down, use ours but move it to the top. Will reverse the legend so it will be on the top.
+					// If USFS MVUM is down, use ours but move it to the top. Will reverse the legend so it will be on the top.
 					if (ourMVUM){
 						var topElem = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[0];
 						var mvumElem = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length-1];
