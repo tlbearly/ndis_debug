@@ -625,7 +625,7 @@ function printMap(){
 				if (outputName.substr(outputName.length-4) == ".pdf")
 					outputName = outputName.substr(0,outputName.length-4);
 				if (outputName == ""){
-					alert("Please enter valid file name.","Warning")
+					alert("Please enter a valid file name.","");
 					return;
 				}
 				if (!fullExtent.contains(previewMap.extent)){
