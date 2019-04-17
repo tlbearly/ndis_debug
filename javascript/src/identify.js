@@ -411,7 +411,7 @@ function displayContent() {
                     identifyParams.layerIds = item.vis_ids.slice(); // get list of ids used in the map
                     // Loop through each top layer in the TOC that is visible at this scale
                     layers.forEach(function(layer) {
-                        if (layer.url == url) {
+                        if (layer.url && layer.url.toLowerCase() == url.toLowerCase()) {
                             if (layer.visible == true) {
                                 skip = false;
                                 //var found = false;
