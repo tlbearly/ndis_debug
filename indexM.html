@@ -104,7 +104,7 @@ header("Pragma: no-cache");
 		<script type="text/javascript" src="javascriptM/xmlUtils.js?v=3.11"></script>
 		<script type="text/javascript" src="javascriptM/findPlace.js?v=3.19"></script>
 		<script type="text/javascript" src="javascriptM/identify.js?v=3.20a"></script>
-		<script type="text/javascript" src="javascriptM/print.js?v=3.21"></script>
+		<script type="text/javascript" src="javascriptM/print.js?v=3.21a"></script>
 		<script type="text/javascript" src="javascriptM/readConfig.js?v=3.21"></script>
 		<script type="text/javascript" src="javascriptM/search.js?v=3.20"></script>
 		<script type="text/javascript" src="javascriptM/swipe.js?v=3.11"></script>
@@ -666,7 +666,7 @@ header("Pragma: no-cache");
 									</div><br/>
 									<!-- "download" on an an href tag does not working inside Android App. It does not download anything! So I modified georefPrinting.py to except another parameter -->
 									<div id="pdf_name_div">
-											<label id="pdf_name_label" for="pdf_name">PDF File Name:</label> <input id="pdf_name" style="color:#333;width:200px;margin:auto;" type="text" required/>
+											<label id="pdf_name_label" for="pdf_name">PDF File Name:</label> <input id="pdf_name" style="color:#333;width:200px;margin:auto;" maxlength="100" type="text" required/>
 									</div><br/><br/>
 									<button id="print_button" data-dojo-type="dojox/mobile/Button" role="presentation" style="margin:0" type="button" onClick="printMap()">Create PDF</button>
 									<span id="printMapLink" style="font-weight:bold;font-style:italic;"></span><br/>
