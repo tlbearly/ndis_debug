@@ -527,90 +527,88 @@ function printMap(){
 				// 1-22-19 tlb  Add Google Analytics stats for georef printing 
 				var i;
 				var format = dom.byId("format");
-				if (format.options[format.selectedIndex].value=="geopdf"){
-					var millis = Date.now() - startTim;
-					//var date = new Date();
-					//var theDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " +  date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
-					var s = previewMap.getScale();
-					var mapscale;
-					if (s < 9028) mapscale = "10k";
-					else if (s < 36112) mapscale = "24k";
-					else if (s < 72224) mapscale = "50k";
-					else if (s < 144448) mapscale = "100k";
-					else if (s < 288896) mapscale = "250k";
-					else if (s < 577791) mapscale = "500k";
-					else if (s < 1155582) mapscale = "1M";
-					else if (s < 2311163) mapscale = "2M";
-					else if (s < 4622325) mapscale = "4M";
-					else if (s < 9244649) mapscale = "9M";
-					var category = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML+" pdf ";//+" "+theDate;
-					if (printLegendFlag && document.getElementById("printLegend").checked) category += "legend ";//+mapscale;
-					//else category += mapscale;
-					var pagesize = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
-					var action = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
-					var value = Math.floor(millis/1000); // seconds to generate. Must be integer for Google Analytics
-					// Add map services used
-					var label=""; // Map Services
-					for (i=0; i<previewMap.layerIds.length; i++){
-						switch ( previewMap.layerIds[i]){
-							case "Motor Vehicle Use Map":
-								label += "M";
-								break;
-							case "Hunter Reference":
-							  label += "R";
-								break;
-							case "Game Species":
-								label += "G";
-								break;
-							case "Fishing Info":
-								label += "F";
-								break;
-							case "Reference":
-								label += "R";
-								break;
-						}
+				var millis = Date.now() - startTim;
+				var s = previewMap.getScale();
+				var mapscale;
+				if (s < 9028) mapscale = "10k";
+				else if (s < 36112) mapscale = "24k";
+				else if (s < 72224) mapscale = "50k";
+				else if (s < 144448) mapscale = "100k";
+				else if (s < 288896) mapscale = "250k";
+				else if (s < 577791) mapscale = "500k";
+				else if (s < 1155582) mapscale = "1M";
+				else if (s < 2311163) mapscale = "2M";
+				else if (s < 4622325) mapscale = "4M";
+				else if (s < 9244649) mapscale = "9M";
+				var maptype = format.options[format.selectedIndex].value;
+				var category = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML+" "+maptype+" ";//+" "+theDate;
+				if (printLegendFlag && document.getElementById("printLegend").checked) category += "legend ";//+mapscale;
+				var pagesize = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
+				var action = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
+				var value = Math.floor(millis/1000); // seconds to generate. Must be integer for Google Analytics
+				// Add map services used
+				var label=""; // Map Services
+				for (i=0; i<previewMap.layerIds.length; i++){
+					switch ( previewMap.layerIds[i]){
+						case "Motor Vehicle Use Map":
+							label += "M";
+							break;
+						case "Hunter Reference":
+							label += "R";
+							break;
+						case "Game Species":
+							label += "G";
+							break;
+						case "Fishing Info":
+							label += "F";
+							break;
+						case "Reference":
+							label += "R";
+							break;
 					}
-					category += label;
-					var mapservices = label;
-					var custom;
-					// Calculate size of file for Google Analytics stats
-					/*if (window.XMLHttpRequest) {
-						var xhr = new XMLHttpRequest();
-						xhr.open("HEAD", result.url, true); // Notice "HEAD" instead of "GET", to get only the header
-						xhr.onreadystatechange = function() {
-								if (this.readyState == this.DONE) {
-										var mb = Math.round(parseInt(xhr.getResponseHeader("Content-Length"))/1048576);
-										console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale+" "+mb+"MB");
-										// In Google Analytics, Admin, Properties, Custom Definitions, Custom Dimensions(text) & Custom Metrics(integer)
-										// Set up: 
-										//		dimension2=Page Size, Hit, Active
-										//		dimension3=Map Services, Hit, Active
-										//		dimension4=Map Scale, Hit, Active
-										//		metric1=Seconds, Hit, Active
-										//		metric2=MB, Hit, Active
-										custom = {
-											'metric1':value,
-											'metric2': mb,
-											'dimension2':pagesize,
-											'dimension3':mapservices,
-											'dimension4':mapscale
-										};
-										ga('send', 'event', category, action, label, value, custom);
-								}
-						};
-						xhr.send();
-					}
-					else{*/
-						custom = {
-							'metric1':value,
-							'dimension2':pagesize,
-							'dimension3':mapservices,
-							'dimension4':mapscale
-						};
-						console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale);
-						ga('send', 'event', category, action, label, value,custom);
-					//}
 				}
+				category += label;
+				var mapservices = label;
+				var custom;
+				// Calculate size of file for Google Analytics stats
+				/*if (window.XMLHttpRequest) {
+					var xhr = new XMLHttpRequest();
+					xhr.open("HEAD", result.url, true); // Notice "HEAD" instead of "GET", to get only the header
+					xhr.onreadystatechange = function() {
+							if (this.readyState == this.DONE) {
+									var mb = Math.round(parseInt(xhr.getResponseHeader("Content-Length"))/1048576);
+									console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale+" "+mb+"MB");
+									// In Google Analytics, Admin, Properties, Custom Definitions, Custom Dimensions(text) & Custom Metrics(integer)
+									// Set up: 
+									//		dimension2=Page Size, Hit, Active
+									//		dimension3=Map Services, Hit, Active
+									//		dimension4=Map Scale, Hit, Active
+									//		metric1=Seconds, Hit, Active
+									//		metric2=MB, Hit, Active
+									custom = {
+										'metric1':value,
+										'metric2': mb,
+										'dimension2':pagesize,
+										'dimension3':mapservices,
+										'dimension4':mapscale
+									};
+									ga('send', 'event', category, action, label, value, custom);
+							}
+					};
+					xhr.send();
+				}
+				else{*/
+					custom = {
+						'metric1':value,
+						'dimension2':pagesize,
+						'dimension3':mapservices,
+						'dimension4':mapscale,
+						'dimension5':maptype
+					};
+					console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale);
+					ga('send', 'event', category, action, label, value, custom);
+				//}
+
 				console.log("printing to "+result.url);
 				if (result.url.indexOf('tif') > -1 || result.url.indexOf('svgz') > -1){
 					document.getElementById("printInst").innerHTML = "Click on the link below to download the image file.";

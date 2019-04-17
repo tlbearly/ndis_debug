@@ -827,7 +827,8 @@ function printMap(){
 				//var date = new Date();
 				//var theDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " +  date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
 				//var label = dijit.byId("mapscaleList").attr('displayedValue'); // mapscale
-				var category = sizeCombo.attr('displayedValue')+" pdf ";
+				var maptype = "geopdf";
+				var category = sizeCombo.attr('displayedValue')+" "+maptype+" ";
 				var mapscale = dijit.byId("mapscaleList").attr('displayedValue');
 				var action = sizeCombo.attr('displayedValue'); // page size
 				var value = Math.floor(millis/1000); // seconds to generate. Must be integer for Google Analytics
@@ -865,7 +866,10 @@ function printMap(){
 							// add file size
 							console.log("content-length=");
 							console.log(xhr.getResponseHeader("Content-Length"));
-							mb = Math.round(parseInt(xhr.getResponseHeader("Content-Length"))/1048576);
+							//mb = Math.round(parseInt(xhr.getResponseHeader("Content-Length"))/1048576);
+							mb = parseInt(xhr.getResponseHeader("Content-Length"))/1048576;
+							if (!isNaN)
+								mb = mb.toFixed(2);
 							console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale+" "+mb+"MB");
 							// In Google Analytics, Admin, Properties, Custom Definitions, Custom Dimensions(text) & Custom Metrics(integer)
 							// Set up: 
@@ -879,7 +883,8 @@ function printMap(){
 								'metric2': mb,
 								'dimension2':sizeCombo.attr('displayedValue'),
 								'dimension3':mapservices,
-								'dimension4':mapscale
+								'dimension4':mapscale,
+								'dimension5':maptype
 							};
 							ga('send', 'event', category, action, label, value, custom);
 							document.getElementById("printMB").innerHTML = "File size is "+mb+"MB.";
@@ -894,7 +899,8 @@ function printMap(){
 						'metric1':value,
 						'dimension2':sizeCombo.attr('displayedValue'),
 						'dimension3':mapservices,
-						'dimension4':mapscale
+						'dimension4':mapscale,
+						'dimension5':maptype
 					};
 					ga('send', 'event', category, action, label, value, custom);
 				}
@@ -995,10 +1001,11 @@ function showPrintPreview(){
 		function previewResult(result){
 			// Add Google Analytics stats for georef printing preview jpg
 			var millis = Date.now() - startTim;
-			var category = sizeCombo.attr('displayedValue')+" jpg ";
+			var maptype = "prev";
+			var category = sizeCombo.attr('displayedValue')+" "+maptype+" ";
 			var action = sizeCombo.attr('displayedValue'); // page size
 			var mapscale = dijit.byId("mapscaleList").attr('displayedValue'); // mapscale
-			var value = Math.floor(millis/1000); // seconds to generate. Must be integer for Google Analytics
+			var value = Math.floor(millis/1000); // seconds to generate.
 			// Add map services used
 			var label=""; // Map Services
 			for (var i=0; i<previewMap.layerIds.length; i++){
@@ -1023,7 +1030,7 @@ function showPrintPreview(){
 			category += label;
 			var mapservices = label;
 			var custom;
-			var mb = -1;
+			/*var mb = -1;
 			// Calculate size of file for Google Analytics stats
 			if (window.XMLHttpRequest) {
 				var xhr = new XMLHttpRequest();
@@ -1031,7 +1038,9 @@ function showPrintPreview(){
 				xhr.onreadystatechange = function() {
 					if (this.readyState == this.DONE) {
 						// add file size
-						mb = Math.round(parseInt(xhr.getResponseHeader("Content-Length"))/1048576);
+						mb = parseInt(xhr.getResponseHeader("Content-Length"))/1048576;
+						if (!isNaN)
+							mb = mb.toFixed(2);
 						console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale+" "+(xhr.getResponseHeader("Content-Length")/1048576).toFixed(2)+"MB");
 						// In Google Analytics, Admin, Properties, Custom Definitions, Custom Dimensions(text) & Custom Metrics(integer)
 						// Set up: 
@@ -1045,24 +1054,26 @@ function showPrintPreview(){
 							'metric2': mb,
 							'dimension2':sizeCombo.attr('displayedValue'),
 							'dimension3':mapservices,
-							'dimension4':mapscale
+							'dimension4':mapscale,
+							'dimension5':maptype
 						};
 						ga('send', 'event', category, action, label, value, custom);
 					}
 				};
 				xhr.send();
 			}
-			else{
-				console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale);
+			else{*/
+				console.log("Time to create preview map = " + value + " seconds for "+category+" "+mapscale);
 				custom = {
 					'metric1':value,
 					'dimension2':sizeCombo.attr('displayedValue'),
 					'dimension3':mapservices,
-					'dimension4':mapscale
+					'dimension4':mapscale,
+					'dimension5':maptype
 				};
 				ga('send', 'event', category, action, label, value, custom);
-			}
-			console.log("Time to create preview map = " + value + " seconds for "+category);
+			//}
+			//console.log("Time to create preview map = " + value + " seconds for "+category);
 			console.log("printing to "+result.url);
 			document.getElementById("print_img").src=result.url;
 			document.getElementById("previewLoading").style.display="none";
