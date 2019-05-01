@@ -254,8 +254,8 @@ function searchInit() {
 						},
 						//onChange: function(){setSelection()},
 						onKeyUp: function(value){
-							// user pressed ESC, pgup, pgdn, or arrow keys
-							if ([27,33,34,37,38,39,40].indexOf(value.keyCode) > -1) return;
+							// user pressed shift, ctrl, ESC, pgup, pgdn, end, home, or arrow keys
+							if ([16,17,27,33,34,35,36,37,38,39,40].indexOf(value.keyCode) > -1) return;
 							// user pressed enter key
 	//						else if ([13].indexOf(value.keyCode) > -1) {setSelection(this.attr('displayedValue')); return;}
 							updateSearchTextStore(registry.byId("featureType").attr("displayedValue"));
