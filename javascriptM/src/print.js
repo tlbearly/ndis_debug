@@ -210,6 +210,12 @@ function printShow(){
 					correctOrder.push(map_layer.id);
 				}
 			}
+			// Cannot print only basemap Warning
+			if (countLayers == 0){
+				alert("Printing of basemaps alone does not work. Please add map layers. From the menu, select 'Layers &amp; Legend.'","Warning");
+				drawing=false;
+				return;
+			}
 			for (i=0; i<map.layerIds.length; i++){
 				map_layer = map.getLayer(map.layerIds[i]);
 				if (map_layer.layerInfos && map_layer.visible){
@@ -864,12 +870,10 @@ function printMap(){
 					xhr.onreadystatechange = function() {
 						if (this.readyState == this.DONE) {
 							// add file size
-							console.log("content-length=");
-							console.log(xhr.getResponseHeader("Content-Length"));
 							//mb = Math.round(parseInt(xhr.getResponseHeader("Content-Length"))/1048576);
 							mb = parseInt(xhr.getResponseHeader("Content-Length"))/1048576;
-							if (!isNaN)
-								mb = mb.toFixed(2);
+							if (!isNaN(mb))
+								mb = parseFloat(mb.toFixed(2));
 							console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale+" "+mb+"MB");
 							// In Google Analytics, Admin, Properties, Custom Definitions, Custom Dimensions(text) & Custom Metrics(integer)
 							// Set up: 

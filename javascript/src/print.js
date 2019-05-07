@@ -403,6 +403,7 @@ function printMap(){
 			var layer = previewMap.getLayersVisibleAtScale();
 			var legendArr = [];
 			var legend;
+			var countLayers=0;
 			for (i=1; i<layer.length; i++) {
 				if (ourMVUM && (layer[i].id == "Motor Vehicle Use Map")){
 					// Do not add the legend. Will use MVUM print template
@@ -436,6 +437,7 @@ function printMap(){
 						legend.subLayerIds = layer[i].visibleLayers;
 						legendArr.push(legend);
 						legend = null;
+						countLayers++;
 					}
 				}
 				//if (ourMVUM && layer[i].visible && (layer[i].id == "Motor Vehicle Use Map")) mvum = true;
@@ -456,7 +458,7 @@ function printMap(){
 			if (format.options[format.selectedIndex].value != "pdf"){
 				template.layout = app+" "+selectedValue_size+selectedValue_orient; // huntingatlas Letter Portrait
 				printTask = new PrintTask(printGeoServiceUrl);
-				template.preserveScale = true; // for legend to work. This is removed for the map in the python code in geo GP print service.
+				template.preserveScale = false; // true for legend to work. This is removed for the map in the python code in geo GP print service.
 				var legendTemplate;
 				done=true; // no legend
 				template.format = format.options[format.selectedIndex].value;
@@ -467,6 +469,15 @@ function printMap(){
 				else if (template.format=="geopdf" && !document.getElementById("printLegend").checked) {
 					legendTemplate="none";
 					template.format="pdf";
+					// Cannot print only basemap with geopdf does not have georef info Warning Message
+					if (countLayers == 0){
+						alert("Printing of basemaps alone does not work. Please add map layers. From the menu, select 'Map Layers &amp; Legend.'","Warning");
+						registry.byId("print_button").set("label", "Print");
+						document.getElementById("printLoading").style.display="none";
+						document.getElementById("printMapLink").innerHTML = "";
+						document.getElementById("printLegendLink").innerHTML = "";
+						return;
+					}
 				}
 				else if (ourMVUM && mvum) {
 					legendTemplate = "Legend Letter "+selectedValue_orient+ " MVUM";
