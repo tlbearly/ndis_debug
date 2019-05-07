@@ -417,7 +417,7 @@ header("Pragma: no-cache");
             </div>
 
             <!-- Error Message -->
-            <div data-dojo-type="dijit/Dialog" data-dojo-id="errorDialog" style="width:350px;max-height:400px;margin:10px;display:none;overflow:scroll;" title="Error Message" onCancel="requrie(['dojo/dom'],function(dom){dom.byId('errMsg').innerHTML='';});">
+            <div data-dojo-type="dijit/Dialog" data-dojo-id="errorDialog" style="width:350px;max-height:400px;margin:10px;display:none;overflow:scroll;" title="Error Message" onCancel="require(['dojo/dom'],function(dom){dom.byId('errMsg').innerHTML='';});">
                 <div id="errMsg" class="dijitDialogPaneContentArea"></div>
                 <div align="center"><button onClick="errorDialog.hide();dojo.byId('errMsg').innerHTML='';" data-dojo-type="dijit/form/Button" role="presentation" type="button">Close</button></div>
             </div>
