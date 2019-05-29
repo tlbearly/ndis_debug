@@ -31,7 +31,13 @@ function searchInit() {
 					"esri/symbols/SimpleFillSymbol","dojo/_base/declare","dgrid/OnDemandGrid","dgrid/extensions/DijitRegistry","dojo/domReady!"
 					], function(dom,registry,lang,mouse,Color,Memory, ComboBox, Select, Draw, esriRequest, Query, QueryTask, Graphic, GraphicsLayer,
 					urlUtils, Point, PictureMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, declare, OnDemandGrid,DijitRegistry){
-				  try {
+					function showWarning(tag) {
+						// Show warning for required fields.
+						var layerName = layers[i].getElementsByTagName("name")[0] && layers[i].getElementsByTagName("name")[0].childNodes[0] ?
+							layers[i].getElementsByTagName("name")[0].childNodes[0].nodeValue : "undefined";
+						alert("WARNING: In SearchWidget.xml file required value missing for tag: "+tag+", in layer: "+layerName+".","Data Error");
+					}
+					try {
 					/*for graphical search
 					function searchDrawEnd(event){
 						// Called when user click/drags on the map to select features
@@ -182,12 +188,6 @@ function searchInit() {
 								layers[i].getElementsByTagName("graphical_db_sort")[0].childNodes[0] ? 
 								layers[i].getElementsByTagName("graphical_db_sort")[0].childNodes[0].nodeValue : showWarning("graphical_db_sort") : null
 						};
-						function showWarning(tag) {
-						// Show warning for required fields.
-							var layerName = layers[i].getElementsByTagName("name")[0] && layers[i].getElementsByTagName("name")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("name")[0].childNodes[0].nodeValue : "undefined";
-							alert("WARNING: In SearchWidget.xml file required value missing for tag: "+tag+", in layer: "+layerName+".","Data Error");
-						}
 
 						// add options to select element
 						featureStore.data.push({name:searchObj[n].name, id:i});
@@ -523,6 +523,9 @@ function searchInit() {
 					function setSelection(event) {
 						// user made a selection in the "search for:" drop down. Display a table of multiple matches or zoom to a single match.
 						try {
+							// Google Analytics count how many times Buy License is clicked on
+							ga('send', 'event', "feature_search", "click", "Feature Search", "1");
+
 							// Prevent form submission from loading a new page
 							if (event){
 								event.stopImmediatePropagation(); // don't call this twice

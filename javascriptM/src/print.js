@@ -4,7 +4,7 @@ var outputName="";
 var startTim;
 /****************************************** */
 /*  Quickly add or remove large print sizes */
-var useLargeSizes = false; // if true gives page sizes 17x22 and 22x34 also.
+var useLargeSizes = true; // if true gives page sizes 17x22 and 22x34 also.
 
 function printInit() {
 	require(["dojo/store/Memory","dijit/form/ComboBox", "dijit/form/Select"],function(Memory,ComboBox,Select){
@@ -408,10 +408,10 @@ function changePrintSize(scaleChange){
 			//var list = document.getElementById("mapscaleList");
 			//var scale = list.options[list.selectedIndex].value;
 			var scale = dijit.byId("mapscaleList").get("value");
-			// preview map extent is set 1st time and on orientation or map size change.
+			// preview map extent is set 1st time and on orientation or map area change.
 			var pgWidth = (3.28084 * (map.extent.xmax - map.extent.xmin) * 12) / scale;
 			var pgHeight = (3.28084 * (map.extent.ymax - map.extent.ymin) * 12) / scale;
-			//alert("For this map scale, set the Map size to at least: "+parseInt(pgWidth) +" x "+ parseInt(pgHeight),"NOTE");
+			//alert("For this map scale, set the Map area to at least: "+parseInt(pgWidth) +" x "+ parseInt(pgHeight),"NOTE");
 			var largest;
 			if (selectedValue_orient == "Landscape"){
 				largest = pgWidth;
@@ -839,28 +839,28 @@ function printMap(){
 				var action = sizeCombo.attr('displayedValue'); // page size
 				var value = Math.floor(millis/1000); // seconds to generate. Must be integer for Google Analytics
 				// Add map services used
-				var label=""; // Map Services
+				var label="Print geoPDF"; // function
+				var mapservices = "";
 				for (var i=0; i<previewMap.layerIds.length; i++){
 					switch ( previewMap.layerIds[i]){
 						case "Motor Vehicle Use Map":
-							label += "M";
+							mapservices += "M";
 							break;
 						case "Hunter Reference":
-							label += "R";
+							mapservices += "R";
 							break;
 						case "Game Species":
-							label += "G";
+							mapservices += "G";
 							break;
 						case "Fishing Info":
-							label += "F";
+							mapservices += "F";
 							break;
 						case "Reference":
-							label += "R";
+							mapservices += "R";
 							break;
 					}
 				}
-				category += label;
-				var mapservices = label;
+				category += mapservices;
 				var custom;
 				var mb = -1;
 				// Calculate size of file for Google Analytics stats
@@ -1011,28 +1011,28 @@ function showPrintPreview(){
 			var mapscale = dijit.byId("mapscaleList").attr('displayedValue'); // mapscale
 			var value = Math.floor(millis/1000); // seconds to generate.
 			// Add map services used
-			var label=""; // Map Services
+			var label="Print Preview"; // function
+			var mapservices = "";
 			for (var i=0; i<previewMap.layerIds.length; i++){
 				switch ( previewMap.layerIds[i]){
 					case "Motor Vehicle Use Map":
-						label += "M";
-						break;
-					case "Hunter Reference":
-						label += "R";
-						break;
-					case "Game Species":
-						label += "G";
-						break;
-					case "Fishing Info":
-						label += "F";
-						break;
-					case "Reference":
-						label += "R";
-						break;
+							mapservices += "M";
+							break;
+						case "Hunter Reference":
+							mapservices += "R";
+							break;
+						case "Game Species":
+							mapservices += "G";
+							break;
+						case "Fishing Info":
+							mapservices += "F";
+							break;
+						case "Reference":
+							mapservices += "R";
+							break;
 				}
 			}
-			category += label;
-			var mapservices = label;
+			category += mapservices;
 			var custom;
 			/*var mb = -1;
 			// Calculate size of file for Google Analytics stats

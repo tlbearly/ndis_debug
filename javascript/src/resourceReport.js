@@ -6,48 +6,6 @@ function reportInit(){
 	 "esri/tasks/query","esri/tasks/QueryTask","dojo/promise/all"],
 	function(dom,registry,has,Select,Draw,bundle,GraphicsLayer,Circle,SimpleMarkerSymbol,SimpleLineSymbol,SimpleFillSymbol,Color,Graphic,Dialog,Map,Button,
 	graphicsUtils,ArcGISDynamicMapServiceLayer,PrintTask,PrintTemplate,PrintParameters,urlUtils,webMercatorUtils,Query,QueryTask,all){
-	  try{
-		var bufferDist;
-		var bufferList;
-		var bufferUnitsLabel;
-		var queryLayers = {
-			pointsOfInterest: null,
-			contactBoundaries: null,
-			gameBoundaries: null,
-			layers: []
-		};
-		var reports = [];
-		var numDatabaseCalls = 0;
-		var processedDatabaseCalls;
-		var queriesPending = 0;
-		var mapService;
-		var basemapUrl;
-		var reportToolbar;
-		var centerPt=null;
-		var reportTitle;
-		var mapTitle;
-		var mapSubTitle;
-		var disclaimer;
-		var circle;
-		var marginLeft = 18; // .25 inches
-		var marginTop = 18;
-		var lineHt = 14;
-		var dpi = 300;
-		var pageWidth = 792 - (2*marginLeft); // 11 inches * 72 - margins
-		var pageHeight = 612 - (marginTop); // height of page (8.5*72) - bottom margin
-		var mapWidthPxs;
-		var mapHeightPxs;
-		var mapWidthPts;
-		var mapHeightPts;
-		var doc = new jsPDF("landscape","pt","letter");
-		var printServiceUrl;
-		var	reportMap;
-		var msg = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Adjust map boundaries. Click Open/Save Report when ready.";
-		var reportPreviewGraphicsLayer;
-		var reportGraphicsLayer = new GraphicsLayer();
-		reportGraphicsLayer.id = "reportGraphicsLayer1";
-		map.addLayer(reportGraphicsLayer);
-		
 		function pixels2pts(px) {
 			return Math.round((px/dpi) * 72);
 		}
@@ -215,7 +173,7 @@ function reportInit(){
 			reportToolbar = new Draw(map, {showTooltips:true});
 			reportToolbar.on("draw-end", reportDrawEnd);
 			// Register click event handlers for buttons
-			document.getElementById("reportLocBtn").addEventListener('click',function(event) {activateReportTool()});
+			document.getElementById("reportLocBtn").addEventListener('click',function(event) {activateReportTool();});
 			registry.byId("reportPrintBtn").on("click",reportPreview);
 			registry.byId("reportPrintBtn").set('disabled',true);
 			registry.byId("reportCancelBtn").on("click",reportCancel);
@@ -230,122 +188,10 @@ function reportInit(){
 			dom.byId("reportDiv").addEventListener('click',function(event){
 				if (!registry.byId("reportDiv").open) reportCancel();
 			});
-
 		}
-		
-		// ***********************************
-		// Read ResourceReportWidget.xml file
-		// ***********************************
-		var xmlhttp = createXMLhttpRequest();
-		var configFile = app + "/ResourceReportWidget.xml?v="+ndisVer;
-		xmlhttp.onerror = function(){
-			alert("Error loading "+app + "/ResourceReportWidget.xml","Data Error");
-		}
-		xmlhttp.onreadystatechange = function(){ 
-			if (xmlhttp.readyState == 4) {
-				if (xmlhttp.status == 200) {
-					//require(["dojo/dom","dijit/registry"], function(dom,registry){
-						var xmlDoc=createXMLdoc(xmlhttp);
-						if (!xmlDoc) alert("Missing "+app+"/ResourceReportWidget.xml file.", "Data Error");
-						var buffer = xmlDoc.getElementsByTagName("buffer")[0] ? xmlDoc.getElementsByTagName("buffer")[0] : showWarning("buffer tag");
-						bufferDist = buffer.getAttribute("default") ? buffer.getAttribute("default") : (25, showWarning("default attribute of the buffer tag"));
-						bufferList = buffer.getAttribute("list") ? buffer.getAttribute("list").split(",") : (["5","10","25","50","100"], showWarning("list attribute of the buffer tag"));
-						bufferUnitsLabel = buffer.getAttribute("unitslabel") ? buffer.getAttribute("unitslabel") : ("mile", showWarning("unitslabel attribute of the buffer tag"));
-						var layersTag = xmlDoc.getElementsByTagName("querylayers")[0].getElementsByTagName("layers") ? xmlDoc.getElementsByTagName("querylayers")[0].getElementsByTagName("layers") : null;
-						var reportsTag = xmlDoc.getElementsByTagName("reports")[0] && xmlDoc.getElementsByTagName("reports")[0].getElementsByTagName("report") ? xmlDoc.getElementsByTagName("reports")[0].getElementsByTagName("report") : null; 
-						mapService = xmlDoc.getElementsByTagName("reportserviceurl")[0] ? xmlDoc.getElementsByTagName("reportserviceurl")[0].firstChild.nodeValue : showWarning("reportserviceurl tag");
-						printServiceUrl = xmlDoc.getElementsByTagName("printserviceurl")[0] ? xmlDoc.getElementsByTagName("printserviceurl")[0].firstChild.nodeValue : showWarning("printserviceurl tag");
-						basemapUrl = xmlDoc.getElementsByTagName("basemapurl")[0] ? xmlDoc.getElementsByTagName("basemapurl")[0].firstChild.nodeValue : showWarning("basemapurl tag");
-						reportTitle = xmlDoc.getElementsByTagName("reporttitle")[0] ? xmlDoc.getElementsByTagName("reporttitle")[0].firstChild.nodeValue : showWarning("reporttitle tag");
-						
-						// Hunter Resource Report
-						if (xmlDoc.getElementsByTagName("pointsofinterest")[0] && xmlDoc.getElementsByTagName("contactinfo"[0]) && xmlDoc.getElementsByTagName("gameunits")[0])
-						{
-							queryLayers.pointsOfInterest = {
-								url: xmlDoc.getElementsByTagName("pointsofinterest")[0].getAttribute("url"),
-								name: xmlDoc.getElementsByTagName("pointsofinterest")[0].getAttribute("name")
-							};
-							
-							queryLayers.contactBoundaries = {
-								url: xmlDoc.getElementsByTagName("contactinfo")[0].getAttribute("url"),
-								name: xmlDoc.getElementsByTagName("contactinfo")[0].getAttribute("name")
-							};
-							queryLayers.gameBoundaries = {
-								url: xmlDoc.getElementsByTagName("gameunits")[0].getAttribute("url"),
-								name: xmlDoc.getElementsByTagName("gameunits")[0].getAttribute("name")
-							};
-						}
-						
-						// Custom Reports
-						if (layersTag)
-						{
-							// tlb read generic mapservice layers
-							for (var i=0; i<layersTag.length; i++)
-							{
-								if (!layersTag[i].getAttribute("type"))
-									alert("Missing type parameter in layer tag in "+app+"/ResourceReportWidget.xml file", "Data Error");
-								if (!layersTag[i].getAttribute("name"))
-									alert("Missing name parameter in layer tag in "+app+"/ResourceReportWidget.xml file", "Data Error");
-								if (!layersTag[i].getAttribute("url"))
-									alert("Missing url parameter in layer tag in "+app+"/ResourceReportWidget.xml file", "Data Error");
-								queryLayers.layers.push({
-									type: layersTag[i].getAttribute("type"),
-									name: layersTag[i].getAttribute("name"),
-									url:  layersTag[i].getAttribute("url")
-								});
-							}
-							
-							// tlb read custom reports
-							if (reportsTag){
-								for (i=0; i<reportsTag.length; i++)
-								{
-									var obj = {
-										id: reportsTag[i].getAttribute("id")?reportsTag[i].getAttribute("id"):showWarning("reports tag, id attribute"),
-										type: reportsTag[i].getAttribute("type")?reportsTag[i].getAttribute("type"):showWarning("reports tag, type attribute"),
-										title: reportsTag[i].getAttribute("title")?reportsTag[i].getAttribute("title"):"",
-										subtitle: reportsTag[i].getAttribute("subtitle")?reportsTag[i].getAttribute("subtitle"):showWarning("reports tag, subtitle attribute"),
-										displayfields: reportsTag[i].getAttribute("displayfields")?reportsTag[i].getAttribute("displayfields").split(","):showWarning("reports tag, displayfields attribute"),
-										fields: reportsTag[i].getAttribute("fields")?reportsTag[i].getAttribute("fields").split(","):showWarning("reports tag, fields attribute"),
-										where_field: reportsTag[i].getAttribute("where_field")?reportsTag[i].getAttribute("where_field"):"",
-										where_inequality: reportsTag[i].getAttribute("where_inequality")?reportsTag[i].getAttribute("where_inequality"):"",
-										where_value: reportsTag[i].getAttribute("where_value")?reportsTag[i].getAttribute("where_value"):"",
-										where_type: reportsTag[i].getAttribute("where_type")?reportsTag[i].getAttribute("where_type"):"",
-										sortfields: reportsTag[i].getAttribute("sortfields")?reportsTag[i].getAttribute("sortfields").split(","):reportsTag[i].getAttribute("fields").split(","),
-										keyField: reportsTag[i].getAttribute("key")?reportsTag[i].getAttribute("key"):null,
-										database: reportsTag[i].getAttribute("database")?reportsTag[i].getAttribute("database"):null,
-										filename: reportsTag[i].getAttribute("filename")?reportsTag[i].getAttribute("filename"):null,
-										one2one_fields: reportsTag[i].getAttribute("one2one_fields")?reportsTag[i].getAttribute("one2one_fields").split(","):null,
-										one2one_display: reportsTag[i].getAttribute("one2one_display")? reportsTag[i].getAttribute("one2one_display").split(","):reportsTag[i].getAttribute("one2one_fields")?reportsTag[i].getAttribute("one2one_fields").split(","):null,
-										one2many_fields: reportsTag[i].getAttribute("one2many_fields")?reportsTag[i].getAttribute("one2many_fields").split(","):null,
-										one2many_display: reportsTag[i].getAttribute("one2many_display")?reportsTag[i].getAttribute("one2many_display").split(","):reportsTag[i].getAttribute("one2many_fields")?reportsTag[i].getAttribute("one2many_fields").split(","):null
-									};
-									reports.push(obj);
-									// lookup data in database if necessary
-									if (obj.database && obj.database != "")
-									{
-										numDatabaseCalls++;
-									}
-									obj = null;
-								}
-							}
-						}
-						
-						mapTitle = xmlDoc.getElementsByTagName("title")[0] ? xmlDoc.getElementsByTagName("title")[0].firstChild.nodeValue: showWarning("title tag");
-						mapSubTitle = xmlDoc.getElementsByTagName("subtitle")[0] ? xmlDoc.getElementsByTagName("subtitle")[0].firstChild.nodeValue : showWarning("subtitle tag");
-						disclaimer = xmlDoc.getElementsByTagName("disclaimer")[0] ? xmlDoc.getElementsByTagName("disclaimer")[0].firstChild.nodeValue : showWarning("disclaimer tag");
-						setMapValues();
-					//});
-				}
-				else if (xmlhttp.status === 404) {
-					alert("File: "+app+"/ResourceReportWidget.xml not found.","Data Error");
-				}
-			}
-		}
-		xmlhttp.open("GET",configFile,true);
-		xmlhttp.send(null);
 		function showWarning(tag) {
 			// Show warning for required fields.
-			alert("WARNING: In "+app+"/ResourceReportWidget.xml file, required value missing for the "+tag+".","Data Error")
+			alert("WARNING: In "+app+"/ResourceReportWidget.xml file, required value missing for the "+tag+".","Data Error");
 		}
 		
 		function drawBuffer(){
@@ -423,6 +269,9 @@ function reportInit(){
 			reportToolbar.activate(Draw.POINT);
 		}
 		function reportPreview(){
+			// Google Analytics count how many times Resource Report is clicked on
+			ga('send', 'event', "resource_report", "click", "Resource Report", "1");
+			
 			document.getElementById("reportMsg1").innerHTML = msg;
 			document.getElementById("reportMsg2").innerHTML = msg;
 			// Enable Print/Save Report buttons
@@ -436,52 +285,6 @@ function reportInit(){
 			registry.byId("reportPreviewDialog").set("title", "Resource Report Preview ("+registry.byId("distCombo").get("value")+" "+bufferUnitsLabel+" buffer radius)");
 			registry.byId("reportPreviewDialog").show();
 		}
-
-		//***************************
-		//       PDF Functions
-		//***************************
-		// Add a function to jsPDF to align text
-		var today;
-		var theAction;
-		(function(API){
-			API.myText = function(x,y,txt,options,width){
-				options = options ||{};
-				/* Use the options align property to specify desired text alignment
-				 * Param x will be ignored if desired text alignment is 'center'.
-				 * Usage of options can easily extend the function to apply different text 
-				 * styles and sizes 
-				*/
-				// Get current font size
-				var fontSize = this.internal.getFontSize();
-				// Get page width
-				var pageWidth;
-				if (!width) pageWidth = this.internal.pageSize.width;
-				else pageWidth = width;
-
-				// Get the actual text's width
-				/* You multiply the unit width of your string by your font size and divide
-				 * by the internal scale factor. The division is necessary
-				 * for the case where you use units other than 'pt' in the constructor
-				 * of jsPDF.
-				*/
-				txtWidth = this.getStringUnitWidth(txt)*fontSize/this.internal.scaleFactor;
-				
-				if( options.align == "center" ){
-					// Calculate text's x coordinate
-					x = x +( pageWidth - txtWidth ) / 2;
-					this.text(txt,x,y);
-				}
-				else if( options.align == "right" ){
-					// Calculate text's x coordinate
-					x = x +( pageWidth - (txtWidth +3) );
-					this.text(txt,x,y);
-				}
-				else if(options.underline == true){
-					this.text(txt,x,y);
-					this.line(x,y+1,x+(txtWidth*1.15),y+1); // increase underline a little
-				}
-			}
-		})(jsPDF.API);
 		
 		function hidePreview(){
 			registry.byId("reportPreviewDialog").hide();
@@ -517,7 +320,7 @@ function reportInit(){
 				var lineHt = 14;
 				var fontsize = 12;
 				var colMarginLeft = 300;
-				var myFont = "arial"
+				var myFont = "arial";
 				doc.setProperties({
 					title: reportTitle,	
 					author: 'Colorado Parks and Wildlife',
@@ -543,7 +346,7 @@ function reportInit(){
 				y += lineHt;
 				// XY
 				doc.text(marginLeft, y, 'X/Y at map click:');
-				var dd = webMercatorUtils.webMercatorToGeographic(centerPt)
+				var dd = webMercatorUtils.webMercatorToGeographic(centerPt);
 				doc.text(colMarginLeft, y, dd.y.toFixed(5)+" N, "+-1*dd.x.toFixed(5)+" W");
 				y += lineHt;
 				
@@ -854,7 +657,7 @@ function reportInit(){
 								}
 							}
 						}
-						
+						var header;
 						// campground report
 						if (CGblm.length > 0 || CGcpw.length > 0 || CGparks.length > 0 || CGusfs.length > 0){
 							// Sort
@@ -871,7 +674,7 @@ function reportInit(){
 							doc.setFontSize(fontsize);
 							y+=lineHt*2;
 							// Campsites
-							var header=[];
+							header=[];
 							header.push({
 								displayname: "Property",
 								field: "property",
@@ -1090,9 +893,9 @@ function reportInit(){
 												// add one2one fields and values to results array
 												if (reports[resultsIndex].one2one_fields && reports[resultsIndex].one2one_fields != "") {
 													for (m=0; m<reports[resultsIndex].one2one_fields.length; m++){
-														if (newDataSet.getElementsByTagName(reports[resultsIndex].one2one_fields[m])[0]
-															&& newDataSet.getElementsByTagName(reports[resultsIndex].one2one_fields[m])[0].childNodes[0]
-															&& (newDataSet.getElementsByTagName(reports[resultsIndex].one2one_fields[m])[0].childNodes[0].nodeValue != "")) {
+														if (newDataSet.getElementsByTagName(reports[resultsIndex].one2one_fields[m])[0] &&
+															newDataSet.getElementsByTagName(reports[resultsIndex].one2one_fields[m])[0].childNodes[0] &&
+															(newDataSet.getElementsByTagName(reports[resultsIndex].one2one_fields[m])[0].childNodes[0].nodeValue != "")) {
 															results[resultsIndex].features[j].attributes[reports[resultsIndex].one2one_fields[m]] = newDataSet.getElementsByTagName(reports[resultsIndex].one2one_fields[m])[0].childNodes[0].nodeValue.toString();
 														}
 													}
@@ -1105,9 +908,9 @@ function reportInit(){
 														for (var n=0; n<newDataSet.getElementsByTagName(reports[resultsIndex].filename).length; n++){
 															var thiskey = newDataSet.getElementsByTagName(reports[resultsIndex].filename)[n];
 															// make sure it is not blank or null
-															if (thiskey.getElementsByTagName(reports[resultsIndex].one2many_fields[m])[0]
-																&& thiskey.getElementsByTagName(reports[resultsIndex].one2many_fields[m])[0].childNodes[0]
-																&& (thiskey.getElementsByTagName(reports[resultsIndex].one2many_fields[m])[0].childNodes[0].nodeValue != "")){
+															if (thiskey.getElementsByTagName(reports[resultsIndex].one2many_fields[m])[0] &&
+																thiskey.getElementsByTagName(reports[resultsIndex].one2many_fields[m])[0].childNodes[0] &&
+																(thiskey.getElementsByTagName(reports[resultsIndex].one2many_fields[m])[0].childNodes[0].nodeValue != "")){
 																manyArr.push(thiskey.getElementsByTagName(reports[resultsIndex].one2many_fields[m])[0].childNodes[0].nodeValue.toString());
 															}
 														}
@@ -1144,7 +947,7 @@ function reportInit(){
 											}
 										}
 									}
-								}}(index);
+								};}(index);
 								XMLHttpRequestObjects[index].send();
 							}
 							r++; // increment results array
@@ -1186,7 +989,7 @@ function reportInit(){
 									feature.geometry.type != "point"){
 									var obj={};
 									// Find the maximum width for each column
-									for (var j=0; j<reports[i].displayfields.length; j++){
+									for (j=0; j<reports[i].displayfields.length; j++){
 										if ((!colWidths[j] && attr[reports[i].fields[j]]) || (attr[reports[i].fields[j]] &&
 											(colWidths[j].length < attr[reports[i].fields[j]].toString().length))){
 											// If this is a bulleted list with carriage returns check length of each bullet
@@ -1213,7 +1016,7 @@ function reportInit(){
 										switch (reports[i].where_inequality){
 											case "equal":
 												if (value == whereValue){
-													for (var j=0; j<reports[i].displayfields.length; j++){
+													for (j=0; j<reports[i].displayfields.length; j++){
 														obj[reports[i].fields[j]] = attr[reports[i].fields[j]];
 													}
 													table.push(obj);
@@ -1222,7 +1025,7 @@ function reportInit(){
 												break;
 											case "not_equal":
 												if (value != whereValue){
-													for (var j=0; j<reports[i].displayfields.length; j++){
+													for (j=0; j<reports[i].displayfields.length; j++){
 														obj[reports[i].fields[j]] = attr[reports[i].fields[j]];
 													}
 													table.push(obj);
@@ -1231,7 +1034,7 @@ function reportInit(){
 												break;
 											case "less_than":
 												if (value < whereValue){
-													for (var j=0; j<reports[i].displayfields.length; j++){
+													for (j=0; j<reports[i].displayfields.length; j++){
 														obj[reports[i].fields[j]] = attr[reports[i].fields[j]];
 													}
 													table.push(obj);
@@ -1240,7 +1043,7 @@ function reportInit(){
 												break;
 											case "greater_than":
 												if (value > whereValue){
-													for (var j=0; j<reports[i].displayfields.length; j++){
+													for (j=0; j<reports[i].displayfields.length; j++){
 														obj[reports[i].fields[j]] = attr[reports[i].fields[j]];
 													}
 													table.push(obj);
@@ -1254,7 +1057,7 @@ function reportInit(){
 									}
 									// did a database lookup
 									else {
-										for (var j=0; j<reports[i].displayfields.length; j++){
+										for (j=0; j<reports[i].displayfields.length; j++){
 											obj[reports[i].fields[j]] = attr[reports[i].fields[j]];
 										}
 										table.push(obj);
@@ -1267,7 +1070,7 @@ function reportInit(){
 							// Adjust column widths. colWidths[j] holds the longest text from all rows.
 							var totalWidth=0; // width of all columns
 							var maxColWidth=200; // in points
-							for (var j=0; j<colWidths.length; j++){
+							for (j=0; j<colWidths.length; j++){
 								// convert text length to distance in points
 								colWidths[j] = 10+Math.round(doc.getStringUnitWidth(colWidths[j])*fontsize/doc.internal.scaleFactor);
 								if (colWidths[j] > maxColWidth) colWidths[j]=maxColWidth;
@@ -1289,7 +1092,7 @@ function reportInit(){
 								var dec = pageWidth-totalWidth; // decrement amount
 								for (j=0; j<colWidths.length; j++){
 									colWidths[j] += Math.round(colWidths[j]/totalWidth * dec);
-									newTotal += colWidths[j]
+									newTotal += colWidths[j];
 								}
 								// Adjust any rounding errors by adding to first column
 								if (newTotal != pageWidth) colWidths[0] += pageWidth - newTotal;
@@ -1326,30 +1129,31 @@ function reportInit(){
 					// draw a table, check for new page
 					// arr is and array of data
 					// header is and array of the header fields
-					try{
-						function printHeader(){
-							// title
-							doc.setFont(myFont,"bold");
-							doc.setFontSize(fontsize);
-							doc.myText(marginLeft, y, title, {underline: true});
-							// header - grey outlined box with text
-							y += 5;
-							doc.setFillColor(204,204,204); // CCCCCC
-							doc.setDrawColor(0);
-							doc.rect(marginLeft,y,pageWidth,rowHt,'FD'); // Fill and outline rectangle
-							var x = marginLeft+4;
-							doc.setFont(myFont,"normal");
-							y += lineHt;
-							// add vertical lines between header column names
-							for (var i=0; i<header.length; i++) {
-								if(header[i].displayname)
-									doc.text(x,y,header[i].displayname);
-								x += header[i].width;
-								if (i<header.length-1)
-									doc.line(x-4,y-lineHt,x-4,y+6);
-							}
-							y+=rowHt;
+					function printHeader(){
+						// title
+						doc.setFont(myFont,"bold");
+						doc.setFontSize(fontsize);
+						doc.myText(marginLeft, y, title, {underline: true});
+						// header - grey outlined box with text
+						y += 5;
+						doc.setFillColor(204,204,204); // CCCCCC
+						doc.setDrawColor(0);
+						doc.rect(marginLeft,y,pageWidth,rowHt,'FD'); // Fill and outline rectangle
+						var x = marginLeft+4;
+						doc.setFont(myFont,"normal");
+						y += lineHt;
+						// add vertical lines between header column names
+						for (var i=0; i<header.length; i++) {
+							if(header[i].displayname)
+								doc.text(x,y,header[i].displayname);
+							x += header[i].width;
+							if (i<header.length-1)
+								doc.line(x-4,y-lineHt,x-4,y+6);
 						}
+						y+=rowHt;
+					}
+					try{
+						var i,j;
 						if (arr.length == 0) return;
 						var rowHt = 20;
 						
@@ -1359,10 +1163,10 @@ function reportInit(){
 						rowWidth[0] = marginLeft;
 	
 						// count lines needed for each row, and starting x of each column
-						for (var i=0; i<arr.length; i++) {
+						for (i=0; i<arr.length; i++) {
 							row[i] = []; // init each row to contain an array for the columns.
 							lines[i] = 1;
-							for (var j=0; j<header.length; j++){
+							for (j=0; j<header.length; j++){
 								if (arr[i][header[j].field]){
 									// wrap text
 									if (arr[i][header[j].field] != "") {
@@ -1445,6 +1249,123 @@ function reportInit(){
 				}
 				
 				function addMap() {
+					function printResult(result){
+						function savePDF(){
+							// download pdf
+							// doc.save("filename") does not work with Foxit Reader (for Mac)
+							var data = doc.output();
+							var buffer = new ArrayBuffer(data.length);
+							var array = new Uint8Array(buffer);
+							for (var i = 0; i < data.length; i++) {
+								array[i] = data.charCodeAt(i);
+							}
+							var blob = new Blob(
+								[array],
+								{type: 'application/pdf', encoding: 'raw'}
+							);
+							saveAs(blob, "AtlasReport.pdf");
+							blob = null;
+							buffer=null;
+							array=null;
+							data=null;
+							// Enable Print/Save Report buttons
+							registry.byId("openReportBtn1").set('disabled',false);
+							registry.byId("saveReportBtn1").set('disabled',false);
+							registry.byId("openReportBtn2").set('disabled',false);
+							registry.byId("saveReportBtn2").set('disabled',false);
+						}
+						function openPDF(){
+							// Does not work in IE Cannot open base64 even in an iframe.
+							var string = doc.output('datauristring');
+							var iframe = "<iframe width='100%' height='100%' referrerPolicy='origin' src='" + string + "'></iframe>";
+							var win = window.open();
+							if (!win) {
+								alert("Failed to open PDF. Make sure popups are allowed.","Warning");
+								// Enable Print/Save Report buttons
+								registry.byId("openReportBtn1").set('disabled',false);
+								registry.byId("saveReportBtn1").set('disabled',false);
+								registry.byId("openReportBtn2").set('disabled',false);
+								registry.byId("saveReportBtn2").set('disabled',false);
+								document.getElementById("reportMsg1").innerHTML = "";
+								document.getElementById("reportMsg2").innerHTML = "";	
+								return;
+							}
+							win.document.open();
+							win.document.write(iframe);
+							win.document.title = "Atlas Report";
+							win.document.close();
+							
+							// Enable Print/Save Report buttons
+							registry.byId("openReportBtn1").set('disabled',false);
+							registry.byId("saveReportBtn1").set('disabled',false);
+							registry.byId("openReportBtn2").set('disabled',false);
+							registry.byId("saveReportBtn2").set('disabled',false);
+							document.getElementById("reportMsg1").innerHTML = "";
+							document.getElementById("reportMsg2").innerHTML = "";							
+						}
+						
+						var img = new Image();
+						img.onerror = function(){
+							document.getElementById("reportMsg1").innerHTML = msg;
+							document.getElementById("reportMsg2").innerHTML = msg;
+							alert("Resource report cannot load image: "+img.src,"Code Error");
+							img=null;
+							// Enable Print/Save Report buttons
+							registry.byId("openReportBtn1").set('disabled',false);
+							registry.byId("saveReportBtn1").set('disabled',false);
+							registry.byId("openReportBtn2").set('disabled',false);
+							registry.byId("saveReportBtn2").set('disabled',false);
+						};
+						img.onload = function()	{
+							// Add map image and surrounding text
+							try{
+								doc.addImage(img, 'JPEG', 0, 0, 792, 612);// in points width=11 inches * 72, height=8.5*72     mapWidthPts, mapHeightPts
+								img=null;
+								mapFooter();
+
+								// Save PDF - download
+								if (theAction == "save") {
+									savePDF();
+									document.getElementById("reportMsg1").innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Downloaded PDF";
+									document.getElementById("reportMsg2").innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Downloaded PDF";
+
+								}
+								// Display PDF
+								else {
+									if (navigator.sayswho.indexOf("IE")>-1 | navigator.sayswho.indexOf("Edge")>-1) {
+										savePDF();
+										document.getElementById("reportMsg1").innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Download or Open PDF in pop-up. Make sure pop-ups are enabled.";
+										document.getElementById("reportMsg2").innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Download or Open PDF in pop-up. Make sure pop-ups are enabled.";
+									}
+									else {
+										openPDF();
+										document.getElementById("reportMsg1").innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Opening PDF in pop-up. Make sure pop-ups are enabled.";
+										document.getElementById("reportMsg2").innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Opening PDF in pop-up. Make sure pop-ups are enabled.";
+									}
+								}
+							}
+							catch(e){
+								document.getElementById("reportMsg1").innerHTML = msg;
+								document.getElementById("reportMsg2").innerHTML = msg;
+								alert("Resource report generation Error in javascript/resourceReport.js printResult() img.onload. "+e.message,"Code Error",e);
+							}
+						};
+						
+						// For debugging
+						img.src = result.url; //fails on ndis-flex-2 because it is not local gets security error
+						if (window.location.hostname.indexOf("ndis-flex-2") > -1){
+							img.src = "assets/images/testmap.jpg";
+							alert("The image in the pdf is a placeholder. <a href='"+result.url+"' target='pdf_image'>Here is a link to the true image.</a>","Note for Test Site");
+						}
+					}
+					function printError(err){
+						document.getElementById("reportMsg1").innerHTML = msg;
+						document.getElementById("reportMsg2").innerHTML = msg;
+						if (err.details)
+							alert("Error creating resource report map: "+err+" Details: "+err.details,"Code Error",err);
+						else
+							alert("Error printing resource report: "+err,"Code Error",err);
+					}
 					try{
 						// Add Map
 						document.getElementById("reportMsg1").innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src='assets/images/loading.gif' width='20px' height='20px'/> Generating map image for report";
@@ -1469,134 +1390,216 @@ function reportInit(){
 						};	
 						
 						params.map = reportMap;
-						params.template = template;
-						
-						function printResult(result){
-							function savePDF(){
-								// download pdf
-								// doc.save("filename") does not work with Foxit Reader (for Mac)
-								var data = doc.output();
-								var buffer = new ArrayBuffer(data.length);
-								var array = new Uint8Array(buffer);
-								for (var i = 0; i < data.length; i++) {
-									array[i] = data.charCodeAt(i);
-								}
-								var blob = new Blob(
-									[array],
-									{type: 'application/pdf', encoding: 'raw'}
-								);
-								saveAs(blob, "AtlasReport.pdf");
-								blob = null;
-								buffer=null;
-								array=null;
-								data=null;
-								// Enable Print/Save Report buttons
-								registry.byId("openReportBtn1").set('disabled',false);
-								registry.byId("saveReportBtn1").set('disabled',false);
-								registry.byId("openReportBtn2").set('disabled',false);
-								registry.byId("saveReportBtn2").set('disabled',false);
-							}
-							function openPDF(){
-								// Does not work in IE Cannot open base64 even in an iframe.
-								var string = doc.output('datauristring');
-								var iframe = "<iframe width='100%' height='100%' referrerPolicy='origin' src='" + string + "'></iframe>"
-								var win = window.open();
-								if (!win) {
-									alert("Failed to open PDF. Make sure popups are allowed.","Warning");
-									// Enable Print/Save Report buttons
-									registry.byId("openReportBtn1").set('disabled',false);
-									registry.byId("saveReportBtn1").set('disabled',false);
-									registry.byId("openReportBtn2").set('disabled',false);
-									registry.byId("saveReportBtn2").set('disabled',false);
-									document.getElementById("reportMsg1").innerHTML = "";
-									document.getElementById("reportMsg2").innerHTML = "";	
-									return;
-								}
-								win.document.open();
-								win.document.write(iframe);
-								win.document.title = "Atlas Report";
-								win.document.close();
-								
-								// Enable Print/Save Report buttons
-								registry.byId("openReportBtn1").set('disabled',false);
-								registry.byId("saveReportBtn1").set('disabled',false);
-								registry.byId("openReportBtn2").set('disabled',false);
-								registry.byId("saveReportBtn2").set('disabled',false);
-								document.getElementById("reportMsg1").innerHTML = "";
-								document.getElementById("reportMsg2").innerHTML = "";							
-							}
-							
-							var img = new Image();
-							img.onerror = function(){
-								document.getElementById("reportMsg1").innerHTML = msg;
-								document.getElementById("reportMsg2").innerHTML = msg;
-								alert("Resource report cannot load image: "+img.src,"Code Error");
-								img=null;
-								// Enable Print/Save Report buttons
-								registry.byId("openReportBtn1").set('disabled',false);
-								registry.byId("saveReportBtn1").set('disabled',false);
-								registry.byId("openReportBtn2").set('disabled',false);
-								registry.byId("saveReportBtn2").set('disabled',false);
-							}
-							img.onload = function()
-							{
-								// Add map image and surrounding text
-								try{
-									doc.addImage(img, 'JPEG', 0, 0, 792, 612);// in points width=11 inches * 72, height=8.5*72     mapWidthPts, mapHeightPts
-									img=null;
-									mapFooter();
-
-									// Save PDF - download
-									if (theAction == "save") {
-										savePDF();
-										document.getElementById("reportMsg1").innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Downloaded PDF";
-										document.getElementById("reportMsg2").innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Downloaded PDF";
-
-									}
-									// Display PDF
-									else {
-										if (navigator.sayswho.indexOf("IE")>-1 | navigator.sayswho.indexOf("Edge")>-1) {
-											savePDF();
-											document.getElementById("reportMsg1").innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Download or Open PDF in pop-up. Make sure pop-ups are enabled.";
-											document.getElementById("reportMsg2").innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Download or Open PDF in pop-up. Make sure pop-ups are enabled.";
-										}
-										else {
-											openPDF();
-											document.getElementById("reportMsg1").innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Opening PDF in pop-up. Make sure pop-ups are enabled.";
-											document.getElementById("reportMsg2").innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Opening PDF in pop-up. Make sure pop-ups are enabled.";
-										}
-									}
-								}
-								catch(e){
-									document.getElementById("reportMsg1").innerHTML = msg;
-									document.getElementById("reportMsg2").innerHTML = msg;
-									alert("Resource report generation Error in javascript/resourceReport.js printResult() img.onload. "+e.message,"Code Error",e);
-								}
-							}
-							
-							// For debugging
-							img.src = result.url; //fails on ndis-flex-2 because it is not local gets security error
-							if (window.location.hostname.indexOf("ndis-flex-2") > -1){
-								img.src = "assets/images/testmap.jpg";
-								alert("The image in the pdf is a placeholder. <a href='"+result.url+"' target='pdf_image'>Here is a link to the true image.</a>","Note for Test Site");
-							}
-						};
-						function printError(err){
-							document.getElementById("reportMsg1").innerHTML = msg;
-							document.getElementById("reportMsg2").innerHTML = msg;
-							if (err.details)
-								alert("Error creating resource report map: "+err+" Details: "+err.details,"Code Error",err);
-							else
-								alert("Error printing resource report: "+err,"Code Error",err);
-						}
+						params.template = template;				
 						printTask.execute(params, printResult, printError);
 					}
 					catch(e){
 						alert("Error creating map for resource report. "+e.message,"Code Error",e);
 					}
 				}
-			}
+			};
 		}
+
+		try{
+			var bufferDist;
+			var bufferList;
+			var bufferUnitsLabel;
+			var queryLayers = {
+				pointsOfInterest: null,
+				contactBoundaries: null,
+				gameBoundaries: null,
+				layers: []
+			};
+			var reports = [];
+			var numDatabaseCalls = 0;
+			var processedDatabaseCalls;
+			var queriesPending = 0;
+			var mapService;
+			var basemapUrl;
+			var reportToolbar;
+			var centerPt=null;
+			var reportTitle;
+			var mapTitle;
+			var mapSubTitle;
+			var disclaimer;
+			var circle;
+			var marginLeft = 18; // .25 inches
+			var marginTop = 18;
+			var lineHt = 14;
+			var dpi = 300;
+			var pageWidth = 792 - (2*marginLeft); // 11 inches * 72 - margins
+			var pageHeight = 612 - (marginTop); // height of page (8.5*72) - bottom margin
+			var mapWidthPxs;
+			var mapHeightPxs;
+			//var mapWidthPts;
+			//var mapHeightPts;
+			var doc = new jsPDF("landscape","pt","letter");
+			var printServiceUrl;
+			var	reportMap;
+			var msg = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Adjust map boundaries. Click Open/Save Report when ready.";
+			var reportPreviewGraphicsLayer;
+			var reportGraphicsLayer = new GraphicsLayer();
+			reportGraphicsLayer.id = "reportGraphicsLayer1";
+			map.addLayer(reportGraphicsLayer);
+		
+		// ***********************************
+		// Read ResourceReportWidget.xml file
+		// ***********************************
+		var xmlhttp = createXMLhttpRequest();
+		var configFile = app + "/ResourceReportWidget.xml?v="+ndisVer;
+		xmlhttp.onerror = function(){
+			alert("Error loading "+app + "/ResourceReportWidget.xml","Data Error");
+		};
+		xmlhttp.onreadystatechange = function(){ 
+			if (xmlhttp.readyState == 4) {
+				if (xmlhttp.status == 200) {
+					//require(["dojo/dom","dijit/registry"], function(dom,registry){
+						var xmlDoc=createXMLdoc(xmlhttp);
+						if (!xmlDoc) alert("Missing "+app+"/ResourceReportWidget.xml file.", "Data Error");
+						var buffer = xmlDoc.getElementsByTagName("buffer")[0] ? xmlDoc.getElementsByTagName("buffer")[0] : showWarning("buffer tag");
+						bufferDist = buffer.getAttribute("default") ? buffer.getAttribute("default") : (25, showWarning("default attribute of the buffer tag"));
+						bufferList = buffer.getAttribute("list") ? buffer.getAttribute("list").split(",") : (["5","10","25","50","100"], showWarning("list attribute of the buffer tag"));
+						bufferUnitsLabel = buffer.getAttribute("unitslabel") ? buffer.getAttribute("unitslabel") : ("mile", showWarning("unitslabel attribute of the buffer tag"));
+						var layersTag = xmlDoc.getElementsByTagName("querylayers")[0].getElementsByTagName("layers") ? xmlDoc.getElementsByTagName("querylayers")[0].getElementsByTagName("layers") : null;
+						var reportsTag = xmlDoc.getElementsByTagName("reports")[0] && xmlDoc.getElementsByTagName("reports")[0].getElementsByTagName("report") ? xmlDoc.getElementsByTagName("reports")[0].getElementsByTagName("report") : null; 
+						mapService = xmlDoc.getElementsByTagName("reportserviceurl")[0] ? xmlDoc.getElementsByTagName("reportserviceurl")[0].firstChild.nodeValue : showWarning("reportserviceurl tag");
+						printServiceUrl = xmlDoc.getElementsByTagName("printserviceurl")[0] ? xmlDoc.getElementsByTagName("printserviceurl")[0].firstChild.nodeValue : showWarning("printserviceurl tag");
+						basemapUrl = xmlDoc.getElementsByTagName("basemapurl")[0] ? xmlDoc.getElementsByTagName("basemapurl")[0].firstChild.nodeValue : showWarning("basemapurl tag");
+						reportTitle = xmlDoc.getElementsByTagName("reporttitle")[0] ? xmlDoc.getElementsByTagName("reporttitle")[0].firstChild.nodeValue : showWarning("reporttitle tag");
+						
+						// Hunter Resource Report
+						if (xmlDoc.getElementsByTagName("pointsofinterest")[0] && xmlDoc.getElementsByTagName("contactinfo"[0]) && xmlDoc.getElementsByTagName("gameunits")[0])
+						{
+							queryLayers.pointsOfInterest = {
+								url: xmlDoc.getElementsByTagName("pointsofinterest")[0].getAttribute("url"),
+								name: xmlDoc.getElementsByTagName("pointsofinterest")[0].getAttribute("name")
+							};
+							
+							queryLayers.contactBoundaries = {
+								url: xmlDoc.getElementsByTagName("contactinfo")[0].getAttribute("url"),
+								name: xmlDoc.getElementsByTagName("contactinfo")[0].getAttribute("name")
+							};
+							queryLayers.gameBoundaries = {
+								url: xmlDoc.getElementsByTagName("gameunits")[0].getAttribute("url"),
+								name: xmlDoc.getElementsByTagName("gameunits")[0].getAttribute("name")
+							};
+						}
+						
+						// Custom Reports
+						if (layersTag)
+						{
+							// tlb read generic mapservice layers
+							for (var i=0; i<layersTag.length; i++)
+							{
+								if (!layersTag[i].getAttribute("type"))
+									alert("Missing type parameter in layer tag in "+app+"/ResourceReportWidget.xml file", "Data Error");
+								if (!layersTag[i].getAttribute("name"))
+									alert("Missing name parameter in layer tag in "+app+"/ResourceReportWidget.xml file", "Data Error");
+								if (!layersTag[i].getAttribute("url"))
+									alert("Missing url parameter in layer tag in "+app+"/ResourceReportWidget.xml file", "Data Error");
+								queryLayers.layers.push({
+									type: layersTag[i].getAttribute("type"),
+									name: layersTag[i].getAttribute("name"),
+									url:  layersTag[i].getAttribute("url")
+								});
+							}
+							
+							// tlb read custom reports
+							if (reportsTag){
+								for (i=0; i<reportsTag.length; i++)
+								{
+									var obj = {
+										id: reportsTag[i].getAttribute("id")?reportsTag[i].getAttribute("id"):showWarning("reports tag, id attribute"),
+										type: reportsTag[i].getAttribute("type")?reportsTag[i].getAttribute("type"):showWarning("reports tag, type attribute"),
+										title: reportsTag[i].getAttribute("title")?reportsTag[i].getAttribute("title"):"",
+										subtitle: reportsTag[i].getAttribute("subtitle")?reportsTag[i].getAttribute("subtitle"):showWarning("reports tag, subtitle attribute"),
+										displayfields: reportsTag[i].getAttribute("displayfields")?reportsTag[i].getAttribute("displayfields").split(","):showWarning("reports tag, displayfields attribute"),
+										fields: reportsTag[i].getAttribute("fields")?reportsTag[i].getAttribute("fields").split(","):showWarning("reports tag, fields attribute"),
+										where_field: reportsTag[i].getAttribute("where_field")?reportsTag[i].getAttribute("where_field"):"",
+										where_inequality: reportsTag[i].getAttribute("where_inequality")?reportsTag[i].getAttribute("where_inequality"):"",
+										where_value: reportsTag[i].getAttribute("where_value")?reportsTag[i].getAttribute("where_value"):"",
+										where_type: reportsTag[i].getAttribute("where_type")?reportsTag[i].getAttribute("where_type"):"",
+										sortfields: reportsTag[i].getAttribute("sortfields")?reportsTag[i].getAttribute("sortfields").split(","):reportsTag[i].getAttribute("fields").split(","),
+										keyField: reportsTag[i].getAttribute("key")?reportsTag[i].getAttribute("key"):null,
+										database: reportsTag[i].getAttribute("database")?reportsTag[i].getAttribute("database"):null,
+										filename: reportsTag[i].getAttribute("filename")?reportsTag[i].getAttribute("filename"):null,
+										one2one_fields: reportsTag[i].getAttribute("one2one_fields")?reportsTag[i].getAttribute("one2one_fields").split(","):null,
+										one2one_display: reportsTag[i].getAttribute("one2one_display")? reportsTag[i].getAttribute("one2one_display").split(","):reportsTag[i].getAttribute("one2one_fields")?reportsTag[i].getAttribute("one2one_fields").split(","):null,
+										one2many_fields: reportsTag[i].getAttribute("one2many_fields")?reportsTag[i].getAttribute("one2many_fields").split(","):null,
+										one2many_display: reportsTag[i].getAttribute("one2many_display")?reportsTag[i].getAttribute("one2many_display").split(","):reportsTag[i].getAttribute("one2many_fields")?reportsTag[i].getAttribute("one2many_fields").split(","):null
+									};
+									reports.push(obj);
+									// lookup data in database if necessary
+									if (obj.database && obj.database != "")
+									{
+										numDatabaseCalls++;
+									}
+									obj = null;
+								}
+							}
+						}
+						
+						mapTitle = xmlDoc.getElementsByTagName("title")[0] ? xmlDoc.getElementsByTagName("title")[0].firstChild.nodeValue: showWarning("title tag");
+						mapSubTitle = xmlDoc.getElementsByTagName("subtitle")[0] ? xmlDoc.getElementsByTagName("subtitle")[0].firstChild.nodeValue : showWarning("subtitle tag");
+						disclaimer = xmlDoc.getElementsByTagName("disclaimer")[0] ? xmlDoc.getElementsByTagName("disclaimer")[0].firstChild.nodeValue : showWarning("disclaimer tag");
+						setMapValues();
+					//});
+				}
+				else if (xmlhttp.status === 404) {
+					alert("File: "+app+"/ResourceReportWidget.xml not found.","Data Error");
+				}
+			}
+		};
+		xmlhttp.open("GET",configFile,true);
+		xmlhttp.send(null);
+		
+
+		//***************************
+		//       PDF Functions
+		//***************************
+		// Add a function to jsPDF to align text
+		var today;
+		var theAction;
+		(function(API){
+			API.myText = function(x,y,txt,options,width){
+				options = options ||{};
+				/* Use the options align property to specify desired text alignment
+				 * Param x will be ignored if desired text alignment is 'center'.
+				 * Usage of options can easily extend the function to apply different text 
+				 * styles and sizes 
+				*/
+				// Get current font size
+				var fontSize = this.internal.getFontSize();
+				// Get page width
+				var pageWidth;
+				if (!width) pageWidth = this.internal.pageSize.width;
+				else pageWidth = width;
+
+				// Get the actual text's width
+				/* You multiply the unit width of your string by your font size and divide
+				 * by the internal scale factor. The division is necessary
+				 * for the case where you use units other than 'pt' in the constructor
+				 * of jsPDF.
+				*/
+				txtWidth = this.getStringUnitWidth(txt)*fontSize/this.internal.scaleFactor;
+				
+				if( options.align == "center" ){
+					// Calculate text's x coordinate
+					x = x +( pageWidth - txtWidth ) / 2;
+					this.text(txt,x,y);
+				}
+				else if( options.align == "right" ){
+					// Calculate text's x coordinate
+					x = x +( pageWidth - (txtWidth +3) );
+					this.text(txt,x,y);
+				}
+				else if(options.underline == true){
+					this.text(txt,x,y);
+					this.line(x,y+1,x+(txtWidth*1.15),y+1); // increase underline a little
+				}
+			};
+		})(jsPDF.API);
+		
 	  }
 	  
 	  catch(e){

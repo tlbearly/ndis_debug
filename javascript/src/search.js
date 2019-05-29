@@ -17,7 +17,6 @@ function searchInit() {
 					"esri/symbols/SimpleFillSymbol","dojo/_base/declare","dgrid/OnDemandGrid","dgrid/extensions/DijitRegistry","dojo/domReady!"
 					], function(dom,registry,lang,mouse,Color,Memory, ComboBox, Select, Draw, esriRequest, Query, QueryTask, Graphic, GraphicsLayer,
 					urlUtils, Point, PictureMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, declare, OnDemandGrid,DijitRegistry){
-				  try {
 					function searchDrawEnd(event){
 						// Called when user click/drags on the map to select features
 						document.getElementById("searchMsg").innerHTML="Loading...";
@@ -35,238 +34,13 @@ function searchInit() {
 						var geom = event.geometry;
 						queryFeaturesGraphical(geom);
 					}
-					searchtoolbar = new Draw(map, {showTooltips:true});
-					searchtoolbar.on("draw-end", searchDrawEnd);//lang.hitch(map, searchDrawEnd));
-					var graphicAC; // hold the points and extents that match search
-					var tabHeight = "300px";
-					var tabWithGridHeight = "510px";
-					var displayNames;
-					var queryLayer;
-					var queryFields;
-					var queryTitleField;
-					var queryLinkField;
-					var queryLinkText;
-					var widgetIcon = "assets/images/i_pin.png";
-					var graphicsLayer=new GraphicsLayer();
-					var graphicsHLLayer=new GraphicsLayer();
-					var graphicPointSym = new PictureMarkerSymbol(widgetIcon, 30, 30);		
-					graphicsLayer.symbol = graphicPointSym;
-					map.addLayer(graphicsLayer);
-					var graphicPointHLSym = new PictureMarkerSymbol(widgetIcon, 40, 40);
-					graphicsHLLayer.symbol = graphicPointHLSym;
-					var graphicLineSym = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,0,0,0.8]), 2);
-					var graphicPolySym = new SimpleFillSymbol(SimpleLineSymbol.STYLE_SOLID, graphicLineSym, new Color([255,0,0,0.1]));
-					var graphicLineHLSym = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,255,0,0.8]), 2);
-					var graphicPolyHLSym = new SimpleFillSymbol(SimpleLineSymbol.STYLE_SOLID, graphicLineSym, new Color([255,255,0,0.5]));
-					map.addLayer(graphicsHLLayer);
-					var recAC;
-					var layers = xmlDoc.getElementsByTagName("layer");
-					var searchObj = [];
-					var data = [];
-					var fsGrid;
-					var featureStore = new Memory({
-						data: []
-					});
-					var graphicFeatureStore = new Memory({
-						data: []
-					});
-					
-					// Read selected tab on startup
-					var tabToSelect;
-					if (xmlDoc.getElementsByTagName("selectedtab")[0].childNodes[0].nodeValue == "0") tabToSelect = "text_Pane";
-					else tabToSelect = "graphic_Pane";
-					// Read zoom scale for points
-					var zoomScale = 72224;
-					if (xmlDoc.getElementsByTagName("zoomscale")[0] && xmlDoc.getElementsByTagName("zoomscale")[0].childNodes[0].nodeValue)
-						zoomScale = xmlDoc.getElementsByTagName("zoomscale")[0].childNodes[0].nodeValue;
-					// Read SearchWidget.xml file into searchObj
-					for(var i=0; i<layers.length; i++){
-						var n = "unknown";
-						if (layers[i].getElementsByTagName("name")[0] && layers[i].getElementsByTagName("name")[0].childNodes[0].nodeValue)
-							n = layers[i].getElementsByTagName("name")[0].childNodes[0].nodeValue;
-						else {
-							showWarning("name");
-						}
-						searchObj[n] = {
-							name: n,
-							url: layers[i].getElementsByTagName("url")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("url")[0].childNodes[0].nodeValue : showWarning("url"),
-							expression: layers[i].getElementsByTagName("expression")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("expression")[0].childNodes[0].nodeValue : showWarning("expression"),
-							graphicalexpression: layers[i].getElementsByTagName("graphicalexpression")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("graphicalexpression")[0].childNodes[0].nodeValue : null,
-							// for autocomplete
-							searchfield: layers[i].getElementsByTagName("searchfield")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("searchfield")[0].childNodes[0].nodeValue : showWarning("searchfield"),
-							textsearchlabel: layers[i].getElementsByTagName("textsearchlabel")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("textsearchlabel")[0].childNodes[0].nodeValue: showWarning("textsearchlabel"),
-							graphicalsearchlabel: layers[i].getElementsByTagName("graphicalsearchlabel")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("graphicalsearchlabel")[0].childNodes[0].nodeValue : showWarning("graphicalsearchlabel"),
-							fields: layers[i].getElementsByTagName("fields")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("fields")[0].childNodes[0].nodeValue : showWarning("fields"),
-							displayfields: layers[i].getElementsByTagName("displayfields")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("displayfields")[0].childNodes[0].nodeValue : showWarning("displayfields"),
-							sortfield: layers[i].getElementsByTagName("sortfield")[0] && layers[i].getElementsByTagName("sortfield")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("sortfield")[0].childNodes[0].nodeValue : "none",
-							numericsort: layers[i].getElementsByTagName("numericsort")[0] && layers[i].getElementsByTagName("numericsort")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("numericsort")[0].childNodes[0].nodeValue : "false",
-							titlefield: layers[i].getElementsByTagName("titlefield")[0] && layers[i].getElementsByTagName("titlefield")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("titlefield")[0].childNodes[0].nodeValue : showWarning("titlefield"),
-							linkfield: layers[i].getElementsByTagName("linkfield")[0] && layers[i].getElementsByTagName("linkfield")[0].childNodes[0] ? 
-								layers[i].getElementsByTagName("linkfield")[0].childNodes[0].nodeValue : "",
-							linktext: layers[i].getElementsByTagName("linktext")[0] && layers[i].getElementsByTagName("linktext")[0].childNodes[0] ? 
-								layers[i].getElementsByTagName("linktext")[0].childNodes[0].nodeValue : "unknown link",
-							 // Populate Search For: values from a comma delimited string
-							searchvalues: layers[i].getElementsByTagName("searchvalues")[0] && layers[i].getElementsByTagName("searchvalues")[0].childNodes[0] ? 
-								layers[i].getElementsByTagName("searchvalues")[0].childNodes[0].nodeValue : "",
-							// Popuplate Search For: values by looking it up in a database
-							lookupsearchvalues: layers[i].getElementsByTagName("lookupsearchvalues")[0] && layers[i].getElementsByTagName("lookupsearchvalues")[0].childNodes[0] ? 
-								layers[i].getElementsByTagName("lookupsearchvalues")[0].childNodes[0].nodeValue : "",
-							// the database table to lookup valuse for drop down list
-							lookupfilename: layers[i].getElementsByTagName("lookupsearchvalues")[0] && layers[i].getElementsByTagName("lookupsearchvalues")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("lookupfilename")[0].childNodes[0] ? 
-								layers[i].getElementsByTagName("lookupfilename")[0].childNodes[0].nodeValue : showWarning("lookupfilename") : null,
-							// the field in the above database table to use
-							lookupfield: layers[i].getElementsByTagName("lookupsearchvalues")[0] && layers[i].getElementsByTagName("lookupsearchvalues")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("lookupfield")[0].childNodes[0] ? 
-								layers[i].getElementsByTagName("lookupfield")[0].childNodes[0].nodeValue : showWarning("lookupfield") : null,
-							// add optional database parameters
-							// take user selected Search For value and call this aspx file to lookup in a database
-							database: layers[i].getElementsByTagName("database")[0] && layers[i].getElementsByTagName("database")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("database")[0].childNodes[0].nodeValue : null,
-							// the name of the table in the database
-							filename: layers[i].getElementsByTagName("database")[0] && layers[i].getElementsByTagName("database")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("filename")[0].childNodes[0] ? 
-								layers[i].getElementsByTagName("filename")[0].childNodes[0].nodeValue : showWarning("filename") : null,
-							// the field that links the database to the mapservice
-							database_field: layers[i].getElementsByTagName("database")[0] && layers[i].getElementsByTagName("database")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("database_field")[0].childNodes[0] ? 
-								layers[i].getElementsByTagName("database_field")[0].childNodes[0].nodeValue : showWarning("database_field") : null,
-							// string or number for above field
-							database_field_type: layers[i].getElementsByTagName("database")[0] && layers[i].getElementsByTagName("database")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("database_field_type")[0].childNodes[0] ? 
-								layers[i].getElementsByTagName("database_field_type")[0].childNodes[0].nodeValue : showWarning("database_field_type") : null,
-							// url to .net file (aspx) to lookup in a database
-							graphical_database: layers[i].getElementsByTagName("database")[0] && layers[i].getElementsByTagName("database")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("graphical_database")[0].childNodes[0] ? 
-								layers[i].getElementsByTagName("graphical_database")[0].childNodes[0].nodeValue : null : null,
-							// name of the table in the graphical database file
-							graphical_filename: layers[i].getElementsByTagName("graphical_database")[0] && layers[i].getElementsByTagName("graphical_database")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("graphical_filename")[0].childNodes[0] ? 
-								layers[i].getElementsByTagName("graphical_filename")[0].childNodes[0].nodeValue : showWarning("graphical_filename") : null,
-							// field to display from the database on graphical search
-							graphical_db_fields: layers[i].getElementsByTagName("graphical_database")[0] && layers[i].getElementsByTagName("graphical_database")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("graphical_db_fields")[0].childNodes[0] ? 
-								layers[i].getElementsByTagName("graphical_db_fields")[0].childNodes[0].nodeValue : showWarning("graphical_db_fields") : null,
-							// the header for the above field in the table
-							graphical_db_displayfields: layers[i].getElementsByTagName("graphical_database")[0] && layers[i].getElementsByTagName("graphical_database")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("graphical_db_displayfields")[0].childNodes[0] ? 
-								layers[i].getElementsByTagName("graphical_db_displayfields")[0].childNodes[0].nodeValue : showWarning("graphical_db_displayfields") : null,
-							// comma delimited yes or no for it the graphical field should be sorted in alphabetical order
-							graphical_db_sort: layers[i].getElementsByTagName("graphical_database")[0] && layers[i].getElementsByTagName("graphical_database")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("graphical_db_sort")[0].childNodes[0] ? 
-								layers[i].getElementsByTagName("graphical_db_sort")[0].childNodes[0].nodeValue : showWarning("graphical_db_sort") : null
-						};
-						function showWarning(tag) {
-						// Show warning for required fields.
-							var layerName = layers[i].getElementsByTagName("name")[0] && layers[i].getElementsByTagName("name")[0].childNodes[0] ?
-								layers[i].getElementsByTagName("name")[0].childNodes[0].nodeValue : "undefined";
-							alert("WARNING: In SearchWidget.xml file required value missing for tag: "+tag+", in layer: "+layerName+".","Data Error");
-							document.getElementById("searchLoadingImg").style.display="none";
-						}
-
-						// add options to select element
-						featureStore.data.push({name:searchObj[n].name, id:i});
-						if (searchObj[n].name.toLowerCase() == "fish species")
-							graphicFeatureStore.data.push({name:fishSpeciesGraphicalName, id:i});
-						else
-							graphicFeatureStore.data.push({name:searchObj[n].name, id:i});
+					function showWarning(tag) {
+					// Show warning for required fields.
+						var layerName = layers[i].getElementsByTagName("name")[0] && layers[i].getElementsByTagName("name")[0].childNodes[0] ?
+							layers[i].getElementsByTagName("name")[0].childNodes[0].nodeValue : "undefined";
+						alert("WARNING: In SearchWidget.xml file required value missing for tag: "+tag+", in layer: "+layerName+".","Data Error");
+						document.getElementById("searchLoadingImg").style.display="none";
 					}
-					
-					// Create the html code
-					var searchTextStore = new Memory({
-						data: [{name:"Loading..."}]
-						});
-					var featureTypeCombo = new Select({
-						id: "featureType",
-						name: "feature",
-						store: featureStore,
-						value: featureStore.data[0].name,
-						sortByLabel: false,
-						labelAttr: "name",
-						maxHeight: -1, // prevent drop-down from causing entire page to grow in size
-						style: {width: "250px"},
-						onChange: function(){
-							updateSearchTextStore(this.attr("displayedValue"));
-							registry.byId("searchText").reset();
-						}
-					}, "featureType");
-					featureTypeCombo.startup();
-					
-					var featureTypeGraphicCombo = new Select({
-						id: "featureTypeGraphic",
-						name: "feature",
-						store: graphicFeatureStore,
-						value: graphicFeatureStore.data[0].name,
-						sortByLabel: false,
-						labelAttr: "name",
-						maxHeight: -1, // prevent drop-down from causing entire page to grow in size
-						style: {width: "250px"},
-						onChange: function(){
-							updateSearchGraphicStore(this.attr("displayedValue"));
-						}
-					}, "featureTypeGraphic");
-					featureTypeGraphicCombo.startup();
-					document.getElementById("graphicfeatures").innerHTML = graphicFeatureStore.data[0].name;
-					
-					var searchTextCombo = new ComboBox({
-						id: "searchText",
-						store: searchTextStore,
-						autoComplete: false, // do not select the first matching item from the drop down. Let user do it.
-						searchAttr: searchObj[featureStore.data[0].name].searchfield, // Name of the attribute to match text field input against when filtering the list; defaults to "name".
-						style: {width: "250px"},
-						hasDownArrow: true,
-						maxHeight:195,
-						onClick: function() {
-							// Check if need to update gmu list. If changed from elk, bighorn sheep, or mountain goat.
-							if (featureTypeCombo.attr("displayedValue") == "GMUs" && settings.useGMUs) {
-								if ((gmu=="Big Game GMU" && searchObj.GMUs.titlefield != settings.elkField) ||
-									(gmu=="Bighorn GMU" && searchObj.GMUs.titlefield != settings.sheepField) ||
-									(gmu=="Goat GMU" && searchObj.GMUs.titlefield != settings.goatField)) {
-									this.loadAndOpenDropDown();
-									updateSearchTextStore("GMUs");
-								}
-							}
-						},
-						onChange: function(){setSelection();},
-						onKeyUp: function(value){
-							// user pressed shift, ctrl, ESC, pgup, pgdn, end, home, or arrow keys
-							if ([16,17,27,33,34,35,36,37,38,39,40].indexOf(value.keyCode) > -1) return;
-							// user pressed enter key
-							else if ([13].indexOf(value.keyCode) > -1) {setSelection(this.attr('displayedValue')); return;}
-							updateSearchTextStore(registry.byId("featureType").attr("displayedValue"));
-						}
-					},"searchText").startup();
-					
-					// Fill Section drop down in Township Range
-					var sectionStore = new Memory({
-						idProperty: "id",
-						data: []
-					});
-					for(i=0; i<37;i++){
-						if (i==0)sectionStore.data.push({id:"",name:""});
-						else if (i<10)sectionStore.data.push({id: "00"+i,name: "00"+i});
-						else sectionStore.data.push({id: "0"+i,name: "0"+i});
-					}
-					var sectionCombo = new Select({
-						id: "searchSec",
-						labelAttr: "name",
-						style: {width:"50px", position:"relative", left:"13px", top:"-1px"},
-						maxHeight: 158,
-						store: sectionStore
-					}, "searchSec");
-					sectionCombo.startup();
-
 					function updateSearchTextStore(id){
 						// Fill in the Search For input with all possible suggestions in drop down list.
 						// If value is a string search for like '%'. 
@@ -496,6 +270,9 @@ function searchInit() {
 					function setSelection() {
 						// user made a selection in the "search for:" drop down. Display a table of multiple matches or zoom to a single match.
 						try {
+							// Google Analytics count how many times Buy License is clicked on
+							ga('send', 'event', "feature_search", "click", "Feature Search", "1");
+
 							var userTypedTxt = registry.byId("searchText").get("value");
 							// protect against xss attacks
 							var regexp=/([^a-zA-Z0-9 :#\-\',\.!_\*()])/g; 
@@ -532,7 +309,7 @@ function searchInit() {
 										// build where expression: field IN ('value1', 'value2')
 										expr=searchObj[attr].database_field+" IN (";
 										for (var i=0; i<elements.length; i++) {
-											 if (i>0) expr += ",";
+												if (i>0) expr += ",";
 											// String
 											if (searchObj[attr].database_field_type.toUpperCase() == "STRING") {
 												expr += "'"+elements[i].getElementsByTagName(searchObj[attr].database_field)[0].childNodes[0].nodeValue+"'";
@@ -602,9 +379,9 @@ function searchInit() {
 											expr = expr.substring(0,pos);	
 										}
 
-									userTypedTxt = document.getElementById("searchTwn").value
-										+registry.byId("nsRadioForm").attr("value").nsBtn+document.getElementById("searchRng").value
-										+registry.byId("ewRadioForm").attr("value").ewBtn;
+									userTypedTxt = document.getElementById("searchTwn").value+
+										registry.byId("nsRadioForm").attr("value").nsBtn+document.getElementById("searchRng").value+
+										registry.byId("ewRadioForm").attr("value").ewBtn;
 									if (registry.byId("searchSec").get("value")) userTypedTxt += " Sec "+registry.byId("searchSec").get("value");
 									// Clear input boxes
 									document.getElementById("searchTwn").value = "";
@@ -830,7 +607,7 @@ function searchInit() {
 											}
 										}
 									}
-								   
+										
 									recAC.push(infoData);
 									gra.attributes = graInfoData;
 									
@@ -916,9 +693,9 @@ function searchInit() {
 							numericSort[sortFields[i]] = numericArr[i];
 						}
 						function multiColumnSort(arr, sf, numericSort) {
-						  var s = '';
-						  ns = numericSort; // Do not use var!! Make it global for this function, so forEach has access to it.
-						  sf.forEach(function(f, idx) {
+							var s = '';
+							ns = numericSort; // Do not use var!! Make it global for this function, so forEach has access to it.
+							sf.forEach(function(f, idx) {
 							// preform numeric sort for this column
 							if (ns[f] == "true"){
 								s += 'if(parseInt(arguments[0].' + f + ')-parseInt(arguments[1].' + f + ')>0)return 1;';
@@ -930,9 +707,9 @@ function searchInit() {
 								s += 'else if(arguments[0].' + f + '==arguments[1].' + f + ')';
 								s += (idx < sf.length - 1) ? '{' : 'return 0';
 							}
-						  });
-						  s += Array(sf.length).join('}') + ';return -1';
-						  return arr.sort(new Function(s));
+							});
+							s += Array(sf.length).join('}') + ';return -1';
+							return arr.sort(new Function(s));
 						}
 						multiColumnSort(recAC,sortFields,numericSort);
 						//fsGrid.renderArray(recAC);
@@ -1091,14 +868,14 @@ function searchInit() {
 						var pt;
 						switch (gra.geometry.type)
 						{
-						   case "point":
-						   {
+								case "point":
+								{
 								pt = new Point(gra.geometry.x, gra.geometry.y, map.spatialReference);
 								break;
-						   }
-						   
-						   case "polyline":
-						   {				   
+								}
+								
+								case "polyline":
+								{				   
 								var pl = gra.geometry;// as Polyline;
 								var pathCount = pl.paths.length;
 								var pathIndex = parseInt((pathCount / 2) - 1);
@@ -1108,13 +885,13 @@ function searchInit() {
 								var ptIndex = parseInt((ptCount / 2) - 1);
 								pt = pl.getPoint(pathIndex, ptIndex);
 								break;
-						   }
-						   
-						   case "polygon":
-						   {
+								}
+								
+								case "polygon":
+								{
 								pt = gra.geometry.getCentroid();
 								break;
-						   }
+								}
 						}
 						return pt;
 					}
@@ -1132,6 +909,9 @@ function searchInit() {
 					function queryFeaturesGraphical(geom){
 						var queryGeom = geom;
 						require(["esri/tasks/query", "esri/tasks/QueryTask"],function(Query,QueryTask){
+							// Google Analytics count how many times Buy License is clicked on
+							ga('send', 'event', "graphical_search", "click", "Graphical Search", "1");
+
 							var attr = registry.byId("featureTypeGraphic").attr("displayedValue");
 							if (attr == fishSpeciesGraphicalName) attr = "Fish species";
 							if (attr == "GMUs" && settings.useGMUs) {
@@ -1197,6 +977,7 @@ function searchInit() {
 								queryTask.execute(query, function(featureSet) { 
 									try
 									{
+										
 										if (featureSet.features.length == 0) {
 											alert("No features found in that location. Please try again.","Warning");
 											document.getElementById("searchLoadingImg").style.display="none";
@@ -1410,6 +1191,231 @@ function searchInit() {
 						document.getElementById("searchGrid").style.display = "none";
 						document.getElementById("searchContent").style.height = tabHeight;
 					}
+					try{
+					searchtoolbar = new Draw(map, {showTooltips:true});
+					searchtoolbar.on("draw-end", searchDrawEnd);//lang.hitch(map, searchDrawEnd));
+					var graphicAC; // hold the points and extents that match search
+					var tabHeight = "300px";
+					var tabWithGridHeight = "510px";
+					var displayNames;
+					var queryLayer;
+					var queryFields;
+					var queryTitleField;
+					var queryLinkField;
+					var queryLinkText;
+					var widgetIcon = "assets/images/i_pin.png";
+					var graphicsLayer=new GraphicsLayer();
+					var graphicsHLLayer=new GraphicsLayer();
+					var graphicPointSym = new PictureMarkerSymbol(widgetIcon, 30, 30);		
+					graphicsLayer.symbol = graphicPointSym;
+					map.addLayer(graphicsLayer);
+					var graphicPointHLSym = new PictureMarkerSymbol(widgetIcon, 40, 40);
+					graphicsHLLayer.symbol = graphicPointHLSym;
+					var graphicLineSym = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,0,0,0.8]), 2);
+					var graphicPolySym = new SimpleFillSymbol(SimpleLineSymbol.STYLE_SOLID, graphicLineSym, new Color([255,0,0,0.1]));
+					var graphicLineHLSym = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,255,0,0.8]), 2);
+					var graphicPolyHLSym = new SimpleFillSymbol(SimpleLineSymbol.STYLE_SOLID, graphicLineSym, new Color([255,255,0,0.5]));
+					map.addLayer(graphicsHLLayer);
+					var recAC;
+					var layers = xmlDoc.getElementsByTagName("layer");
+					var searchObj = [];
+					var data = [];
+					var fsGrid;
+					var featureStore = new Memory({
+						data: []
+					});
+					var graphicFeatureStore = new Memory({
+						data: []
+					});
+					
+					// Read selected tab on startup
+					var tabToSelect;
+					if (xmlDoc.getElementsByTagName("selectedtab")[0].childNodes[0].nodeValue == "0") tabToSelect = "text_Pane";
+					else tabToSelect = "graphic_Pane";
+					// Read zoom scale for points
+					var zoomScale = 72224;
+					if (xmlDoc.getElementsByTagName("zoomscale")[0] && xmlDoc.getElementsByTagName("zoomscale")[0].childNodes[0].nodeValue)
+						zoomScale = xmlDoc.getElementsByTagName("zoomscale")[0].childNodes[0].nodeValue;
+					// Read SearchWidget.xml file into searchObj
+					for(var i=0; i<layers.length; i++){
+						var n = "unknown";
+						if (layers[i].getElementsByTagName("name")[0] && layers[i].getElementsByTagName("name")[0].childNodes[0].nodeValue)
+							n = layers[i].getElementsByTagName("name")[0].childNodes[0].nodeValue;
+						else {
+							showWarning("name");
+						}
+						searchObj[n] = {
+							name: n,
+							url: layers[i].getElementsByTagName("url")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("url")[0].childNodes[0].nodeValue : showWarning("url"),
+							expression: layers[i].getElementsByTagName("expression")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("expression")[0].childNodes[0].nodeValue : showWarning("expression"),
+							graphicalexpression: layers[i].getElementsByTagName("graphicalexpression")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("graphicalexpression")[0].childNodes[0].nodeValue : null,
+							// for autocomplete
+							searchfield: layers[i].getElementsByTagName("searchfield")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("searchfield")[0].childNodes[0].nodeValue : showWarning("searchfield"),
+							textsearchlabel: layers[i].getElementsByTagName("textsearchlabel")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("textsearchlabel")[0].childNodes[0].nodeValue: showWarning("textsearchlabel"),
+							graphicalsearchlabel: layers[i].getElementsByTagName("graphicalsearchlabel")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("graphicalsearchlabel")[0].childNodes[0].nodeValue : showWarning("graphicalsearchlabel"),
+							fields: layers[i].getElementsByTagName("fields")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("fields")[0].childNodes[0].nodeValue : showWarning("fields"),
+							displayfields: layers[i].getElementsByTagName("displayfields")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("displayfields")[0].childNodes[0].nodeValue : showWarning("displayfields"),
+							sortfield: layers[i].getElementsByTagName("sortfield")[0] && layers[i].getElementsByTagName("sortfield")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("sortfield")[0].childNodes[0].nodeValue : "none",
+							numericsort: layers[i].getElementsByTagName("numericsort")[0] && layers[i].getElementsByTagName("numericsort")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("numericsort")[0].childNodes[0].nodeValue : "false",
+							titlefield: layers[i].getElementsByTagName("titlefield")[0] && layers[i].getElementsByTagName("titlefield")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("titlefield")[0].childNodes[0].nodeValue : showWarning("titlefield"),
+							linkfield: layers[i].getElementsByTagName("linkfield")[0] && layers[i].getElementsByTagName("linkfield")[0].childNodes[0] ? 
+								layers[i].getElementsByTagName("linkfield")[0].childNodes[0].nodeValue : "",
+							linktext: layers[i].getElementsByTagName("linktext")[0] && layers[i].getElementsByTagName("linktext")[0].childNodes[0] ? 
+								layers[i].getElementsByTagName("linktext")[0].childNodes[0].nodeValue : "unknown link",
+							 // Populate Search For: values from a comma delimited string
+							searchvalues: layers[i].getElementsByTagName("searchvalues")[0] && layers[i].getElementsByTagName("searchvalues")[0].childNodes[0] ? 
+								layers[i].getElementsByTagName("searchvalues")[0].childNodes[0].nodeValue : "",
+							// Popuplate Search For: values by looking it up in a database
+							lookupsearchvalues: layers[i].getElementsByTagName("lookupsearchvalues")[0] && layers[i].getElementsByTagName("lookupsearchvalues")[0].childNodes[0] ? 
+								layers[i].getElementsByTagName("lookupsearchvalues")[0].childNodes[0].nodeValue : "",
+							// the database table to lookup valuse for drop down list
+							lookupfilename: layers[i].getElementsByTagName("lookupsearchvalues")[0] && layers[i].getElementsByTagName("lookupsearchvalues")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("lookupfilename")[0].childNodes[0] ? 
+								layers[i].getElementsByTagName("lookupfilename")[0].childNodes[0].nodeValue : showWarning("lookupfilename") : null,
+							// the field in the above database table to use
+							lookupfield: layers[i].getElementsByTagName("lookupsearchvalues")[0] && layers[i].getElementsByTagName("lookupsearchvalues")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("lookupfield")[0].childNodes[0] ? 
+								layers[i].getElementsByTagName("lookupfield")[0].childNodes[0].nodeValue : showWarning("lookupfield") : null,
+							// add optional database parameters
+							// take user selected Search For value and call this aspx file to lookup in a database
+							database: layers[i].getElementsByTagName("database")[0] && layers[i].getElementsByTagName("database")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("database")[0].childNodes[0].nodeValue : null,
+							// the name of the table in the database
+							filename: layers[i].getElementsByTagName("database")[0] && layers[i].getElementsByTagName("database")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("filename")[0].childNodes[0] ? 
+								layers[i].getElementsByTagName("filename")[0].childNodes[0].nodeValue : showWarning("filename") : null,
+							// the field that links the database to the mapservice
+							database_field: layers[i].getElementsByTagName("database")[0] && layers[i].getElementsByTagName("database")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("database_field")[0].childNodes[0] ? 
+								layers[i].getElementsByTagName("database_field")[0].childNodes[0].nodeValue : showWarning("database_field") : null,
+							// string or number for above field
+							database_field_type: layers[i].getElementsByTagName("database")[0] && layers[i].getElementsByTagName("database")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("database_field_type")[0].childNodes[0] ? 
+								layers[i].getElementsByTagName("database_field_type")[0].childNodes[0].nodeValue : showWarning("database_field_type") : null,
+							// url to .net file (aspx) to lookup in a database
+							graphical_database: layers[i].getElementsByTagName("database")[0] && layers[i].getElementsByTagName("database")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("graphical_database")[0].childNodes[0] ? 
+								layers[i].getElementsByTagName("graphical_database")[0].childNodes[0].nodeValue : null : null,
+							// name of the table in the graphical database file
+							graphical_filename: layers[i].getElementsByTagName("graphical_database")[0] && layers[i].getElementsByTagName("graphical_database")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("graphical_filename")[0].childNodes[0] ? 
+								layers[i].getElementsByTagName("graphical_filename")[0].childNodes[0].nodeValue : showWarning("graphical_filename") : null,
+							// field to display from the database on graphical search
+							graphical_db_fields: layers[i].getElementsByTagName("graphical_database")[0] && layers[i].getElementsByTagName("graphical_database")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("graphical_db_fields")[0].childNodes[0] ? 
+								layers[i].getElementsByTagName("graphical_db_fields")[0].childNodes[0].nodeValue : showWarning("graphical_db_fields") : null,
+							// the header for the above field in the table
+							graphical_db_displayfields: layers[i].getElementsByTagName("graphical_database")[0] && layers[i].getElementsByTagName("graphical_database")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("graphical_db_displayfields")[0].childNodes[0] ? 
+								layers[i].getElementsByTagName("graphical_db_displayfields")[0].childNodes[0].nodeValue : showWarning("graphical_db_displayfields") : null,
+							// comma delimited yes or no for it the graphical field should be sorted in alphabetical order
+							graphical_db_sort: layers[i].getElementsByTagName("graphical_database")[0] && layers[i].getElementsByTagName("graphical_database")[0].childNodes[0] ?
+								layers[i].getElementsByTagName("graphical_db_sort")[0].childNodes[0] ? 
+								layers[i].getElementsByTagName("graphical_db_sort")[0].childNodes[0].nodeValue : showWarning("graphical_db_sort") : null
+						};
+
+						// add options to select element
+						featureStore.data.push({name:searchObj[n].name, id:i});
+						if (searchObj[n].name.toLowerCase() == "fish species")
+							graphicFeatureStore.data.push({name:fishSpeciesGraphicalName, id:i});
+						else
+							graphicFeatureStore.data.push({name:searchObj[n].name, id:i});
+					}
+					
+					// Create the html code
+					var searchTextStore = new Memory({
+						data: [{name:"Loading..."}]
+						});
+					var featureTypeCombo = new Select({
+						id: "featureType",
+						name: "feature",
+						store: featureStore,
+						value: featureStore.data[0].name,
+						sortByLabel: false,
+						labelAttr: "name",
+						maxHeight: -1, // prevent drop-down from causing entire page to grow in size
+						style: {width: "250px"},
+						onChange: function(){
+							updateSearchTextStore(this.attr("displayedValue"));
+							registry.byId("searchText").reset();
+						}
+					}, "featureType");
+					featureTypeCombo.startup();
+					
+					var featureTypeGraphicCombo = new Select({
+						id: "featureTypeGraphic",
+						name: "feature",
+						store: graphicFeatureStore,
+						value: graphicFeatureStore.data[0].name,
+						sortByLabel: false,
+						labelAttr: "name",
+						maxHeight: -1, // prevent drop-down from causing entire page to grow in size
+						style: {width: "250px"},
+						onChange: function(){
+							updateSearchGraphicStore(this.attr("displayedValue"));
+						}
+					}, "featureTypeGraphic");
+					featureTypeGraphicCombo.startup();
+					document.getElementById("graphicfeatures").innerHTML = graphicFeatureStore.data[0].name;
+					
+					var searchTextCombo = new ComboBox({
+						id: "searchText",
+						store: searchTextStore,
+						autoComplete: false, // do not select the first matching item from the drop down. Let user do it.
+						searchAttr: searchObj[featureStore.data[0].name].searchfield, // Name of the attribute to match text field input against when filtering the list; defaults to "name".
+						style: {width: "250px"},
+						hasDownArrow: true,
+						maxHeight:195,
+						onClick: function() {
+							// Check if need to update gmu list. If changed from elk, bighorn sheep, or mountain goat.
+							if (featureTypeCombo.attr("displayedValue") == "GMUs" && settings.useGMUs) {
+								if ((gmu=="Big Game GMU" && searchObj.GMUs.titlefield != settings.elkField) ||
+									(gmu=="Bighorn GMU" && searchObj.GMUs.titlefield != settings.sheepField) ||
+									(gmu=="Goat GMU" && searchObj.GMUs.titlefield != settings.goatField)) {
+									this.loadAndOpenDropDown();
+									updateSearchTextStore("GMUs");
+								}
+							}
+						},
+						onChange: function(){setSelection();},
+						onKeyUp: function(value){
+							// user pressed shift, ctrl, ESC, pgup, pgdn, end, home,or arrow keys
+							if ([16,17,27,33,34,35,36,37,38,39,40].indexOf(value.keyCode) > -1) return;
+							// user pressed enter key
+							else if ([13].indexOf(value.keyCode) > -1) {setSelection(this.attr('displayedValue')); return;}
+							updateSearchTextStore(registry.byId("featureType").attr("displayedValue"));
+						}
+					},"searchText").startup();
+					
+					// Fill Section drop down in Township Range
+					var sectionStore = new Memory({
+						idProperty: "id",
+						data: []
+					});
+					for(i=0; i<37;i++){
+						if (i==0)sectionStore.data.push({id:"",name:""});
+						else if (i<10)sectionStore.data.push({id: "00"+i,name: "00"+i});
+						else sectionStore.data.push({id: "0"+i,name: "0"+i});
+					}
+					var sectionCombo = new Select({
+						id: "searchSec",
+						labelAttr: "name",
+						style: {width:"50px", position:"relative", left:"13px", top:"-1px"},
+						maxHeight: 158,
+						store: sectionStore
+					}, "searchSec");
+					sectionCombo.startup();
 					
 					// Set initial tab specified in SearchWidget.xml
 					var tab = tabToSelect && registry.byId(tabToSelect);

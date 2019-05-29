@@ -2,6 +2,7 @@
 // Goto npmjs.com, click 'Install npm', then click 'download Node.js and npm'.
 // Goto https://nodejs.org/en/ and download latest version of node.js click on downloaded file.
 // ***Keep up to date: npm install npm@latest -g
+// npm install gulp@4.0.2     <-- change version number here
 // npm install --save-dev gulp-css
 // npm install --save-dev gulp-uglify
 // npm install --save-dev gulp-concat

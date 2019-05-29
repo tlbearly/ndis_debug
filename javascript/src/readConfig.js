@@ -29,6 +29,9 @@ function addOverviewMap() {
 // *********************							
 function lookupAddress() {
 	require(["dojo/dom"], function(dom){
+		// Google Analytics count how many times Address is clicked on
+		ga('send', 'event', "address", "click", "Address", "1");
+
 		var addr = dom.byId("streetTxt").value;
 		// protect against xss attacks
 		var regexp=/([^a-zA-Z0-9 \-\',\.()])/g; 
@@ -805,15 +808,27 @@ function readConfig() {
 				// Add Links
 				var linkStr = '<span class="link"><a href="' + app + '/help.html" target="help"><img src="assets/images/i_help.png"/>Help</a></span>';
 				var link = xmlDoc.getElementsByTagName("links")[0].getElementsByTagName("link");
+				var licenseURL="";
 				for (var i = 0; i < link.length; i++) {
 					// load mobile app with url parameters
 					if (link[i].getAttribute("label") == "Go Mobile"){
 						linkStr += '<span class="link"><a href="' + window.location.href.replace("index", "indexM") + '" target="_top"><img src="' + link[i].getAttribute("icon") + '"/>' + link[i].getAttribute("label") + '</a></span>';
 					}
+					else if (link[i].getAttribute("label") == "Buy License!"){
+						licenseURL = link[i].getAttribute("url").replace("%3F", "?").replace("%26", "&");
+						linkStr += '<span class="link"><a id="licenseLink"><img src="' + link[i].getAttribute("icon") + '"/>' + link[i].getAttribute("label") + '</a></span>';
+					}
 					else
 						linkStr += '<span class="link"><a href="' + link[i].getAttribute("url").replace("%3F", "?").replace("%26", "&") + '" target="_new"><img src="' + link[i].getAttribute("icon") + '"/>' + link[i].getAttribute("label") + '</a></span>';
 				}
 				dom.byId("links").innerHTML = linkStr;
+				// Add Google Analytics tracking
+				document.getElementById("licenseLink").addEventListener("click",function(){
+					// open CPW buy license page and count how many times it is clicked on
+					// Google Analytics count how many times Buy License is clicked on
+					ga('send', 'event', "buy_license", "click", "Buy License", "1");
+					window.open(licenseURL, "_new");
+				});
 				testLayers(); // will call addMapLayers if they exist 2/19/19
 				//addMapLayers(); 2/19/19
 			});

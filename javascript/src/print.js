@@ -558,28 +558,45 @@ function printMap(){
 				var action = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
 				var value = Math.floor(millis/1000); // seconds to generate. Must be integer for Google Analytics
 				// Add map services used
-				var label=""; // Map Services
+				var label="Print "; // function
+				switch(maptype){
+					case "pdf":
+						label += "PDF";
+						break;
+					case "geopdf":
+						label += "geoPDF";
+						break;
+					case "jpg":
+						label += "JPG";
+						break;
+					case "geotiff":
+						label += "geoTIFF";
+						break;
+					case "gif":
+						label += "GIF";
+						break;
+				}
+				var mapservices = "";
 				for (i=0; i<previewMap.layerIds.length; i++){
 					switch ( previewMap.layerIds[i]){
 						case "Motor Vehicle Use Map":
-							label += "M";
+							mapservices += "M";
 							break;
 						case "Hunter Reference":
-							label += "R";
+							mapservices += "R";
 							break;
 						case "Game Species":
-							label += "G";
+							mapservices += "G";
 							break;
 						case "Fishing Info":
-							label += "F";
+							mapservices += "F";
 							break;
 						case "Reference":
-							label += "R";
+							mapservices += "R";
 							break;
 					}
 				}
-				category += label;
-				var mapservices = label;
+				category += mapservices;
 				var custom;
 				// Calculate size of file for Google Analytics stats
 				/*if (window.XMLHttpRequest) {

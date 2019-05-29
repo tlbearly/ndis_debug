@@ -234,6 +234,7 @@
 		float:right;
 		color:black;
 		font-weight:bold;
+		cursor: pointer;
 	}
 	.link a {
 		text-decoration:none;

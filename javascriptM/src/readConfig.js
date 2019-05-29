@@ -540,15 +540,27 @@ function createMap() {
 					linkStr = '<p class="link"><a href="../' + app + '/help.html" target="help"><img src="assets/images/i_help.png"/>Help</a></p>';
 					linkStr += '<p class="link"><a href="../' + app + '/definitions.html" target="help"><img src="assets/images/i_layers.png"/>Map Descriptions</a></p>';
 					var link = xmlDoc.getElementsByTagName("links")[0].getElementsByTagName("link");
+					var licenseURL="";
 					for (i = 0; i < link.length; i++) {
-						if (link[i].getAttribute("label") != "Go Mobile")
+						// load desktop site with url parameters
+						if (link[i].getAttribute("label") == "Go Mobile")
+							linkStr += '<p class="link"><a href="' + window.location.href.replace("indexM", "index") + '" target="_top"><img src="' + link[i].getAttribute("icon") + '"/>Load Desktop Site</a></p>';	
+						else if (link[i].getAttribute("label") == "Buy License!"){
+							licenseURL = link[i].getAttribute("url").replace("%3F", "?").replace("%26", "&");
+							linkStr += '<p class="link"><a id="licenseLink"><img src="' + link[i].getAttribute("icon") + '"/>' + link[i].getAttribute("label") + '</a></p>';
+						}
+						else
 							linkStr += '<p class="link"><a href="' + link[i].getAttribute("url").replace("%3F","?").replace("%26","&") + '" target="_new"><img src="' + link[i].getAttribute("icon") + '"/>' + link[i].getAttribute("label") + '</a></p>';
-						// load mobile app with url parameters
-					  else
-							linkStr += '<p class="link"><a href="' + window.location.href.replace("indexM", "index") + '" target="_top"><img src="' + link[i].getAttribute("icon") + '"/>Load Desktop Site</a></p>';
 					}
 					linkStr += '<span id="emaillink"></span>';							
 					dom.byId("links").innerHTML = linkStr;
+					// Add Google Analytics tracking
+					document.getElementById("licenseLink").addEventListener("click",function(){
+						// open CPW buy license page and count how many times it is clicked on
+						// Google Analytics count how many times Buy License is clicked on
+						ga('send', 'event', "buy_license", "click", "Buy License", "1");
+						window.open(licenseURL, "_new");
+					});
 				//});
 			} catch (e) {
 				alert("Error in readConfig.js/addMapLayers " + e.message, "Code Error", e);
