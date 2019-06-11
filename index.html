@@ -117,7 +117,7 @@ header("Pragma: no-cache");
             document.write('<script type="text/javascript" src="' + path + '/draw.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/findPlace.js?v=' + jsVer +'"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/gmu.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/identify.js?v=' + '"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/identify.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/maplink.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/print.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '"><\/script>');
@@ -918,7 +918,7 @@ header("Pragma: no-cache");
                     <span title="Settings Help" onClick="settingsHelpDialog.show();"><img alt="help button" class="help_icon" src="assets/images/i_help.png"></span> Settings are stored in a cookie in your browser history.<br/><br/>
                     <!-- default value is set in identify.js/readSettingsWidget -->
                     <label for="settings_xy_proj" title="Set the coordinate format to use to display points.">Set coordinate format: </label>
-                    <select id="settings_xy_proj" name="settings_xy_proj" data-dojo-type="dijit/form/Select" onChange="require(['dijit/registry'],function(registry){if (registry.byId('pointUnits'))registry.byId('pointUnits').set('value',registry.byId('settings_xy_proj').value);registry.byId('help_xy_proj').set('value',registry.byId('settings_xy_proj').value);settings.XYProjection=registry.byId('settings_xy_proj').value;setCookie('prj', registry.byId('settings_xy_proj').value);});">
+                    <select id="settings_xy_proj" name="settings_xy_proj" data-dojo-type="dijit/form/Select" onChange="require(['dijit/registry'],function(registry){if (registry.byId('pointUnits'))registry.byId('pointUnits').set('value',registry.byId('settings_xy_proj').value);registry.byId('help_xy_proj').set('value',registry.byId('settings_xy_proj').value);settings.XYProjection=registry.byId('settings_xy_proj').value;setCookie('prj', registry.byId('settings_xy_proj').value);});ga('send', 'event', 'settings_xy_proj', 'click', 'Settings XY Proj', '1');">
 			  <option value="dd">Lat/Long Decimal Degrees</option>
 			  <option value="dms">Lat/Long Degrees, Min, Sec</option>
 			  <option value="dm">Lat/Long Degrees, Decimal Min</option>
