@@ -641,6 +641,12 @@ function activateDrawTool(event){
 		drawExit();
 		return;
 	}
+	// Google Analytics count how many times Draw, Measure, Label is clicked on
+	if (event.currentTarget.id == "label")
+		ga('send', 'event', "label-wayPt", "click", "Label | Way Point", "1");
+	else
+		ga('send', 'event', "draw-measure", "click", "Draw | Measure", "1");
+
 	drawing = true; // flag to turn off identify in identify.js, doIdentify()
 	map.disableMapNavigation();
 	// depress the current button
