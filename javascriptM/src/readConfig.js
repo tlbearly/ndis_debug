@@ -36,7 +36,7 @@ function createMap() {
 						var request = new XMLHttpRequest();
 						try {
 							request.open("get", layer.url + "?f=json");
-							var timer = setTimeout(cancelRequest.bind(null, request),1000); // timeout after 1 second
+							var timer = setTimeout(cancelRequest.bind(null, request),3000); // timeout after 3 seconds
 						}
 						catch (error) {
 								console.error(error);

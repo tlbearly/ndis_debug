@@ -250,7 +250,7 @@ function readConfig() {
 						var request = new XMLHttpRequest();
 						try {
 							request.open("get", layer.url + "?f=json");
-							var timer = setTimeout(cancelRequest.bind(null, request),1000); // timeout after 1 second
+							var timer = setTimeout(cancelRequest.bind(null, request),3000); // timeout after 3 seconds, servers are trying to process ~3 requests at once so give it more time
 						}
 						catch (error) {
 								console.error(error);
@@ -289,7 +289,7 @@ function readConfig() {
 				}
 				// if no MVUM don't add additional services to try
 				if (mvum1Index > -1){
-					// Test 2 additional MVUM to use if one is down
+					// Test 1 additional MVUM to use if one is down
 					mvum2Index = layersToAdd.length;
 					//layersToAdd[layersToAdd.length] = {
 					//	"id": "Motor Vehicle Use Map",
@@ -321,7 +321,7 @@ function readConfig() {
 									response.pop(); // pop 2nd MVUM
 									//response.pop(); // pop 3rd MVUM
 								}
-								// The second MVUM worked replace this URL and remove the last 2 MVUM maps
+								// The second MVUM worked replace this URL and remove the last 1 MVUM maps
 								else if (mvum2Index == i) {
 									console.log("Layer loaded: "+response[i].layer.id+" "+response[i].layer.url);
 									response[mvum1Index].layer.url = response[i].layer.url;
@@ -826,7 +826,7 @@ function readConfig() {
 				document.getElementById("licenseLink").addEventListener("click",function(){
 					// open CPW buy license page and count how many times it is clicked on
 					// Google Analytics count how many times Buy License is clicked on
-					ga('send', 'event', "buy_license", "click", "Buy License", "1");
+					ga('send', 'event', 'buy_license', 'click', 'Buy License', '1');
 					window.open(licenseURL, "_new");
 				});
 				testLayers(); // will call addMapLayers if they exist 2/19/19
