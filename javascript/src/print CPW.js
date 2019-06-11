@@ -57,6 +57,7 @@ function printShow(){
 			previewMap.removeLayer(previewMap.getLayer("reference"));
 		var basemapId=0;
 		var basemapRefId=-1;
+		var basemap;
 		for (i=0;i<map.layerIds.length; i++){
 			if (map.getLayer(map.layerIds[i])._basemapGalleryLayerType && map.getLayer(map.layerIds[i])._basemapGalleryLayerType == "basemap")
 				basemapId = i;
@@ -69,7 +70,19 @@ function printShow(){
 			osmLayer = null;
 		}
 		else{
-			var basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapId]).url,{"id":"basemap","visible": true});
+			// *******************************************************
+			// * GP Service is not secure http. Basemaps from arcgisonline were failing.
+			// * Change to http instead of https.
+			// * Uncomment this line if it changes to https to allow
+			// * basemaps to use https.
+			// ********************************************************
+			//basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapId]).url,{"id":"basemap","visible": true});
+			// But don't change https to http for USGS National Map
+			if (map.getLayer(map.layerIds[basemapId]).url.indexOf("arcgisonline") > 0)
+				basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapId]).url.replace("https","http"),{"id":"basemap","visible": true});
+			else
+				basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapId]).url,{"id":"basemap","visible": true});
+			
 			basemap.spatialReference = map.spatialReference;
 			basemap.refresh();
 			previewMap.addLayer(basemap);
@@ -77,7 +90,14 @@ function printShow(){
 		}
 		// add basemap reference layer if there is one
 		if (basemapRefId != -1) {
-			var basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapRefId]).url,{"id":"reference","visible":true});
+				// *******************************************************
+			// * GP Server is not secure http. Basemaps were failing.
+			// * Change to http instead of https.
+			// * Uncomment this line if it changes to https to allow
+			// * basemaps to use https.
+			// ********************************************************
+			//basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapRefId]).url,{"id":"reference","visible":true});
+			basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapRefId]).url.replace("https","http"),{"id":"reference","visible":true});
 			basemap.spatialReference = map.spatialReference;
 			basemap.refresh();
 			previewMap.addLayer(basemap);
