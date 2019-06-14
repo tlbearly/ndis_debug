@@ -2,11 +2,14 @@
 // Goto npmjs.com, click 'Install npm', then click 'download Node.js and npm'.
 // Goto https://nodejs.org/en/ and download latest version of node.js click on downloaded file.
 // ***Keep up to date: npm install npm@latest -g
-// npm install gulp@4.0.2     <-- change version number here
-// npm install --save-dev gulp-css
+// npm install gulp latest
+// npm install --save-dev gulp-clean-css
 // npm install --save-dev gulp-uglify
 // npm install --save-dev gulp-concat
 // npm install pump
+// npm install -g gulp-cli
+// npm install -g npm-check   Use this to check for out of date packages
+//   Run npm-check -u   for interactive uninstall. See https://www.npmjs.com/package/npm-check
 //
 // To minify run: gulp filenameD (desktop) or filenameM (mobile) from the debug directory.
 // For example: gulp searchD
@@ -16,9 +19,9 @@
 var gulp = require('gulp');
 var uglify = require('gulp-uglify');
 var concat = require('gulp-concat');
-var cssMin = require('gulp-css');
+var cssMin = require('gulp-clean-css'); //require('gulp-css');
 var pump = require('pump');
-var ver = "3.17";
+var ver = "3.24";
 
 // MINIFY CSS
 gulp.task('layout', function(err) {
@@ -383,16 +386,16 @@ gulp.task('tocM', function(err) {
     ], err);
 });
 
-gulp.task('disclaimer', ['disclaimerD', 'disclaimerM']);
-gulp.task('errorBox', ['errorBoxD', 'errorBoxM']);
-gulp.task('findPlace', ['findPlaceD', 'findPlaceM']);
-gulp.task('hb1298', ['hb1298D', 'hb1298M']);
-gulp.task('identify', ['identifyD', 'identifyM']);
-gulp.task('readConfig', ['readConfigD', 'readConfigM']);
-gulp.task('search', ['searchD', 'searchM']);
-gulp.task('print', ['printD', 'printM']);
-gulp.task('bookmark', ['bookmarkD', 'BookmarkM']);
-gulp.task('utilFuncs', ['utilFuncsD', 'utilFuncsM']);
-gulp.task('xmlUtils', ['xmlUtilsD', 'xmlUtilsM']);
-gulp.task('toc', ['tocD', 'tocM']);
-gulp.task('TOC', ['tocD', 'tocM']);
+gulp.task('disclaimer', gulp.series(gulp.parallel('disclaimerD', 'disclaimerM')));
+gulp.task('errorBox', gulp.series(gulp.parallel('errorBoxD', 'errorBoxM')));
+gulp.task('findPlace', gulp.series(gulp.parallel('findPlaceD', 'findPlaceM')));
+gulp.task('hb1298', gulp.series(gulp.parallel('hb1298D', 'hb1298M')));
+gulp.task('identify', gulp.series(gulp.parallel('identifyD', 'identifyM')));
+gulp.task('readConfig', gulp.series(gulp.parallel('readConfigD', 'readConfigM')));
+gulp.task('search', gulp.series(gulp.parallel('searchD', 'searchM')));
+gulp.task('print', gulp.series(gulp.parallel('printD', 'printM')));
+gulp.task('bookmark', gulp.series(gulp.parallel('bookmarkD', 'BookmarkM')));
+gulp.task('utilFuncs', gulp.series(gulp.parallel('utilFuncsD', 'utilFuncsM')));
+gulp.task('xmlUtils', gulp.series(gulp.parallel('xmlUtilsD', 'xmlUtilsM')));
+gulp.task('toc', gulp.series(gulp.parallel('tocD', 'tocM')));
+gulp.task('TOC', gulp.series(gulp.parallel('tocD', 'tocM')));
