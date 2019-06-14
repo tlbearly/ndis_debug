@@ -9,7 +9,7 @@
 // npm install pump
 // npm install -g gulp-cli
 // npm install -g npm-check   Use this to check for out of date packages
-//   Run npm-check -u   for interactive uninstall. See https://www.npmjs.com/package/npm-check
+//   Run npm-check -gu   for interactive uninstall. See https://www.npmjs.com/package/npm-check
 //
 // To minify run: gulp filenameD (desktop) or filenameM (mobile) from the debug directory.
 // For example: gulp searchD
