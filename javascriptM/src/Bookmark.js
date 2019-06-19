@@ -275,7 +275,7 @@ map.spatialReference ); }
 		_loadBrowserBookmark: function(e){
 			require(["javascript/graphicFuncs"],function(graphicFuncs){
 				// Google Analytics count how many times Add Bookmark is clicked on
-				ga('send', 'event', "bookmark", "click", "Bookmark", "1");
+				if (typeof ga === "function")ga('send', 'event', "bookmark", "click", "Bookmark", "1");
 				var url = graphicFuncs.getMapLink();
 				showLoading();
 				window.location.assign(url);
@@ -286,7 +286,7 @@ map.spatialReference ); }
 			// called from templates/Bookmark.html
 			try {
 				// Google Analytics count how many times Add Bookmark is clicked on
-				ga('send', 'event', "bookmark", "click", "Bookmark", "1");
+				if (typeof ga === "function")ga('send', 'event', "bookmark", "click", "Bookmark", "1");
 				var str;
 				var bmNames = getCookie("bm_" + app.toLowerCase());
 				var name = this.bookmarkName.value;

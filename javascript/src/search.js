@@ -271,7 +271,7 @@ function searchInit() {
 						// user made a selection in the "search for:" drop down. Display a table of multiple matches or zoom to a single match.
 						try {
 							// Google Analytics count how many times Buy License is clicked on
-							ga('send', 'event', "feature_search", "click", "Feature Search", "1");
+							if (typeof ga === "function") ga('send', 'event', "feature_search", "click", "Feature Search", "1");
 
 							var userTypedTxt = registry.byId("searchText").get("value");
 							// protect against xss attacks
@@ -910,7 +910,7 @@ function searchInit() {
 						var queryGeom = geom;
 						require(["esri/tasks/query", "esri/tasks/QueryTask"],function(Query,QueryTask){
 							// Google Analytics count how many times Buy License is clicked on
-							ga('send', 'event', "graphical_search", "click", "Graphical Search", "1");
+							if (typeof ga === "function") ga('send', 'event', "graphical_search", "click", "Graphical Search", "1");
 
 							var attr = registry.byId("featureTypeGraphic").attr("displayedValue");
 							if (attr == fishSpeciesGraphicalName) attr = "Fish species";

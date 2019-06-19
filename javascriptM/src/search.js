@@ -524,7 +524,7 @@ function searchInit() {
 						// user made a selection in the "search for:" drop down. Display a table of multiple matches or zoom to a single match.
 						try {
 							// Google Analytics count how many times Buy License is clicked on
-							ga('send', 'event', "feature_search", "click", "Feature Search", "1");
+							if (typeof ga === "function")ga('send', 'event', "feature_search", "click", "Feature Search", "1");
 
 							// Prevent form submission from loading a new page
 							if (event){

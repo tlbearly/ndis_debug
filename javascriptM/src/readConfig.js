@@ -555,12 +555,14 @@ function createMap() {
 					linkStr += '<span id="emaillink"></span>';							
 					dom.byId("links").innerHTML = linkStr;
 					// Add Google Analytics tracking
-					document.getElementById("licenseLink").addEventListener("click",function(){
-						// open CPW buy license page and count how many times it is clicked on
-						// Google Analytics count how many times Buy License is clicked on
-						ga('send', 'event', "buy_license", "click", "Buy License", "1");
-						window.open(licenseURL, "_new");
-					});
+					if (document.getElementById("licenseLink") && typeof ga === "function"){
+						document.getElementById("licenseLink").addEventListener("click",function(){
+							// open CPW buy license page and count how many times it is clicked on
+							// Google Analytics count how many times Buy License is clicked on
+							ga('send', 'event', "buy_license", "click", "Buy License", "1");
+							window.open(licenseURL, "_new");
+						});
+					}
 				//});
 			} catch (e) {
 				alert("Error in readConfig.js/addMapLayers " + e.message, "Code Error", e);

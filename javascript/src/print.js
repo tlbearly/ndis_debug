@@ -620,7 +620,7 @@ function printMap(){
 										'dimension3':mapservices,
 										'dimension4':mapscale
 									};
-									ga('send', 'event', category, action, label, value, custom);
+									if (typeof ga === "function")ga('send', 'event', category, action, label, value, custom);
 							}
 					};
 					xhr.send();
@@ -634,7 +634,7 @@ function printMap(){
 						'dimension5':maptype
 					};
 					console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale);
-					ga('send', 'event', category, action, label, value, custom);
+					if (typeof ga === "function")ga('send', 'event', category, action, label, value, custom);
 				//}
 
 				console.log("printing to "+result.url);

@@ -96,7 +96,7 @@ header("Pragma: no-cache");
         <script type="text/javascript" src="javascript/identify.js?v=3.20"></script>	
         <script type="text/javascript" src="javascript/maplink.js?v=3.17"></script>
         <script type="text/javascript" src="javascript/print.js?v=3.21></script>
-        <script type="text/javascript" src="javascript/readConfig.js?v=3.21"></script>
+        <script type="text/javascript" src="javascript/readConfig.js?v=3.24a"></script>
         <script type="text/javascript" src="javascript/resourceReport.js?v=3.16"></script>
         <script type="text/javascript" src="javascript/search.js?v=3.20"></script-->
         <!--script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCnamSJ8X7vZxYVby_V52kuveWx1jXx2SQ"></script><!-- for google maps elevation data. Used by Identify -->
@@ -918,7 +918,7 @@ header("Pragma: no-cache");
                     <span title="Settings Help" onClick="settingsHelpDialog.show();"><img alt="help button" class="help_icon" src="assets/images/i_help.png"></span> Settings are stored in a cookie in your browser history.<br/><br/>
                     <!-- default value is set in identify.js/readSettingsWidget -->
                     <label for="settings_xy_proj" title="Set the coordinate format to use to display points.">Set coordinate format: </label>
-                    <select id="settings_xy_proj" name="settings_xy_proj" data-dojo-type="dijit/form/Select" onChange="require(['dijit/registry'],function(registry){if (registry.byId('pointUnits'))registry.byId('pointUnits').set('value',registry.byId('settings_xy_proj').value);registry.byId('help_xy_proj').set('value',registry.byId('settings_xy_proj').value);settings.XYProjection=registry.byId('settings_xy_proj').value;setCookie('prj', registry.byId('settings_xy_proj').value);});ga('send', 'event', 'settings_xy_proj', 'click', 'Settings XY Proj', '1');">
+                    <select id="settings_xy_proj" name="settings_xy_proj" data-dojo-type="dijit/form/Select" onChange="require(['dijit/registry'],function(registry){if (registry.byId('pointUnits'))registry.byId('pointUnits').set('value',registry.byId('settings_xy_proj').value);registry.byId('help_xy_proj').set('value',registry.byId('settings_xy_proj').value);settings.XYProjection=registry.byId('settings_xy_proj').value;setCookie('prj', registry.byId('settings_xy_proj').value);});if (typeof ga==='function')ga('send','event','settings_xy_proj','click','Settings XY Proj','1');">
 			  <option value="dd">Lat/Long Decimal Degrees</option>
 			  <option value="dms">Lat/Long Degrees, Min, Sec</option>
 			  <option value="dm">Lat/Long Degrees, Decimal Min</option>

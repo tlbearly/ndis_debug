@@ -270,7 +270,7 @@ function reportInit(){
 		}
 		function reportPreview(){
 			// Google Analytics count how many times Resource Report is clicked on
-			ga('send', 'event', "resource_report", "click", "Resource Report", "1");
+			if (typeof ga === "function")ga('send', 'event', "resource_report", "click", "Resource Report", "1");
 			
 			document.getElementById("reportMsg1").innerHTML = msg;
 			document.getElementById("reportMsg2").innerHTML = msg;

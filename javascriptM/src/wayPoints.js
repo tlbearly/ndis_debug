@@ -484,7 +484,7 @@ function drawInit() {
 		event.stopImmediatePropagation(); // don't call this twice
 		event.preventDefault(); // don't load a new page
 		// Google Analytics count how many times Label (desktop), Way Point (mobile) is clicked on
-		ga('send', 'event', "label-wayPt", "click", "Label | Way Point", "1");
+		if (typeof ga === "function")ga('send', 'event', "label-wayPt", "click", "Label | Way Point", "1");
 		//var result1 = safeInput(dom.byId("wayPtInputTitle"));
 		//var result2 = safeInput(dom.byId("wayPtInputDesc"));
 		//if (!result1 || !result2) return;
@@ -510,7 +510,7 @@ function drawInit() {
 		toolbar.activate(Draw.POLYLINE);
 		measuring = true;
 		// Google Analytics count how many times Measure is clicked on
-		ga('send', 'event', "draw-measure", "click", "Draw | Measure", "1");
+		if (typeof ga === "function")ga('send', 'event', "draw-measure", "click", "Draw | Measure", "1");
 		// Remove last measure line
 		if (lenGraphicsCount.length > 0) {
 			lenGraphicsCounter--;

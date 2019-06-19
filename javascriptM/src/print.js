@@ -890,7 +890,7 @@ function printMap(){
 								'dimension4':mapscale,
 								'dimension5':maptype
 							};
-							ga('send', 'event', category, action, label, value, custom);
+							if (typeof ga === "function")ga('send', 'event', category, action, label, value, custom);
 							document.getElementById("printMB").innerHTML = "File size is "+mb+"MB.";
 							document.getElementById("printMB").style.display="block";
 						}
@@ -906,7 +906,7 @@ function printMap(){
 						'dimension4':mapscale,
 						'dimension5':maptype
 					};
-					ga('send', 'event', category, action, label, value, custom);
+					if (typeof ga === "function")ga('send', 'event', category, action, label, value, custom);
 				}
 				
 				console.log("printing to "+result.url);
@@ -1061,7 +1061,7 @@ function showPrintPreview(){
 							'dimension4':mapscale,
 							'dimension5':maptype
 						};
-						ga('send', 'event', category, action, label, value, custom);
+						if (typeof ga === "function")ga('send', 'event', category, action, label, value, custom);
 					}
 				};
 				xhr.send();
@@ -1075,7 +1075,7 @@ function showPrintPreview(){
 					'dimension4':mapscale,
 					'dimension5':maptype
 				};
-				ga('send', 'event', category, action, label, value, custom);
+				if (typeof ga === "function")ga('send', 'event', category, action, label, value, custom);
 			//}
 			//console.log("Time to create preview map = " + value + " seconds for "+category);
 			console.log("printing to "+result.url);
