@@ -2,9 +2,10 @@ var prtDisclaimer="";
 var sizeCombo,orientCombo;
 var outputName="";
 var startTim;
+var inchesWidth, inchesHeight, dpi=96; // tlb 7-20-19
 /****************************************** */
 /*  Quickly add or remove large print sizes */
-var useLargeSizes = true; // if true gives page sizes 17x22 and 22x34 also.
+var useLargeSizes = false; // if true gives page sizes 17x22 and 22x34 also.
 
 function printInit() {
 	require(["dojo/store/Memory","dijit/form/ComboBox", "dijit/form/Select"],function(Memory,ComboBox,Select){
@@ -111,6 +112,7 @@ function printScrollUp(){
 function printShow(){
 	require(["esri/map","esri/SpatialReference","esri/layers/GraphicsLayer","esri/graphic",
 	"esri/layers/ArcGISTiledMapServiceLayer","esri/layers/ArcGISDynamicMapServiceLayer","esri/geometry/Point",
+	"esri/layers/VectorTileLayer",
 	"esri/layers/OpenStreetMapLayer",
 	"esri/symbols/SimpleLineSymbol",
 	"esri/symbols/SimpleMarkerSymbol",
@@ -119,7 +121,7 @@ function printShow(){
 	"dijit/registry"
 	],
 	function(Map,SpatialReference,GraphicsLayer,Graphic,ArcGISTiledMapServiceLayer,ArcGISDynamicMapServiceLayer,
-		Point,OpenStreetMapLayer,	SimpleLineSymbol,	SimpleMarkerSymbol,	Color,	dom, registry){
+		Point,VectorTileLayer,OpenStreetMapLayer,	SimpleLineSymbol,	SimpleMarkerSymbol,	Color,	dom, registry){
 		try {
 			document.getElementById("showPreviewMap").checked = false; // always start with preview map hidden
 			drawing=true;
@@ -149,62 +151,113 @@ function printShow(){
 					document.getElementById("pdf_name").blur();
 				}
 			};
-			//document.getElementById("previewContainer").style.display="block";
 			document.getElementById("printPreview").style.display="block";
 			document.getElementById("previewCkBx").style.display="block";
-			//document.getElementById("scrollUpBtn").style.display="block";
-			//document.getElementById("scrollDownBtn").style.display="block";
-			//document.getElementById("printLegendLink").innerHTML = "";
-			// previewMap is created in readConfig.js
-			//document.getElementById("printTitle").value = "My Custom Map";
-			//document.getElementById("printSubTitle").value = "CPW Atlas";
+	
 			previewMap.removeAllLayers();
 			var sr = new SpatialReference({
 				"wkid": wkid
 			});
 			
 			// add basemap
-			if (previewMap.getLayer("basemap"))
+			/*if (previewMap.getLayer("basemap"))
 				previewMap.removeLayer(previewMap.getLayer("basemap"));
 			if (previewMap.getLayer("reference"))
 				previewMap.removeLayer(previewMap.getLayer("reference"));
-			var basemapId=0;
+			var basemapId=[];
 			var basemapRefId=-1;
 			var basemap;
 			for (i=0;i<map.layerIds.length; i++){
 				if (map.getLayer(map.layerIds[i])._basemapGalleryLayerType && map.getLayer(map.layerIds[i])._basemapGalleryLayerType == "basemap")
-					basemapId = i;
+					basemapId.push(i);
 				else if (map.getLayer(map.layerIds[i])._basemapGalleryLayerType && map.getLayer(map.layerIds[i])._basemapGalleryLayerType == "reference")
 					basemapRefId = i;
 			}
-			if (map.layerIds[basemapId] == "layer_osm"){
+			// 7-1-19 test url instead of id=layer_osm
+			/*if (map.getLayer(map.layerIds[0]).attributionDataUrl.indexOf("OpenStreetMap") > 0){
 				var osmLayer = new OpenStreetMapLayer();
 				previewMap.addLayer(osmLayer);
 				osmLayer = null;
 			}
 			else{
-				basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapId]).url,{"id":"basemap","visible": true});
-				basemap.spatialReference = map.spatialReference;
-				basemap.refresh();
-				previewMap.addLayer(basemap);
-				basemap = null;
+				// 7-1-19 Make basemapId an array because now there are more than one basemap layer. Added hillshade
+				basemapId.forEach (function(item){
+					basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[item]).tileIndexUrl,{"id":"basemap","visible": true});
+					basemap.spatialReference = map.spatialReference;
+					basemap.refresh();
+					previewMap.addLayer(basemap);
+					basemap = null;
+				});
 			}
 			// add basemap reference layer if there is one
 			if (basemapRefId != -1) {
-				basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapRefId]).url,{"id":"reference","visible":true});
+				basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapRefId]).attributionDataUrl,{"id":"reference","visible":true});
 				basemap.spatialReference = map.spatialReference;
 				basemap.refresh();
 				previewMap.addLayer(basemap);
 				basemap=null;
-			}
+			}*/
 			
+			//7-1-19  set basemap with basemapGallery. previewBasemaps is created when the users selects a new basemap
+			//if (previewBasemaps) previewBasemaps.select(mapBasemap);
+			// 7-12-19 DEBUG  force USA Topo
+			/*var basemap = new ArcGISTiledMapServiceLayer("https://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer",
+				{"id":"basemap","visible": true,"_basemapGalleryLayerType":"basemap"});
+			basemap.spatialReference = map.spatialReference;
+			basemap.refresh();
+			previewMap.addLayer(basemap);
+			basemap = null;*/
+
+			// add basemaps
+		var map_layer,osmLayer;
+		for (i=0;i<map.layerIds.length; i++){
+			map_layer = map.getLayer(map.layerIds[i]);
+			if (map.layerIds[i] == "layer_osm"){
+			//if (map_layer.attributionDataUrl && map_layer.attributionDataUrl.indexOf("OpenStreet")>-1){
+				osmLayer = new OpenStreetMapLayer();
+				osmLayer.id = "layer_osm";
+				previewMap.addLayer(osmLayer);
+				osmLayer = null;
+			}
+			else if (map_layer.attributionDataUrl && map_layer.attributionDataUrl.indexOf("OpenStreet")>-1){
+				osmLayer = new OpenStreetMapLayer();
+				osmLayer.id = "layer_osm";
+				previewMap.addLayer(osmLayer);
+				osmLayer = null;
+			}
+			else if (map.layerIds[i].indexOf("layer")>-1){
+				if (map.getLayer(map.layerIds[i]).visibleAtMapScale == true){
+					if (map.getLayer(map.layerIds[i]).url.indexOf ("MapServer")>-1)
+						basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[i]).url,{"id":"basemap","visible": true});
+					else {
+						basemap = new VectorTileLayer(map.getLayer(map.layerIds[i]).url,{"id":"basemap","visible": true});
+						basemap.setStyle(map.getLayer(map.layerIds[i]).url);
+					}
+					if (map_layer._basemapGalleryLayerType == "reference")
+						basemap.id="reference";
+					else if (i>0)basemap.id="basemap"+i;
+					basemap.spatialReference = map.spatialReference;
+					basemap._basemapGalleryLayerType = map_layer._basemapGalleryLayerType;
+					basemap.refresh();
+					previewMap.addLayer(basemap);
+					basemap = null;
+				}
+			}
+		}
+
 			// set layers
 			var prev_layer, map_layer, countLayers=0, processedLayers=0,previewLayers=[],correctOrder=[];
 			// Count number of visible non-basemap layers, so we can add them in the correct order. tlb 8-14-17
 			for (i=0; i<map.layerIds.length; i++) {
 				map_layer = map.getLayer(map.layerIds[i]);		
 				if (map_layer.id.indexOf("layer") == 0) continue;
-				if (map_layer.url.indexOf("World_Street_Map") > -1) continue;
+				else if (map_layer.attributionDataUrl && map_layer.attributionDataUrl.indexOf("OpenStreet")>-1) continue;
+				//if (map_layer.url.indexOf("World_Street_Map") > -1) continue;
+				
+				// 7-1-19 Remove non-basemap layers
+				//if (previewMap.getLayer(map.layerIds[i]))
+				//	previewMap.removeLayer(previewMap.getLayer(map.layerIds[i]));
+
 				if (map_layer.layerInfos && map_layer.visible){ 
 					countLayers++;
 					correctOrder.push(map_layer.id);
@@ -427,6 +480,14 @@ function changePrintSize(scaleChange){
 					if (selectedValue_size != "8.5 x 11"){
 						selectedValue_size = "8.5 x 11";
 						sizeCombo.set("value","8.5 x 11");
+						if (selectedValue_orient == "Landscape"){
+							inchesWidth=10.2;
+							inchesHeight=7.25;
+						}
+						else{
+							inchesWidth=7.25;
+							inchesHeight=10.2;
+						}
 						return;
 					}
 				}
@@ -434,6 +495,14 @@ function changePrintSize(scaleChange){
 					if (selectedValue_size != "11 x 17"){
 						selectedValue_size = "11 x 17";
 						sizeCombo.set("value","11 x 17");
+						if (selectedValue_orient == "Landscape"){
+							inchesWidth=16.2;
+							inchesHeight=9.75;
+						}
+						else{
+							inchesWidth=9.75;
+							inchesHeight=16.2;
+						}
 						return;
 					}
 				}
@@ -444,6 +513,14 @@ function changePrintSize(scaleChange){
 					if (selectedValue_size != "8.5 x 11"){
 						selectedValue_size = "8.5 x 11";
 						sizeCombo.set("value","8.5 x 11");
+						if (selectedValue_orient == "Landscape"){
+							inchesWidth=10.2;
+							inchesHeight=7.25;
+						}
+						else{
+							inchesWidth=7.25;
+							inchesHeight=10.2;
+						}
 						return;
 					}
 				}
@@ -451,6 +528,14 @@ function changePrintSize(scaleChange){
 					if (selectedValue_size != "11 x 17"){
 						selectedValue_size = "11 x 17";
 						sizeCombo.set("value","11 x 17");
+						if (selectedValue_orient == "Landscape"){
+							inchesWidth=16.2;
+							inchesHeight=9.75;
+						}
+						else{
+							inchesWidth=9.75;
+							inchesHeight=16.2;
+						}
 						return;
 					}
 				}
@@ -458,6 +543,14 @@ function changePrintSize(scaleChange){
 					if (selectedValue_size != "17 x 22"){
 						selectedValue_size = "17 x 22";
 						sizeCombo.set("value","17 x 22");
+						if (selectedValue_orient == "Landscape"){
+							inchesWidth=21.2;
+							inchesHeight=15.75;
+						}
+						else{
+							inchesWidth=15.75;
+							inchesHeight=21.2;
+						}
 						return;
 					}
 				}
@@ -465,6 +558,14 @@ function changePrintSize(scaleChange){
 					if (selectedValue_size != "22 x 34"){
 						selectedValue_size = "22 x 34";
 						sizeCombo.set("value","22 x 34");
+						if (selectedValue_orient == "Landscape"){
+							inchesWidth=33.2;
+							inchesHeight=20.75;
+						}
+						else{
+							inchesWidth=20.75;
+							inchesHeight=33.2;
+						}
 						return;
 					}
 				}
@@ -487,34 +588,42 @@ function changePrintSize(scaleChange){
 			if (selectedValue_size == "Letter "){
 				previewMap.width=979;
 				previewMap.height=696;
+				inchesWidth=10.2;
+				inchesHeight=7.25;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 			// 17 x 11
 			// 17-.8 x 11-1.25
-			// 16.2 x 8.75 inch image (without borders)
+			// 16.2 x 9.75 inch image (without borders)
 			// 1555 x 936 pixels in screen resolution
 			// 544 x 328 35% of that
 			else if (selectedValue_size == "Tabloid ") {
 				previewMap.width=1555;
 				previewMap.height=936;
+				inchesWidth=16.2;
+				inchesHeight=9.75;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 			// 22-.8 x 17-1.25
-			// 21.2 x 15.25 inch image (without borders)
-			// 2035.2 x 1464 pixels in screen resolution (inches * 96)
-			// 407 x 293 20% of that
+			// 21.2 x 15.75 inch image (without borders)
+			// 2035.2 x 1512 pixels in screen resolution (inches * 96)
+			// 407 x 302 20% of that
 			else if (selectedValue_size == "ANSIC ") {
 				previewMap.width=2035;
-				previewMap.height=1464;
+				previewMap.height=1512;
+				inchesWidth=21.2;
+				inchesHeight=15.75;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 			// 34-.8 x 22-1.25
-			// 33.2 x 20.25 inch image (without borders)
-			// 3187.2 x 1944 pixels in screen resolution (inches * 96)
+			// 33.2 x 20.75 inch image (without borders)
+			// 3187.2 x 1992 pixels in screen resolution (inches * 96)
 			// 407 x 293 20% of that
 			else if (selectedValue_size == "ANSID ") {
 				previewMap.width=3187;
-				previewMap.height=1944;
+				previewMap.height=1992;
+				inchesWidth=33.2;
+				inchesHeight=20.75;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 			// 14-.8 x 8.5-1.25
@@ -524,6 +633,8 @@ function changePrintSize(scaleChange){
 			//else if (selectedValue_size == "8.5 x 14 ") {
 			//	previewMap.width=506;
 			//	previewMap.height=278;
+			//  inchesWidth=13.2;
+			//	inchesHeight=7.25;
 			//	registry.byId("printPreviewMap").resize({w:506,h:278});
 			//}
 		}
@@ -536,6 +647,8 @@ function changePrintSize(scaleChange){
 			if (selectedValue_size == "Letter "){
 				previewMap.width=739;
 				previewMap.height=936;
+				inchesWidth=7.7;
+				inchesHeight=9.75;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 			// 11 x 17
@@ -546,24 +659,30 @@ function changePrintSize(scaleChange){
 			else if (selectedValue_size == "Tabloid ") {
 				previewMap.width=979;
 				previewMap.height=1512;
+				inchesWidth=10.2;
+				inchesHeight=15.75;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 			// 17-.8 x 22-1.25
-			// 16.2 x 20.25 inch image (without borders)
-			// 1555.2 x 1944 pixels in screen resolution (inches * 96)
+			// 16.2 x 20.75 inch image (without borders)
+			// 1555.2 x 1992 pixels in screen resolution (inches * 96)
 			// % of that
 			else if (selectedValue_size == "ANSIC ") {
 				previewMap.width=1555;
-				previewMap.height=1944;
+				previewMap.height=1992;
+				inchesWidth=16.2;
+				inchesHeight=20.75;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 				// 22-.8 x 34-1.25
-			// 21.2 x 32.25 inch image (without borders)
+			// 21.2 x 32.75 inch image (without borders)
 			// 2035.2 x 3096 pixels in screen resolution (inches * 96)
 			// of that
 			else if (selectedValue_size == "ANSID ") {
 				previewMap.width=2035;
-				previewMap.height=3096;
+				previewMap.height=3144;
+				inchesWidth=21.2;
+				inchesHeight=32.75;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 			// 8.5 x 14
@@ -573,6 +692,8 @@ function changePrintSize(scaleChange){
 			//else if (selectedValue_size == "8.5 x 14 ") {
 			//	previewMap.width=296;
 			//	previewMap.height=490;
+			//	inchesWidth=7.7;
+			//	inchesHeight=12.75;
 			//	registry.byId("printPreviewMap").resize({ w:296,h:490});
 			//}
 		}
@@ -741,7 +862,7 @@ function printMap(){
 			else if (selectedValue_size == "11 x 17") selectedValue_size = "Tabloid";
 			else if (selectedValue_size == "17 x 22") selectedValue_size = "ANSIC";
 			else if (selectedValue_size == "22 x 34") selectedValue_size = "ANSID";
-			template.exportOptions = { dpi: 300 };
+			template.exportOptions = { dpi: dpi, width: parseInt(inchesWidth*dpi), height: parseInt(inchesHeight*dpi) };
 			
 			// default to geopdf
 			template.layout = app+" "+selectedValue_size+" "+selectedValue_orient; // huntingatlas Letter Portrait
@@ -936,7 +1057,7 @@ function printMap(){
 			}
 			function printError(err){
 				document.getElementById("printInst").style.display="none";
-				alert("Error printing: "+err,"Code Error",err);
+				alert("Error printing with basemap, "+mapBasemap+". Error Code: "+err,"Code Error",err);
 				document.getElementById("printMapLink").innerHTML = "";
 				//document.getElementById("printLegendLink").innerHTML = "";
 				for (var i=0; i<pointWithText; i++) removeDrawItem(); // remove extra text layer added for points with text because of bug in PrintTask
@@ -990,7 +1111,7 @@ function showPrintPreview(){
 		printTask = new PrintTask(printGeoServiceUrl);
 		template.preserveScale = true; // for legend to work. This is removed for the map in the python code in geo GP print service.
 		template.format = "prev";
-		template.exportOptions = { dpi: 300 };
+		template.exportOptions = { dpi: 72, width: parseInt(inchesWidth*72), height: parseInt(inchesHeight*72) };
 		template.showAttribution = false;
 		template.layoutOptions = {
 			titleText: titleTxt,

@@ -82,6 +82,11 @@
 	.esriMobileGallery .thumbnailcontainer.small {
 		height: 115px;
 	}
+	/* add scrollbar for Basemap Gallery */
+	/*#basemapGallery .slideContainer {
+		overflow: auto;
+		height: 330px;
+	}*/
 	
 	#leftPane {
 		width: 400px;

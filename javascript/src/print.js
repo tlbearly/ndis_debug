@@ -1,5 +1,6 @@
 var prtDisclaimer="";
 var startTim;
+var inchesWidth, inchesHeight, dpi=96; // tlb 7-20-19
 function printInit() {
 	// Read the PrintPdfWidget.xml file
 	var xmlhttp = createXMLhttpRequest();
@@ -30,13 +31,14 @@ function printInit() {
 function printShow(){
 	require(["esri/map","esri/SpatialReference","esri/layers/GraphicsLayer","esri/graphic",
 	"esri/layers/ArcGISTiledMapServiceLayer","esri/layers/ArcGISDynamicMapServiceLayer","esri/geometry/Point",
+	"esri/layers/VectorTileLayer",
 	"esri/layers/OpenStreetMapLayer",
 	"esri/symbols/SimpleLineSymbol",
 	"esri/symbols/SimpleMarkerSymbol",
 	"dojo/_base/Color",
 	"dojo/dom"
 	],
-	function(Map,SpatialReference,GraphicsLayer,Graphic,ArcGISTiledMapServiceLayer,ArcGISDynamicMapServiceLayer,Point,OpenStreetMapLayer,
+	function(Map,SpatialReference,GraphicsLayer,Graphic,ArcGISTiledMapServiceLayer,ArcGISDynamicMapServiceLayer,Point,VectorTileLayer,OpenStreetMapLayer,
 	SimpleLineSymbol,
 	SimpleMarkerSymbol,
 	Color,
@@ -51,8 +53,55 @@ function printShow(){
 		var sr = new SpatialReference({
 			"wkid": wkid
 		});
+
 		// add basemap
-		if (previewMap.getLayer("basemap"))
+		var basemap;
+		// 7-12-19 DEBUG  force USA Topo
+		/*basemap = new ArcGISTiledMapServiceLayer("https://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer",
+			{"id":"basemap","visible": true,"_basemapGalleryLayerType":"basemap"});
+		basemap.spatialReference = map.spatialReference;
+		basemap.refresh();
+		previewMap.addLayer(basemap);
+		basemap = null;
+		*/
+		
+		// add basemaps
+		var map_layer,osmLayer;
+		for (i=0;i<map.layerIds.length; i++){
+			map_layer = map.getLayer(map.layerIds[i]);
+			if (map.layerIds[i] == "layer_osm"){
+				osmLayer = new OpenStreetMapLayer();
+				osmLayer.id = "layer_osm";
+				previewMap.addLayer(osmLayer);
+				osmLayer = null;
+			}
+			else if (map_layer.attributionDataUrl && map_layer.attributionDataUrl.indexOf("OpenStreet")>-1){
+				osmLayer = new OpenStreetMapLayer();
+				osmLayer.id = "layer_osm";
+				previewMap.addLayer(osmLayer);
+				osmLayer = null;
+			}
+			else if (map.layerIds[i].indexOf("layer")>-1){
+				if (map.getLayer(map.layerIds[i]).visibleAtMapScale == true){
+					if (map.getLayer(map.layerIds[i]).url.indexOf ("MapServer")>-1)
+						basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[i]).url,{"id":"basemap","visible": true});
+					else {
+						basemap = new VectorTileLayer(map.getLayer(map.layerIds[i]).url,{"id":"basemap","visible": true});
+						basemap.setStyle(map.getLayer(map.layerIds[i]).url);
+					}
+					if (map_layer._basemapGalleryLayerType == "reference")
+						basemap.id="reference";
+					else if (i>0)basemap.id="basemap"+i;
+					basemap.spatialReference = map.spatialReference;
+					basemap._basemapGalleryLayerType = map_layer._basemapGalleryLayerType;
+					basemap.refresh();
+					previewMap.addLayer(basemap);
+					basemap = null;
+				}
+			}
+		}
+
+		/*if (previewMap.getLayer("basemap"))
 			previewMap.removeLayer(previewMap.getLayer("basemap"));
 		if (previewMap.getLayer("reference"))
 			previewMap.removeLayer(previewMap.getLayer("reference"));
@@ -84,23 +133,72 @@ function printShow(){
 			basemap.refresh();
 			previewMap.addLayer(basemap);
 			basemap=null;
-		}
-		
+		}*/
+		//7-1-19  set basemap with basemapGallery. previewBasemaps is created when the users selects a new basemap
+		//if (previewBasemaps) previewBasemaps.select(mapBasemap);
+
+		// 7-1-19 change ids to basemap and reference
+		/*for (i=0;i<previewMap.layerIds.length;i++){
+			var lay;
+			if (previewMap.layerIds[i].indexOf("layer")>-1){
+				lay = previewMap.getLayer(previewMap.layerIds[i]);
+				previewMap.removeLayer(previewMap.getLayer(previewMap.layerIds[i]));
+				if (i==0)	lay.id="basemap";
+				else lay.id="reference";
+				lay.refresh();
+				previewMap.addLayer(lay,i);
+				lay = null;
+			}
+		}*/
+
 		// set layers
-		var prev_layer, map_layer, countLayers=0, processedLayers=0,previewLayers=[],correctOrder=[];
+		var prev_layer, countLayers=0, processedLayers=0,previewLayers=[],correctOrder=[];
 		// Count number of visible non-basemap layers, so we can add them in the correct order. tlb 8-14-17
 		for (i=0; i<map.layerIds.length; i++) {
 			map_layer = map.getLayer(map.layerIds[i]);		
-			if (map_layer.id.indexOf("layer") == 0) continue;
-			if (map_layer.url.indexOf("World_Street_Map") > -1) continue;
-			if (map_layer.layerInfos && map_layer.visible){ 
+			if (map_layer.id.indexOf("layer") == 0)	continue;
+			else if (map_layer.attributionDataUrl && map_layer.attributionDataUrl.indexOf("OpenStreet")>-1) continue;
+			//else if (map_layer.url.indexOf("World_Street_Map") > -1) continue;
+			//if (map_layer.url.indexOf("World_Street_Map") > -1) continue;
+			// 7-1-19 Remove non-basemap layers
+			//if (previewMap.getLayer(map.layerIds[i]))
+			//	previewMap.removeLayer(previewMap.getLayer(map.layerIds[i]));
+
+			if (map_layer.layerInfos && map_layer.visible){ 	
 				countLayers++;
 				correctOrder.push(map_layer.id);
 			}
 		}
 		for (i=0; i<map.layerIds.length; i++){
 			map_layer = map.getLayer(map.layerIds[i]);
-			if (map_layer.layerInfos && map_layer.visible){
+			if (map_layer.attributionDataUrl && map_layer.attributionDataUrl.indexOf("OpenStreet")>-1){
+				continue;
+				/*var osmLayer = new OpenStreetMapLayer();
+				osmLayer.id = "layer_osm";
+				processedLayers++;
+				previewLayers.push(osmLayer);
+				osmLayer = null;*/
+			}
+			else if (map.layerIds[i].indexOf("layer")>-1){
+				continue;
+				/*var basemap;
+				if (map.getLayer(map.layerIds[i]).url.indexOf ("MapServer")>-1)
+					basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[i]).url,{"id":"basemap","visible": true});
+				else {
+					basemap = new VectorTileLayer(map.getLayer(map.layerIds[i]).url,{"id":"basemap","visible": true});
+					basemap.setStyle(map.getLayer(map.layerIds[i]).url);
+				}
+					if (map_layer._basemapGalleryLayerType == "reference")
+					basemap.id="reference";
+				else if (i>0)basemap.id="basemap"+i;
+				basemap.spatialReference = map.spatialReference;
+				basemap._basemapGalleryLayerType = map_layer._basemapGalleryLayerType;
+				basemap.refresh();
+				processedLayers++;
+				previewLayers.push(basemap);
+				basemap = null;*/
+			}
+			else if (map_layer.layerInfos && map_layer.visible){
 				// copy the visibleLayers array by value not address
 				var visLayers = [];
 				for (var j=0; j<map_layer.visibleLayers.length; j++)
@@ -117,8 +215,8 @@ function printShow(){
 					var layer = event.layer;
 					var m;
 					// Skip basemaps
-					if (layer.url.indexOf("World_Street_Map") > -1) return;
-					if (layer.id.indexOf("layer") == 0) return;
+					//if (layer.url.indexOf("World_Street_Map") > -1) return;
+					//if (layer.id.indexOf("layer") == 0) return;
 					
 					processedLayers++;
 					var visLayers = layer.visibleLayers;
@@ -302,6 +400,8 @@ function changePrintSize(){
 			if (selectedValue_size == "Letter "){
 				previewMap.width=490;
 				previewMap.height=348;
+				inchesWidth=10.2;
+				inchesHeight=7.25;
 				registry.byId("printPreviewMap").resize({w:490,h:348});
 			}
 			// 17 x 11
@@ -312,6 +412,8 @@ function changePrintSize(){
 			else if (selectedValue_size == "Tabloid ") {
 				previewMap.width=544;
 				previewMap.height=328;
+				inchesWidth=16.2;
+				inchesHeight=8.75;
 				registry.byId("printPreviewMap").resize({w:544,h:328});
 			}
 			// 14-.8 x 8.5-1.25
@@ -321,6 +423,8 @@ function changePrintSize(){
 			else if (selectedValue_size == "8.5 x 14 ") {
 				previewMap.width=506;
 				previewMap.height=278;
+				inchesWidth=13.2;
+				inchesHeight=7.25;
 				registry.byId("printPreviewMap").resize({w:506,h:278});
 			}
 		}
@@ -333,6 +437,8 @@ function changePrintSize(){
 			if (selectedValue_size == "Letter "){
 				previewMap.width=370;
 				previewMap.height=468;
+				inchesWidth=7.7;
+				inchesHeight=9.75;
 				registry.byId("printPreviewMap").resize({ w:370,h:468});
 			}
 			// 11 x 17
@@ -343,6 +449,8 @@ function changePrintSize(){
 			else if (selectedValue_size == "Tabloid ") {
 				previewMap.width=343;
 				previewMap.height=529;
+				inchesWidth=10.2;
+				inchesHeight=15.75;
 				registry.byId("printPreviewMap").resize({w:343,h:529});
 			}
 			// 8.5 x 14
@@ -352,6 +460,8 @@ function changePrintSize(){
 			else if (selectedValue_size == "8.5 x 14 ") {
 				previewMap.width=296;
 				previewMap.height=490;
+				inchesWidth=7.7;
+				inchesHeight=12.75;
 				registry.byId("printPreviewMap").resize({ w:296,h:490});
 			}
 		}
@@ -453,7 +563,7 @@ function printMap(){
 			var size = dom.byId("size");
 			index = size.selectedIndex;
 			var selectedValue_size = size.options[index].value; // Letter , Tabloid 
-			template.exportOptions = { dpi: 300 };
+			template.exportOptions = { dpi: dpi, width: parseInt(inchesWidth*dpi), height: parseInt(inchesHeight*dpi) };
 			// Geo referenced pdf, jpg, gif, or geo referenced tiff
 			if (format.options[format.selectedIndex].value != "pdf"){
 				template.layout = app+" "+selectedValue_size+selectedValue_orient; // huntingatlas Letter Portrait
@@ -464,7 +574,7 @@ function printMap(){
 				template.format = format.options[format.selectedIndex].value;
 				if (template.format != "geopdf"){
 					legendTemplate="none";
-					template.exportOptions = { dpi: 300 };// does not do anything????
+					template.exportOptions = { dpi: dpi, width: parseInt(inchesWidth*dpi), height: parseInt(inchesHeight*dpi) };
 				}
 				else if (template.format=="geopdf" && !document.getElementById("printLegend").checked) {
 					legendTemplate="none";
@@ -659,7 +769,7 @@ function printMap(){
 			function printError(err){
 				registry.byId("print_button").set("label", "Print");
 				document.getElementById("printLoading").style.display="none";
-				alert("Error printing: "+err,"Code Error",err);
+				alert("Error printing with basemap, "+mapBasemap+". Error Code: "+err,"Code Error",err);
 				document.getElementById("printMapLink").innerHTML = "";
 				document.getElementById("printLegendLink").innerHTML = "";
 				for (var i=0; i<pointWithText; i++) removeDrawItem(); // remove extra text layer added for points with text because of bug in PrintTask
@@ -687,7 +797,7 @@ function printMap(){
 				var printTask2 = new PrintTask(printServiceUrl);
 				var params2 = new PrintParameters();
 				var template2 = new PrintTemplate();
-				template2.exportOptions = { dpi: 300 };
+				template2.exportOptions = { dpi: dpi };
 				if (ourMVUM && mvum)
 					template2.layout = "Legend Letter "+selectedValue_orient+ " MVUM";
 				else

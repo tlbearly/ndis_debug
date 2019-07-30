@@ -914,7 +914,7 @@ define("agsjs/dijit/TOC",
       this.config = params.config || {};
       this.rootLayer = params.config.layer;
       this.tocWidget = params.tocWidget;
-      
+      this.tries = 0; // tlb 7-30-19 give the legend a couple tries to load
     },
     // extenstion point called by framework
     postCreate: function(){
@@ -931,7 +931,6 @@ define("agsjs/dijit/TOC",
     },
     
     _getLegendInfo: function(){
-    
       var url = '';
       // the else is causing a CORS error each time. Always append /legend. tlb 1-15-19
       //if (this.rootLayer.version >= 10.01) {
@@ -942,6 +941,7 @@ define("agsjs/dijit/TOC",
       //  var soap = this.rootLayer.url.substring(0, i) + this.rootLayer.url.substring(i + 5);
       //  url = url + '?soapUrl=' + escape(soap);
       //}
+      this.tries++; // tlb 7-30-19 count the number of tries to load the legend
       var handle = esri.request({
         url: url,
         content: {
@@ -955,6 +955,9 @@ define("agsjs/dijit/TOC",
       
     },
     _processLegendError: function(err){
+      // tlb 7-30-19 give it 3 tries to load
+      if (this.tries < 3)this._getLegendInfo();
+      
       this._createRootLayerTOC();
       var map = err.message.substring(err.message.toLowerCase().indexOf("services/")+9,err.message.toLowerCase().indexOf("/mapserver"));
       if (err.message.indexOf("HunterBase")>-1) map="Hunter Reference";

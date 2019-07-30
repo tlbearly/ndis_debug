@@ -1192,31 +1192,249 @@ function openBookmark(){
 
 var basemapHelp=null;					
 function initBasemaps() {
-	require(["esri/dijit/BasemapGallery", "esri/dijit/Gallery", "javascript/HelpWin"], function (BasemapGallery, Gallery, HelpWin) {
+	require(["esri/dijit/BasemapGallery", "esri/dijit/Basemap", "esri/dijit/BasemapLayer", "esri/dijit/Gallery", "javascript/HelpWin"], function (BasemapGallery, Basemap, BasemapLayer, Gallery, HelpWin) {
 		document.getElementById("basemapLoading").style.display = "block";
-		/*mapBasemap = "streets";
-		// read basemap from URL if &layer= is found.
-		if (queryObj.layer && queryObj.layer != "") {
-			 var basemapArr = queryObj.layer.substring(0, queryObj.layer.indexOf("|")).split(",");
-			if (basemapArr[0] == 0)
-				mapBasemap = "streets";
-			else if (basemapArr[0] == 1)
-				mapBasemap = "hybrid";
-			else if (basemapArr[0] == 2)
-				mapBasemap = "topo";
-			else
-				mapBasemap = basemapArr[0];
-			basemapArr = null ;
-		}*/
-		var basemapGallery = new BasemapGallery({
+	
+		// Add basemaps by hand to use raster tile layers. vector tile layers require ArcGIS 10.5.1. These are used when
+		// showArcGISBasemaps is set to true.
+		var layer,basemaps = [];
+		// Streets
+		/*layer=new BasemapLayer({
+			styleUrl:"https://www.arcgis.com/sharing/rest/content/items/b266e6d17fc345b498345613930fbd76/resources/styles/root.json",
+			type: "VectorTileLayer",
+			opacity:1
+		});*/
+		layer=new BasemapLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"});
+		var basemap = new Basemap({
+			layers:[layer],
+			title:"Streets",
+			id:"streets",
+			thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/f81bc478e12c4f1691d0d7ab6361f5a6/info/thumbnail/street_thumb_b2wm.jpg"
+		});
+		basemaps.push(basemap);
+
+		// Aerial Photo add vector tile layer as a basemap layer
+		layers=[];
+		var vtlayer = new BasemapLayer({
+			url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+		});
+		layers.push(vtlayer);
+		vtlayer = new BasemapLayer({
+			styleUrl: "https://www.arcgis.com/sharing/rest/content/items/30d6b8271e1849cd9c3042060001f425/resources/styles/root.json",
+			type: "VectorTileLayer",
+			opacity:1
+		});
+		layers.push(vtlayer);
+		basemap = new Basemap({
+			layers:layers,
+			title:"Aerial Photo",
+			id: "hybrid",
+			thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
+		});
+		basemaps.push(basemap);
+
+		// USGS Scanned Topo
+		layer=new BasemapLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer"});
+		basemap = new Basemap({
+			layers:[layer],
+			title:"USGS Scanned Topo",
+			id:"topo",
+			thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/931d892ac7a843d7ba29d085e0433465/info/thumbnail/usa_topo.jpg"
+		});
+		basemaps.push(basemap);
+
+		// Add USGS Digital Topo back in. ESRI removed it 6-30-19
+		layer = new BasemapLayer({
+			//url: "https://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"  // no topo
+			url: "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+		});
+		basemap = new Basemap({
+			layers:[layer],
+			title:"USGS Digital Topo",
+			id:"natgeo",
+			thumbnailUrl:"https://usfs.maps.arcgis.com/sharing/rest/content/items/6d9fa6d159ae4a1f80b9e296ed300767/info/thumbnail/thumbnail.jpeg"
+		});
+		basemaps.push(basemap);
+
+		// Aerial with Topos
+		layers = [];
+		layer=new BasemapLayer({url:"https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer",
+		displayLevels: [6,7,8,9,10,11,12,13,14,15,16],});
+		layers.push(layer);
+		layer=new BasemapLayer({
+			url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+			displayLevels: [17,18,19]});
+		layers.push(layer);
+		basemap = new Basemap({
+			layers:layers,
+			title:"Aerial Photo with USGS Contours",
+			id: "imagery_topo",
+			thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
+		});
+		basemaps.push(basemap);
+	
+		// ESRI Digital Topo
+		layer=new BasemapLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"});
+		basemap = new Basemap({
+			layers:[layer],
+			title:"ESRI Digital Topo",
+			id:"topo2",
+			thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/30e5fe3149c34df1ba922e6f5bbf808f/info/thumbnail/ago_downloaded.jpg"
+		});
+		basemaps.push(basemap);
+
+		// Open Street Map
+		/*layer = new BasemapLayer({type: "OpenStreetMap"});
+		basemap = new Basemap({
+			layers:[layer],
+			title:"Open Street Map",
+			id:"osm",
+			thumbnailUrl:"https://usfs.maps.arcgis.com/sharing/rest/content/items/5d2bfa736f8448b3a1708e1f6be23eed/info/thumbnail/temposm.jpg"
+		});
+		basemaps.push(basemap);*/
+
+		// Old Raster Aerial
+		/*var layers = [];
+		layer=new BasemapLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"});
+		layers.push(layer);
+		//url:"https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer",
+		layer=new BasemapLayer({
+			url:"https://services.arcgisonline.com/arcgis/rest/services/Reference/World_Reference_Overlay/MapServer",
+			isReference: true});
+		layers.push(layer);
+		basemap = new Basemap({
+			layers:layers,
+			title:"Aerial",
+			id: "hybrid2",
+			thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
+		});
+		basemaps.push(basemap);*/
+
+		// Delorme World Basemap
+		/*layers=[];
+		layer=new BasemapLayer({
+			url:"https://services.arcgisonline.com/ArcGIS/rest/services/Specialty/DeLorme_World_Base_Map/MapServer",
+			displayLevels: [6,7,8,9,10,11,12]
+		});
+		layers.push(layer);
+		layer=new BasemapLayer({
+			url:"https://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer",
+			displayLevels: [13,14,15]
+		});
+		layers.push(layer);
+		basemap = new Basemap({
+			layers:layers,
+			title:"DeLorme World Basemap",
+			id:"delorme",
+			thumbnailUrl:"assets/images/delormeThumb.jpg"
+		});
+		basemaps.push(basemap);
+		
+		// FS topo
+		layers = [];
+		layer = new BasemapLayer({
+			id: "World_Street_Map_8421",  
+			opacity: 1,  
+			displayLevels: [6,7,8,9,10,11,12],  
+			visibility: true,  
+			url: "http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"   
+		});
+		layers.push(layer);
+		layer=new BasemapLayer({
+			displayLevels: [13,14,15,16,17],
+			url:"https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_FSTopo_01/MapServer"
+		});
+		layers.push(layer);
+		layer = new BasemapLayer({
+			id: "World_Street_Map_8421",  
+			opacity: 1,  
+			displayLevels: [18,19],  
+			visibility: true,  
+			url: "http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"   
+		});
+		layers.push(layer);
+		basemap = new Basemap({
+			layers:layers,
+			title:"FS Topo 24K",
+			id: "fstopo",
+			thumbnailUrl:"https://usfs.maps.arcgis.com/sharing/rest/content/items/32fd95d9dc5f48509c6d463ffbf4e466/info/thumbnail/thumbnail1547234602026.png"
+		});
+		basemaps.push(basemap);*/
+	
+		basemapGallery = new BasemapGallery({
+			map: map,
+			basemaps:basemaps,
+			id: "basemapGallery",
+			showArcGISBasemaps: false
+		});
+
+		// tlb 7-17-19 move stuff in basemapGallery.on to here because it is no longer called when showArcGISBasemaps is false
+		var items = [];
+		basemapGallery.basemaps.forEach(function (basemap) {
+			items.push({
+				thumbnailUrl: basemap.thumbnailUrl,
+				id: basemap.id,
+				layers: basemap.layers,
+				title: basemap.title
+			});
+		});
+		// set currently selected basemap
+			var params = {};
+			params.items = items;
+			params.thumbnailStyle = "small";
+			var gallery = new Gallery(params, "galleryDiv");
+			var selected_id;
+			for (i = 0; i < items.length; i++) {
+				if (items[i].id == mapBasemap) {
+					selected_id = i;
+					break;
+				}
+			}
+			gallery.select(params.items[selected_id]);
+			if (mapBasemap != "streets") basemapGallery.select(items[selected_id].id); // set map basemap from URL
+			gallery.on("select", function (item) {
+				basemapGallery.select(item.item.id);
+				document.getElementById("basemapPane").style.display = "none";
+				closeMenu();
+				mapBasemap = item.item.id;// save the selected basemap in a global
+			});
+			gallery.startup();
+			gallery._slideDiv.style.width = 'auto';
+
+			document.getElementById("basemapLoading").style.display = "none";
+			//gallery.esriMobileGallery.thumbnailcontainer.small.style.height = '110px';
+			// create help popup
+			basemapHelp = new HelpWin({
+				label: "Basemaps Help",
+				content: 'Click on an image to set the basemap or background map. The selected basemap is highlighted in orange.'+
+					'<br/><br/>'
+			});
+			document.body.appendChild(basemapHelp.domNode);
+			basemapHelp.startup();
+		});
+		// end tlb 7-17-19
+
+		/*var basemapGallery = new BasemapGallery({
 				id: "basemapGallery",
 				showArcGISBasemaps : true,
 				map : map
 			});
 		basemapGallery.on("load", function () {
 			var items = [];
+			// Add National Geographic Topo back in. ESRI removed it 6-30-19
+			var layer = new BasemapLayer({
+				url: "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+			});
+			var basemap = new Basemap({
+				layers:[layer],
+				title:"USGS National Map",
+				id:"natgeo",
+				thumbnailUrl:"assets/images/natgeoThumb.jpg"
+			});
+			basemapGallery.add(basemap);
+
 			basemapGallery.basemaps.forEach(function (basemap) {
-				if (basemap.title == "Imagery with Labels") {
+				if (basemap.title == "Imagery Hybrid") {
 					basemap.id = "hybrid";
 					basemap.title = "Aerial";
 				} else if (basemap.title == "Imagery" || basemap.title == "Oceans")
@@ -1295,7 +1513,7 @@ function initBasemaps() {
 			document.body.appendChild(basemapHelp.domNode);
 			basemapHelp.startup();
 		});
-	});
+	});*/
 }
 
 var tocHelp=null;
