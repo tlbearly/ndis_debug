@@ -951,21 +951,26 @@ define("agsjs/dijit/TOC",
         handleAs: 'json',
         load: lang.hitch(this, this._processLegendInfo),
         error: lang.hitch(this, this._processLegendError)
-      });
-      
+      });    
     },
     _processLegendError: function(err){
       // tlb 7-30-19 give it 3 tries to load
-      if (this.tries < 3)this._getLegendInfo();
-      
-      this._createRootLayerTOC();
-      var map = err.message.substring(err.message.toLowerCase().indexOf("services/")+9,err.message.toLowerCase().indexOf("/mapserver"));
-      if (err.message.indexOf("HunterBase")>-1) map="Hunter Reference";
-      else if (err.message.indexOf("MVUM")>-1) map="MVUM";
-      else if (err.message.indexOf("GameSpecies")>-1) map="Game Species";
-      else if (err.message.indexOf("AnglerBase")>-1) map="Fishing Reference";
-      else if (err.message.indexOf("AnglerMain")>-1) map="Fishing Info";
-      alert("Problem loading "+map+" legend. Please reload "+app,"Data Error");
+      if (this.tries < 4){
+        this._getLegendInfo();
+      }
+      else {
+        this._createRootLayerTOC();
+        if (err.message.toLowerCase().indexOf("services/") == -1) alert ("Problem loading legend: "+err.message,"Data Error");
+        else{
+          var map = err.message.substring(err.message.toLowerCase().indexOf("services/")+9,err.message.toLowerCase().indexOf("/mapserver"));
+          if (err.message.indexOf("HunterBase")>-1) map="Hunter Reference";
+          else if (err.message.indexOf("MVUM")>-1) map="MVUM";
+          else if (err.message.indexOf("GameSpecies")>-1) map="Game Species";
+          else if (err.message.indexOf("AnglerBase")>-1) map="Fishing Reference";
+          else if (err.message.indexOf("AnglerMain")>-1) map="Fishing Info";
+          alert("Problem loading "+map+" legend. Please reload "+app,"Data Error");
+        }
+      }
     },
     _processLegendInfo: function(json){
       this._legendResponse = json;
