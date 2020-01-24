@@ -30,9 +30,10 @@
     <!-- REST endpoint to a GeometryService. This should be a service published by CPW and not pointing at an ESRI service.  Use to convert points to new projections. -->
     <geometryservice url="//ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
     
-	<printservicegeo>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting</printservicegeo>
+	<!--printservicegeo>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting</printservicegeo-->
+    <!--printservice>https://utility.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printservice-->
     <printservice>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printservice>
-    <!--printservicegeo>https://ndis-flex-2.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting</printservicegeo-->
+    <printservicegeo>https://ndis-flex-2.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting</printservicegeo>
 	<!--printservice>https://ndis-flex-2.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printservice-->
     
 	
