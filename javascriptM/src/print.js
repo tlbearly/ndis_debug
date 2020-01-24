@@ -5,7 +5,7 @@ var startTim;
 var inchesWidth, inchesHeight, dpi=96; // tlb 7-20-19
 /****************************************** */
 /*  Quickly add or remove large print sizes */
-var useLargeSizes = true; // if true gives page sizes 17x22 and 22x34 also.
+var useLargeSizes = false; // if true gives page sizes 17x22 and 22x34 and 34 x 44 also.
 
 function printInit() {
 	require(["dojo/store/Memory","dijit/form/ComboBox", "dijit/form/Select"],function(Memory,ComboBox,Select){
