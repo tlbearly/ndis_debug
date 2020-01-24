@@ -17,8 +17,7 @@ function printInit() {
 				data: [{name:"small", value: "8.5 x 11"},
 							{name: "medium", value: "11 x 17"},
 							{name: "large", value: "17 x 22"},
-							{name: "x large", value: "22 x 34"},
-						  {name: "xx large", value: "34 x 44"}]
+							{name: "x large", value: "22 x 34"}]
 			});
 		}
 		else{
@@ -247,7 +246,7 @@ function printShow(){
 		}
 
 			// set layers
-			var prev_layer, countLayers=0, processedLayers=0,previewLayers=[],correctOrder=[];
+			var prev_layer, map_layer, countLayers=0, processedLayers=0,previewLayers=[],correctOrder=[];
 			// Count number of visible non-basemap layers, so we can add them in the correct order. tlb 8-14-17
 			for (i=0; i<map.layerIds.length; i++) {
 				map_layer = map.getLayer(map.layerIds[i]);		
@@ -487,8 +486,8 @@ function changePrintSize(scaleChange){
 							inchesHeight=7.25;
 						}
 						else{
-							inchesWidth=7.7;
-							inchesHeight=9.75;
+							inchesWidth=7.25;
+							inchesHeight=10.2;
 						}
 						return;
 					}
@@ -502,8 +501,8 @@ function changePrintSize(scaleChange){
 							inchesHeight=9.75;
 						}
 						else{
-							inchesWidth=10.2;
-							inchesHeight=15.75;
+							inchesWidth=9.75;
+							inchesHeight=16.2;
 						}
 						return;
 					}
@@ -520,8 +519,8 @@ function changePrintSize(scaleChange){
 							inchesHeight=7.25;
 						}
 						else{
-							inchesWidth=7.7;
-							inchesHeight=9.75;
+							inchesWidth=7.25;
+							inchesHeight=10.2;
 						}
 						return;
 					}
@@ -535,8 +534,8 @@ function changePrintSize(scaleChange){
 							inchesHeight=9.75;
 						}
 						else{
-							inchesWidth=10.2;
-							inchesHeight=15.75;
+							inchesWidth=9.75;
+							inchesHeight=16.2;
 						}
 						return;
 					}
@@ -546,17 +545,17 @@ function changePrintSize(scaleChange){
 						selectedValue_size = "17 x 22";
 						sizeCombo.set("value","17 x 22");
 						if (selectedValue_orient == "Landscape"){
-							inchesWidth=21.2; // width - .8
-							inchesHeight=15.75;  // height - 1.25
+							inchesWidth=21.2;
+							inchesHeight=15.75;
 						}
 						else{
-							inchesWidth=16.2;
-							inchesHeight=20.75;
+							inchesWidth=15.75;
+							inchesHeight=21.2;
 						}
 						return;
 					}
 				}
-				else if (largest <= 34) {
+				else {
 					if (selectedValue_size != "22 x 34"){
 						selectedValue_size = "22 x 34";
 						sizeCombo.set("value","22 x 34");
@@ -565,23 +564,8 @@ function changePrintSize(scaleChange){
 							inchesHeight=20.75;
 						}
 						else{
-							inchesWidth=21.2;
-							inchesHeight=32.75;
-						}
-						return;
-					}
-				}
-				else {
-					if (selectedValue_size != "34 x 44"){
-						selectedValue_size = "34 x 44";
-						sizeCombo.set("value","34 x 44");
-						if (selectedValue_orient == "Landscape"){
-							inchesWidth=43.2; // w - .8
-							inchesHeight=32.75; // h - 1.25
-						}
-						else{
-							inchesWidth=33.2; // w- .8
-							inchesHeight=42.75; // h - 1.25
+							inchesWidth=20.75;
+							inchesHeight=33.2;
 						}
 						return;
 					}
@@ -593,7 +577,6 @@ function changePrintSize(scaleChange){
 		else	if (selectedValue_size == "11 x 17") selectedValue_size = "Tabloid ";
 		else if (selectedValue_size == "17 x 22") selectedValue_size = "ANSIC ";
 		else if (selectedValue_size == "22 x 34") selectedValue_size = "ANSID ";
-		else if (selectedValue_size == "34 x 44") selectedValue_size = "ANSIE ";
 		//var pt = map.extent.getCenter();
 		//var level = previewMap.getLevel();
 		
@@ -642,17 +625,6 @@ function changePrintSize(scaleChange){
 				previewMap.height=1992;
 				inchesWidth=33.2;
 				inchesHeight=20.75;
-				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
-			}
-			// 44-.8 x 34-1.25
-			// 43.2 x 32.75 inch image (without borders)
-			// 4147.2 x 3120 pixels in screen resolution (inches * 96)
-			// 829 x 624 20% of that
-			else if (selectedValue_size == "ANSIE ") {
-				previewMap.width=4147;
-				previewMap.height=3120;
-				inchesWidth=43.2;
-				inchesHeight=32.75;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 			// 14-.8 x 8.5-1.25
@@ -712,17 +684,6 @@ function changePrintSize(scaleChange){
 				previewMap.height=3144;
 				inchesWidth=21.2;
 				inchesHeight=32.75;
-				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
-			}
-			// 34-.8 x 44-1.25
-			// 33.2 x 42.75 inch image (without borders)
-			// 3187.2 x 4104 pixels in screen resolution (inches * 96)
-			// 637 x 820 20% of that
-			else if (selectedValue_size == "ANSIE ") {
-				previewMap.width=3187;
-				previewMap.height=4104;
-				inchesWidth=33.2;
-				inchesHeight=42.75;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 			// 8.5 x 14
@@ -832,7 +793,6 @@ function printMap(){
 			else if (selectedValue_size == "11 x 17") min = 120;
 			else if (selectedValue_size == "17 x 22") min = 180;
 			else if (selectedValue_size == "22 x 34") min = 240;
-			else if (selectedValue_size == "34 x 44") min = 240;
 			document.getElementById("aproxMin").innerHTML = "Approximate time needed to create this PDF is "+min/60 +" minutes or less.";
 			var timer = setInterval(function() {
 				// time 3 minutes then start over if needed.
@@ -904,7 +864,6 @@ function printMap(){
 			else if (selectedValue_size == "11 x 17") selectedValue_size = "Tabloid";
 			else if (selectedValue_size == "17 x 22") selectedValue_size = "ANSIC";
 			else if (selectedValue_size == "22 x 34") selectedValue_size = "ANSID";
-			else if (selectedValue_size == "34 x 44") selectedValue_size = "ANSIE";
 			template.exportOptions = { dpi: dpi, width: parseInt(inchesWidth*dpi), height: parseInt(inchesHeight*dpi) };
 			
 			// default to geopdf
@@ -1153,7 +1112,6 @@ function showPrintPreview(){
 		else if (selectedValue_size == "11 x 17") selectedValue_size = "Tabloid ";
 		else if (selectedValue_size == "17 x 22") selectedValue_size = "ANSIC ";
 		else if (selectedValue_size == "22 x 34") selectedValue_size = "ANSID ";
-		else if (selectedValue_size == "34 x 44") selectedValue_size = "ANSIE ";
 		template.layout = app+" "+selectedValue_size+selectedValue_orient; // huntingatlas Letter Portrait
 		printTask = new PrintTask(printGeoServiceUrl);
 		template.preserveScale = true; // for legend to work. This is removed for the map in the python code in geo GP print service.
