@@ -897,8 +897,27 @@ function createMap() {
 																document.getElementById("findClear").style.filter="alpha(opacity=100)"; /* for IE8 and below */
 															}
 														} else {
-															labelPt = response.features[0].geometry.getCentroid();
-															initExtent = response.features[0].geometry.getExtent();
+															var union=false;
+															if (layer[i].getElementsByTagName("union")[0] && layer[i].getElementsByTagName("union")[0].firstChild &&
+																	layer[i].getElementsByTagName("union")[0].firstChild.nodeValue.toLowerCase() === "true"){
+																union=true;
+															}
+															// zoom to extent of first feature
+															if (!union){
+																labelPt = response.features[0].geometry.getCentroid();
+																initExtent = response.features[0].geometry.getExtent();
+															}
+															// zoom to extent of all features 1-14-19
+															else{
+																var newExtent = new Extent(response.features[0].geometry.getExtent());
+																for (var j = 0; j < response.features.length; j++) { 
+																	var thisExtent = response.features[j].geometry.getExtent();
+																	// making a union of extent or previous feature and current feature. 
+																	newExtent = newExtent.union(thisExtent);
+																} 
+																initExtent=newExtent;
+																labelPt = newExtent.getCenter();
+															}	
 															if (queryObj.label && queryObj.label != "") {
 																// add label to find a place graphics layer
 																searchGraphicsLayer = new GraphicsLayer();
@@ -906,6 +925,8 @@ function createMap() {
 																searchGraphicsCount.push(searchGraphicsLayer.id);
 																searchGraphicsCounter++;
 																addLabel(new Graphic(labelPt), queryObj.label, searchGraphicsLayer, "11pt");
+																document.getElementById("findClear").style.opacity=1.0;
+																document.getElementById("findClear").style.filter="alpha(opacity=100)"; /* for IE8 and below */
 															}
 														}
 														map.setExtent(initExtent,true); // 6-14-17
@@ -1239,7 +1260,7 @@ function initBasemaps() {
 			layers:[layer],
 			title:"USGS Scanned Topo",
 			id:"topo",
-			thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/931d892ac7a843d7ba29d085e0433465/info/thumbnail/usa_topo.jpg"
+			thumbnailUrl:"assets/images/USA_topo.png"//"https://www.arcgis.com/sharing/rest/content/items/931d892ac7a843d7ba29d085e0433465/info/thumbnail/usa_topo.jpg"
 		});
 		basemaps.push(basemap);
 
@@ -1257,6 +1278,7 @@ function initBasemaps() {
 		basemaps.push(basemap);
 
 		// Aerial with Topos
+		// old thumbnail, same as aerial  "https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
 		layers = [];
 		layer=new BasemapLayer({url:"https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer",
 		displayLevels: [6,7,8,9,10,11,12,13,14,15,16],});
@@ -1269,7 +1291,7 @@ function initBasemaps() {
 			layers:layers,
 			title:"Aerial Photo with USGS Contours",
 			id: "imagery_topo",
-			thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
+			thumbnailUrl:"assets/images/aerial_topo.png"
 		});
 		basemaps.push(basemap);
 	
