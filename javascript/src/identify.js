@@ -174,13 +174,13 @@ function readSettingsWidget() {
                                         identifyLayerIds[identifyGroups[f]][j].url == layer[i].getElementsByTagName("url")[0].childNodes[0].nodeValue &&
                                         identifyLayerIds[identifyGroups[f]][j].vis_url == layer[i].getElementsByTagName("vis_url")[0].childNodes[0].nodeValue &&
                                         identifyLayerIds[identifyGroups[f]][j].geometry == layer[i].getElementsByTagName("geometry")[0].childNodes[0].nodeValue.toLowerCase()) {
-                                        identifyLayerIds[identifyGroups[f]][j].ids.push(layer[i].getElementsByTagName("id")[0].childNodes[0].nodeValue);
-                                        identifyLayerIds[identifyGroups[f]][j].vis_ids.push(layer[i].getElementsByTagName("vis_id")[0].childNodes[0].nodeValue);
-                                        found = true;
+                                            identifyLayerIds[identifyGroups[f]][j].ids.push(layer[i].getElementsByTagName("id")[0].childNodes[0].nodeValue);
+                                            identifyLayerIds[identifyGroups[f]][j].vis_ids.push(layer[i].getElementsByTagName("vis_id")[0].childNodes[0].nodeValue);
+                                            found = true;
                                     } else if (identifyLayerIds[identifyGroups[f]][j].url == layer[i].getElementsByTagName("url")[0].childNodes[0].nodeValue &&
                                         identifyLayerIds[identifyGroups[f]][j].geometry == layer[i].getElementsByTagName("geometry")[0].childNodes[0].nodeValue.toLowerCase()) {
-                                        identifyLayerIds[identifyGroups[f]][j].ids.push(layer[i].getElementsByTagName("id")[0].childNodes[0].nodeValue);
-                                        found = true;
+                                            identifyLayerIds[identifyGroups[f]][j].ids.push(layer[i].getElementsByTagName("id")[0].childNodes[0].nodeValue);
+                                            found = true;
                                     }
                                 }
                             }
@@ -397,7 +397,7 @@ function displayContent() {
                 } else
                     identifyParams.tolerance = 1;
 
-                // Show only visible items for identifyGroup when id_vis_only="true" in config.xml
+                // Show only visible items for identifyGroup when id_vis_only="true" in SettingsWidget.xml
                 // NOTE: IdentifyParameters option LAYER_OPTION_VISIBLE is supposed to do this but is not working 1-9-18
                 if (item.id_vis_only) {
                     //identifyParams.layerOption = IdentifyParameters.LAYER_OPTION_VISIBLE; // this is not working so get visible layers manually and set identifyParams.layerIds
@@ -411,7 +411,7 @@ function displayContent() {
                     identifyParams.layerIds = item.vis_ids.slice(); // get list of ids used in the map
                     // Loop through each top layer in the TOC that is visible at this scale
                     layers.forEach(function(layer) {
-                        if (layer.url == url) {
+                        if (layer.url && layer.url.toLowerCase() == url.toLowerCase()) {
                             if (layer.visible == true) {
                                 skip = false;
                                 //var found = false;
@@ -426,24 +426,6 @@ function displayContent() {
                                             id = layer.layerInfos[id].parentLayerId;
                                         }
                                     }
-                                    /*// if this is the top layer and it is visible add it to list, or if this item is not visible then we are done do not add it.
-                                    if (layer.layerInfos[identifyParams.layerIds[i]].parentLayerId == -1 ||
-                                        layer.layerInfos[identifyParams.layerIds[i]].visible == false) {
-                                        if (layer.layerInfos[identifyParams.layerIds[i]].visible == true)
-                                            vis_layers.push(identifyParams.layerIds[i]);
-                                    }
-                                    // if parent layer is top layer and visible add it to list or if this item is not visible then we are done do not add it.
-                                    else if (layer.layerInfos[layer.layerInfos[identifyParams.layerIds[i]].parentLayerId].parentLayerId == -1 ||
-                                             layer.layerInfos[layer.layerInfos[identifyParams.layerIds[i]].parentLayerId].visible == false) {
-                                        if ( layer.layerInfos[layer.layerInfos[identifyParams.layerIds[i]].parentLayerId].visible == true)
-                                            vis_layers.push(identifyParams.layerIds[i]);
-                                    }
-                                    // if grandparent is top layer and visible add it to list or if this item is not visible then we are done do not add it
-                                    else if (layer.layerInfos[layer.layerInfos[layer.layerInfos[identifyParams.layerIds[i]].parentLayerId].parentLayerId].parentLayerId == -1 ||
-                                        layer.layerInfos[layer.layerInfos[layer.layerInfos[identifyParams.layerIds[i]].parentLayerId].parentLayerId].visible == false) {
-                                        if (layer.layerInfos[layer.layerInfos[layer.layerInfos[identifyParams.layerIds[i]].parentLayerId].parentLayerId].visible == true)
-                                            vis_layers.push(identifyParams.layerIds[i]);
-                                    }*/
                                 }
                                 identifyParams.layerIds = vis_layers;
                             } else if (skip == -1) {

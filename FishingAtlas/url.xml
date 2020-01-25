@@ -5,6 +5,7 @@
 // URL parameters Find a Place
 //
 // changes 1/21/14 added Find a Place settings
+// 1/15/20 add union tag to find the extent of all matching polygons
 //
 // Find a Place will highlight the boundary of counties, GMUs, public lands (STL,
 // SWA, SFU, WWA), forests, grasslands, and wilderness using this file.
@@ -14,6 +15,8 @@
 //	<keyword>  The key word to identify which mapservice and field to use.
 //	<url> the url of the mapservice to use to get the boundary zoom to.
 //	<expression> The where query.
+//  <union> Set to true for polygons where you want to zoom to the union of
+//     all of the polygons. If this tag is not used, it will zoom to boundary of the first polygon found.
 //  <mapscale>  For a point you can set how far to zoom in.
 //		5 = 1:250k
 //		6 = 1:100k
@@ -117,11 +120,14 @@
 		<field>GMUID</field>
 	</layer>
 	<!-- public layer is used to highlight boundaries for STL, SWA, SFU, WWA. Uses CPW Public Access Properties -->
+	<!-- Use LIKE so it selects all areas of a property. If union is true it zooms to the union of all matching names. -->
 	<layer>
 		<keyword>public</keyword>
 		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/3</url>
-		<expression>UPPER(PropName)=UPPER('[value]')</expression>
+		<expression>UPPER(PropName) LIKE UPPER('%[value]%')</expression>
+		<!--expression>UPPER(PropName)=UPPER('[value]')</expression-->
 		<mapscale></mapscale>
+		<union>true</union>
 		<field>PropName</field>
 	</layer>
 	<layer>
@@ -129,6 +135,14 @@
 		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/0</url>
 		<expression>UPPER(Name)=UPPER('[value]')</expression>
 		<mapscale>10</mapscale>
+	</layer>
+	
+	<layer>
+		<keyword>lake</keyword>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas/CFA_Angler_Data/MapServer/0</url>
+		<!--url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/0</url-->
+		<expression>UPPER(Fa_Name)=UPPER('[value]')</expression>
+		<mapscale>8</mapscale>
 	</layer>
 	<!-- forest boundary one polygon, uses Support map boundaries, Forest Service map -->
 	<layer>

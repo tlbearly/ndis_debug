@@ -2,9 +2,10 @@ var prtDisclaimer="";
 var sizeCombo,orientCombo;
 var outputName="";
 var startTim;
+var inchesWidth, inchesHeight, dpi=96; // tlb 7-20-19
 /****************************************** */
 /*  Quickly add or remove large print sizes */
-var useLargeSizes = false; // if true gives page sizes 17x22 and 22x34 also.
+var useLargeSizes = false; // if true gives page sizes 17x22 and 22x34 and 34 x 44git b also.
 
 function printInit() {
 	require(["dojo/store/Memory","dijit/form/ComboBox", "dijit/form/Select"],function(Memory,ComboBox,Select){
@@ -12,18 +13,19 @@ function printInit() {
 		var sizeStore;
 		if (useLargeSizes){
 			sizeStore = new Memory({
-				idProperty: "name",
-				data: [{name:"8.5 x 11"},
-							{name: "11 x 17"},
-							{name: "17 x 22"},
-							{name: "22 x 34"}]
+				idProperty: "value",
+				data: [{name:"small", value: "8.5 x 11"},
+							{name: "medium", value: "11 x 17"},
+							{name: "large", value: "17 x 22"},
+							{name: "x large", value: "22 x 34"},
+						  {name: "xx large", value: "34 x 44"}]
 			});
 		}
 		else{
 			sizeStore = new Memory({
 				idProperty: "name",
-				data: [{name:"8.5 x 11"},
-							{name: "11 x 17"}]
+				data: [{name:"8.5 x 11", value: "8.5 x 11"},
+							 {name: "11 x 17", value: "11 x 17"}]
 			});
 		}
 		sizeCombo = new Select({
@@ -111,6 +113,7 @@ function printScrollUp(){
 function printShow(){
 	require(["esri/map","esri/SpatialReference","esri/layers/GraphicsLayer","esri/graphic",
 	"esri/layers/ArcGISTiledMapServiceLayer","esri/layers/ArcGISDynamicMapServiceLayer","esri/geometry/Point",
+	"esri/layers/VectorTileLayer",
 	"esri/layers/OpenStreetMapLayer",
 	"esri/symbols/SimpleLineSymbol",
 	"esri/symbols/SimpleMarkerSymbol",
@@ -119,7 +122,7 @@ function printShow(){
 	"dijit/registry"
 	],
 	function(Map,SpatialReference,GraphicsLayer,Graphic,ArcGISTiledMapServiceLayer,ArcGISDynamicMapServiceLayer,
-		Point,OpenStreetMapLayer,	SimpleLineSymbol,	SimpleMarkerSymbol,	Color,	dom, registry){
+		Point,VectorTileLayer,OpenStreetMapLayer,	SimpleLineSymbol,	SimpleMarkerSymbol,	Color,	dom, registry){
 		try {
 			document.getElementById("showPreviewMap").checked = false; // always start with preview map hidden
 			drawing=true;
@@ -149,66 +152,123 @@ function printShow(){
 					document.getElementById("pdf_name").blur();
 				}
 			};
-			//document.getElementById("previewContainer").style.display="block";
 			document.getElementById("printPreview").style.display="block";
 			document.getElementById("previewCkBx").style.display="block";
-			//document.getElementById("scrollUpBtn").style.display="block";
-			//document.getElementById("scrollDownBtn").style.display="block";
-			//document.getElementById("printLegendLink").innerHTML = "";
-			// previewMap is created in readConfig.js
-			//document.getElementById("printTitle").value = "My Custom Map";
-			//document.getElementById("printSubTitle").value = "CPW Atlas";
+	
 			previewMap.removeAllLayers();
 			var sr = new SpatialReference({
 				"wkid": wkid
 			});
 			
 			// add basemap
-			if (previewMap.getLayer("basemap"))
+			/*if (previewMap.getLayer("basemap"))
 				previewMap.removeLayer(previewMap.getLayer("basemap"));
 			if (previewMap.getLayer("reference"))
 				previewMap.removeLayer(previewMap.getLayer("reference"));
-			var basemapId=0;
+			var basemapId=[];
 			var basemapRefId=-1;
 			var basemap;
 			for (i=0;i<map.layerIds.length; i++){
 				if (map.getLayer(map.layerIds[i])._basemapGalleryLayerType && map.getLayer(map.layerIds[i])._basemapGalleryLayerType == "basemap")
-					basemapId = i;
+					basemapId.push(i);
 				else if (map.getLayer(map.layerIds[i])._basemapGalleryLayerType && map.getLayer(map.layerIds[i])._basemapGalleryLayerType == "reference")
 					basemapRefId = i;
 			}
-			if (map.layerIds[basemapId] == "layer_osm"){
+			// 7-1-19 test url instead of id=layer_osm
+			/*if (map.getLayer(map.layerIds[0]).attributionDataUrl.indexOf("OpenStreetMap") > 0){
 				var osmLayer = new OpenStreetMapLayer();
 				previewMap.addLayer(osmLayer);
 				osmLayer = null;
 			}
 			else{
-				basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapId]).url,{"id":"basemap","visible": true});
-				basemap.spatialReference = map.spatialReference;
-				basemap.refresh();
-				previewMap.addLayer(basemap);
-				basemap = null;
+				// 7-1-19 Make basemapId an array because now there are more than one basemap layer. Added hillshade
+				basemapId.forEach (function(item){
+					basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[item]).tileIndexUrl,{"id":"basemap","visible": true});
+					basemap.spatialReference = map.spatialReference;
+					basemap.refresh();
+					previewMap.addLayer(basemap);
+					basemap = null;
+				});
 			}
 			// add basemap reference layer if there is one
 			if (basemapRefId != -1) {
-				basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapRefId]).url,{"id":"reference","visible":true});
+				basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapRefId]).attributionDataUrl,{"id":"reference","visible":true});
 				basemap.spatialReference = map.spatialReference;
 				basemap.refresh();
 				previewMap.addLayer(basemap);
 				basemap=null;
-			}
+			}*/
 			
+			//7-1-19  set basemap with basemapGallery. previewBasemaps is created when the users selects a new basemap
+			//if (previewBasemaps) previewBasemaps.select(mapBasemap);
+			// 7-12-19 DEBUG  force USA Topo
+			/*var basemap = new ArcGISTiledMapServiceLayer("https://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer",
+				{"id":"basemap","visible": true,"_basemapGalleryLayerType":"basemap"});
+			basemap.spatialReference = map.spatialReference;
+			basemap.refresh();
+			previewMap.addLayer(basemap);
+			basemap = null;*/
+
+			// add basemaps
+		var map_layer,osmLayer;
+		for (i=0;i<map.layerIds.length; i++){
+			map_layer = map.getLayer(map.layerIds[i]);
+			if (map.layerIds[i] == "layer_osm"){
+			//if (map_layer.attributionDataUrl && map_layer.attributionDataUrl.indexOf("OpenStreet")>-1){
+				osmLayer = new OpenStreetMapLayer();
+				osmLayer.id = "layer_osm";
+				previewMap.addLayer(osmLayer);
+				osmLayer = null;
+			}
+			else if (map_layer.attributionDataUrl && map_layer.attributionDataUrl.indexOf("OpenStreet")>-1){
+				osmLayer = new OpenStreetMapLayer();
+				osmLayer.id = "layer_osm";
+				previewMap.addLayer(osmLayer);
+				osmLayer = null;
+			}
+			else if (map.layerIds[i].indexOf("layer")>-1){
+				if (map.getLayer(map.layerIds[i]).visibleAtMapScale == true){
+					if (map.getLayer(map.layerIds[i]).url.indexOf ("MapServer")>-1)
+						basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[i]).url,{"id":"basemap","visible": true});
+					else {
+						basemap = new VectorTileLayer(map.getLayer(map.layerIds[i]).url,{"id":"basemap","visible": true});
+						basemap.setStyle(map.getLayer(map.layerIds[i]).url);
+					}
+					if (map_layer._basemapGalleryLayerType == "reference")
+						basemap.id="reference";
+					else if (i>0)basemap.id="basemap"+i;
+					basemap.spatialReference = map.spatialReference;
+					basemap._basemapGalleryLayerType = map_layer._basemapGalleryLayerType;
+					basemap.refresh();
+					previewMap.addLayer(basemap);
+					basemap = null;
+				}
+			}
+		}
+
 			// set layers
-			var prev_layer, map_layer, countLayers=0, processedLayers=0,previewLayers=[],correctOrder=[];
+			var prev_layer, countLayers=0, processedLayers=0,previewLayers=[],correctOrder=[];
 			// Count number of visible non-basemap layers, so we can add them in the correct order. tlb 8-14-17
 			for (i=0; i<map.layerIds.length; i++) {
 				map_layer = map.getLayer(map.layerIds[i]);		
 				if (map_layer.id.indexOf("layer") == 0) continue;
-				if (map_layer.url.indexOf("World_Street_Map") > -1) continue;
+				else if (map_layer.attributionDataUrl && map_layer.attributionDataUrl.indexOf("OpenStreet")>-1) continue;
+				//if (map_layer.url.indexOf("World_Street_Map") > -1) continue;
+				
+				// 7-1-19 Remove non-basemap layers
+				//if (previewMap.getLayer(map.layerIds[i]))
+				//	previewMap.removeLayer(previewMap.getLayer(map.layerIds[i]));
+
 				if (map_layer.layerInfos && map_layer.visible){ 
 					countLayers++;
 					correctOrder.push(map_layer.id);
 				}
+			}
+			// Cannot print only basemap Warning
+			if (countLayers == 0){
+				alert("Printing of basemaps alone does not work. Please add map layers. From the menu, select 'Layers &amp; Legend.'","Warning");
+				drawing=false;
+				return;
 			}
 			for (i=0; i<map.layerIds.length; i++){
 				map_layer = map.getLayer(map.layerIds[i]);
@@ -395,17 +455,18 @@ function changePrintSize(scaleChange){
 		var orient = dom.byId("orient");
 		var selectedValue_orient = orientCombo.attr("displayedValue");
 		var size = dom.byId("size");
-		var selectedValue_size = sizeCombo.attr("displayedValue");
+		//var selectedValue_size = sizeCombo.attr("displayedValue");
+		var selectedValue_size = sizeCombo.attr("value");
 
 		// User just reset the map scale. Reset page size if necessary for this map scale.
 		if (scaleChange){
 			//var list = document.getElementById("mapscaleList");
 			//var scale = list.options[list.selectedIndex].value;
 			var scale = dijit.byId("mapscaleList").get("value");
-			// preview map extent is set 1st time and on orientation or map size change.
+			// preview map extent is set 1st time and on orientation or map area change.
 			var pgWidth = (3.28084 * (map.extent.xmax - map.extent.xmin) * 12) / scale;
 			var pgHeight = (3.28084 * (map.extent.ymax - map.extent.ymin) * 12) / scale;
-			//alert("For this map scale, set the Map size to at least: "+parseInt(pgWidth) +" x "+ parseInt(pgHeight),"NOTE");
+			//alert("For this map scale, set the Map area to at least: "+parseInt(pgWidth) +" x "+ parseInt(pgHeight),"NOTE");
 			var largest;
 			if (selectedValue_orient == "Landscape"){
 				largest = pgWidth;
@@ -421,6 +482,14 @@ function changePrintSize(scaleChange){
 					if (selectedValue_size != "8.5 x 11"){
 						selectedValue_size = "8.5 x 11";
 						sizeCombo.set("value","8.5 x 11");
+						if (selectedValue_orient == "Landscape"){
+							inchesWidth=10.2;
+							inchesHeight=7.25;
+						}
+						else{
+							inchesWidth=7.7;
+							inchesHeight=9.75;
+						}
 						return;
 					}
 				}
@@ -428,6 +497,14 @@ function changePrintSize(scaleChange){
 					if (selectedValue_size != "11 x 17"){
 						selectedValue_size = "11 x 17";
 						sizeCombo.set("value","11 x 17");
+						if (selectedValue_orient == "Landscape"){
+							inchesWidth=16.2;
+							inchesHeight=9.75;
+						}
+						else{
+							inchesWidth=10.2;
+							inchesHeight=15.75;
+						}
 						return;
 					}
 				}
@@ -438,6 +515,14 @@ function changePrintSize(scaleChange){
 					if (selectedValue_size != "8.5 x 11"){
 						selectedValue_size = "8.5 x 11";
 						sizeCombo.set("value","8.5 x 11");
+						if (selectedValue_orient == "Landscape"){
+							inchesWidth=10.2;
+							inchesHeight=7.25;
+						}
+						else{
+							inchesWidth=7.7;
+							inchesHeight=9.75;
+						}
 						return;
 					}
 				}
@@ -445,6 +530,14 @@ function changePrintSize(scaleChange){
 					if (selectedValue_size != "11 x 17"){
 						selectedValue_size = "11 x 17";
 						sizeCombo.set("value","11 x 17");
+						if (selectedValue_orient == "Landscape"){
+							inchesWidth=16.2;
+							inchesHeight=9.75;
+						}
+						else{
+							inchesWidth=10.2;
+							inchesHeight=15.75;
+						}
 						return;
 					}
 				}
@@ -452,13 +545,44 @@ function changePrintSize(scaleChange){
 					if (selectedValue_size != "17 x 22"){
 						selectedValue_size = "17 x 22";
 						sizeCombo.set("value","17 x 22");
+						if (selectedValue_orient == "Landscape"){
+							inchesWidth=21.2; // width - .8
+							inchesHeight=15.75;  // height - 1.25
+						}
+						else{
+							inchesWidth=16.2;
+							inchesHeight=20.75;
+						}
+						return;
+					}
+				}
+				else if (largest <= 34) {
+					if (selectedValue_size != "22 x 34"){
+						selectedValue_size = "22 x 34";
+						sizeCombo.set("value","22 x 34");
+						if (selectedValue_orient == "Landscape"){
+							inchesWidth=33.2;
+							inchesHeight=20.75;
+						}
+						else{
+							inchesWidth=21.2;
+							inchesHeight=32.75;
+						}
 						return;
 					}
 				}
 				else {
-					if (selectedValue_size != "22 x 34"){
-						selectedValue_size = "22 x 34";
-						sizeCombo.set("value","22 x 34");
+					if (selectedValue_size != "34 x 44"){
+						selectedValue_size = "34 x 44";
+						sizeCombo.set("value","34 x 44");
+						if (selectedValue_orient == "Landscape"){
+							inchesWidth=43.2; // w - .8
+							inchesHeight=32.75; // h - 1.25
+						}
+						else{
+							inchesWidth=33.2; // w- .8
+							inchesHeight=42.75; // h - 1.25
+						}
 						return;
 					}
 				}
@@ -469,6 +593,7 @@ function changePrintSize(scaleChange){
 		else	if (selectedValue_size == "11 x 17") selectedValue_size = "Tabloid ";
 		else if (selectedValue_size == "17 x 22") selectedValue_size = "ANSIC ";
 		else if (selectedValue_size == "22 x 34") selectedValue_size = "ANSID ";
+		else if (selectedValue_size == "34 x 44") selectedValue_size = "ANSIE ";
 		//var pt = map.extent.getCenter();
 		//var level = previewMap.getLevel();
 		
@@ -481,34 +606,53 @@ function changePrintSize(scaleChange){
 			if (selectedValue_size == "Letter "){
 				previewMap.width=979;
 				previewMap.height=696;
+				inchesWidth=10.2;
+				inchesHeight=7.25;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 			// 17 x 11
 			// 17-.8 x 11-1.25
-			// 16.2 x 8.75 inch image (without borders)
+			// 16.2 x 9.75 inch image (without borders)
 			// 1555 x 936 pixels in screen resolution
 			// 544 x 328 35% of that
 			else if (selectedValue_size == "Tabloid ") {
 				previewMap.width=1555;
 				previewMap.height=936;
+				inchesWidth=16.2;
+				inchesHeight=9.75;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 			// 22-.8 x 17-1.25
-			// 21.2 x 15.25 inch image (without borders)
-			// 2035.2 x 1464 pixels in screen resolution (inches * 96)
-			// 407 x 293 20% of that
+			// 21.2 x 15.75 inch image (without borders)
+			// 2035.2 x 1512 pixels in screen resolution (inches * 96)
+			// 407 x 302 20% of that
 			else if (selectedValue_size == "ANSIC ") {
 				previewMap.width=2035;
-				previewMap.height=1464;
+				previewMap.height=1512;
+				inchesWidth=21.2;
+				inchesHeight=15.75;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 			// 34-.8 x 22-1.25
-			// 33.2 x 20.25 inch image (without borders)
-			// 3187.2 x 1944 pixels in screen resolution (inches * 96)
+			// 33.2 x 20.75 inch image (without borders)
+			// 3187.2 x 1992 pixels in screen resolution (inches * 96)
 			// 407 x 293 20% of that
 			else if (selectedValue_size == "ANSID ") {
 				previewMap.width=3187;
-				previewMap.height=1944;
+				previewMap.height=1992;
+				inchesWidth=33.2;
+				inchesHeight=20.75;
+				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
+			}
+			// 44-.8 x 34-1.25
+			// 43.2 x 32.75 inch image (without borders)
+			// 4147.2 x 3120 pixels in screen resolution (inches * 96)
+			// 829 x 624 20% of that
+			else if (selectedValue_size == "ANSIE ") {
+				previewMap.width=4147;
+				previewMap.height=3120;
+				inchesWidth=43.2;
+				inchesHeight=32.75;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 			// 14-.8 x 8.5-1.25
@@ -518,6 +662,8 @@ function changePrintSize(scaleChange){
 			//else if (selectedValue_size == "8.5 x 14 ") {
 			//	previewMap.width=506;
 			//	previewMap.height=278;
+			//  inchesWidth=13.2;
+			//	inchesHeight=7.25;
 			//	registry.byId("printPreviewMap").resize({w:506,h:278});
 			//}
 		}
@@ -530,6 +676,8 @@ function changePrintSize(scaleChange){
 			if (selectedValue_size == "Letter "){
 				previewMap.width=739;
 				previewMap.height=936;
+				inchesWidth=7.7;
+				inchesHeight=9.75;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 			// 11 x 17
@@ -540,24 +688,41 @@ function changePrintSize(scaleChange){
 			else if (selectedValue_size == "Tabloid ") {
 				previewMap.width=979;
 				previewMap.height=1512;
+				inchesWidth=10.2;
+				inchesHeight=15.75;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 			// 17-.8 x 22-1.25
-			// 16.2 x 20.25 inch image (without borders)
-			// 1555.2 x 1944 pixels in screen resolution (inches * 96)
+			// 16.2 x 20.75 inch image (without borders)
+			// 1555.2 x 1992 pixels in screen resolution (inches * 96)
 			// % of that
 			else if (selectedValue_size == "ANSIC ") {
 				previewMap.width=1555;
-				previewMap.height=1944;
+				previewMap.height=1992;
+				inchesWidth=16.2;
+				inchesHeight=20.75;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 				// 22-.8 x 34-1.25
-			// 21.2 x 32.25 inch image (without borders)
+			// 21.2 x 32.75 inch image (without borders)
 			// 2035.2 x 3096 pixels in screen resolution (inches * 96)
 			// of that
 			else if (selectedValue_size == "ANSID ") {
 				previewMap.width=2035;
-				previewMap.height=3096;
+				previewMap.height=3144;
+				inchesWidth=21.2;
+				inchesHeight=32.75;
+				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
+			}
+			// 34-.8 x 44-1.25
+			// 33.2 x 42.75 inch image (without borders)
+			// 3187.2 x 4104 pixels in screen resolution (inches * 96)
+			// 637 x 820 20% of that
+			else if (selectedValue_size == "ANSIE ") {
+				previewMap.width=3187;
+				previewMap.height=4104;
+				inchesWidth=33.2;
+				inchesHeight=42.75;
 				registry.byId("printPreviewMap").resize({w:previewMap.width,h:previewMap.height});
 			}
 			// 8.5 x 14
@@ -567,6 +732,8 @@ function changePrintSize(scaleChange){
 			//else if (selectedValue_size == "8.5 x 14 ") {
 			//	previewMap.width=296;
 			//	previewMap.height=490;
+			//	inchesWidth=7.7;
+			//	inchesHeight=12.75;
 			//	registry.byId("printPreviewMap").resize({ w:296,h:490});
 			//}
 		}
@@ -619,6 +786,15 @@ function printMap(){
 				return;
 			}
 			else {
+				// Read the output pdf file name from user input. Remove .pdf if it is there.
+				outputName = document.getElementById("pdf_name").value;
+				outputName = outputName.replace(/([^a-zA-Z0-9\-_\. ])/g,""); 
+				if (outputName.substr(outputName.length-4) == ".pdf")
+					outputName = outputName.substr(0,outputName.length-4);
+				if (outputName == ""){
+					alert("Please enter a valid file name.","");
+					return;
+				}
 				if (!fullExtent.contains(previewMap.extent)){
 					alert ("Printing is only allowed for Colorado.","Warning");
 					document.getElementById("previewLoading").style.display="none";
@@ -650,11 +826,13 @@ function printMap(){
 			document.getElementById("printBar").style.width = 0+"px"; // reset progress bar
 			var tim = 0;
 			var min; // number of estimated minutes to process
-			var selectedValue_size = sizeCombo.attr("displayedValue"); // Letter , Tabloid 
+			//var selectedValue_size = sizeCombo.attr("displayedValue"); // Letter , Tabloid 
+			var selectedValue_size = sizeCombo.attr("value");  
 			if (selectedValue_size == "8.5 x 11") min = 60;
 			else if (selectedValue_size == "11 x 17") min = 120;
 			else if (selectedValue_size == "17 x 22") min = 180;
 			else if (selectedValue_size == "22 x 34") min = 240;
+			else if (selectedValue_size == "34 x 44") min = 240;
 			document.getElementById("aproxMin").innerHTML = "Approximate time needed to create this PDF is "+min/60 +" minutes or less.";
 			var timer = setInterval(function() {
 				// time 3 minutes then start over if needed.
@@ -726,7 +904,8 @@ function printMap(){
 			else if (selectedValue_size == "11 x 17") selectedValue_size = "Tabloid";
 			else if (selectedValue_size == "17 x 22") selectedValue_size = "ANSIC";
 			else if (selectedValue_size == "22 x 34") selectedValue_size = "ANSID";
-			template.exportOptions = { dpi: 300 };
+			else if (selectedValue_size == "34 x 44") selectedValue_size = "ANSIE";
+			template.exportOptions = { dpi: dpi, width: parseInt(inchesWidth*dpi), height: parseInt(inchesHeight*dpi) };
 			
 			// default to geopdf
 			template.layout = app+" "+selectedValue_size+" "+selectedValue_orient; // huntingatlas Letter Portrait
@@ -736,10 +915,6 @@ function printMap(){
 			done=true; // no legend
 			legendTemplate="none";
 			template.format="pdf";
-			// Read the output pdf file name from user input. Remove .pdf if it is there.
-			outputName = document.getElementById("pdf_name").value;
-			if (outputName.substr(outputName.length-4) == ".pdf")
-				outputName = outputName.substr(0,outputName.length-4);	
 			params.extraParameters = {
 				Georef_Info : "True",
 				Legend_Template: legendTemplate,
@@ -822,33 +997,36 @@ function printMap(){
 				//var date = new Date();
 				//var theDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " +  date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
 				//var label = dijit.byId("mapscaleList").attr('displayedValue'); // mapscale
-				var category = sizeCombo.attr('displayedValue')+" pdf ";
+				var maptype = "geopdf";
+				//var category = sizeCombo.attr('displayedValue')+" "+maptype+" ";
+				var category = sizeCombo.attr('value')+" "+maptype+" ";
 				var mapscale = dijit.byId("mapscaleList").attr('displayedValue');
-				var action = sizeCombo.attr('displayedValue'); // page size
+				//var action = sizeCombo.attr('displayedValue'); // page size
+				var action = sizeCombo.attr('value'); // page size
 				var value = Math.floor(millis/1000); // seconds to generate. Must be integer for Google Analytics
 				// Add map services used
-				var label=""; // Map Services
+				var label="Print geoPDF"; // function
+				var mapservices = "";
 				for (var i=0; i<previewMap.layerIds.length; i++){
 					switch ( previewMap.layerIds[i]){
 						case "Motor Vehicle Use Map":
-							label += "M";
+							mapservices += "M";
 							break;
 						case "Hunter Reference":
-							label += "R";
+							mapservices += "R";
 							break;
 						case "Game Species":
-							label += "G";
+							mapservices += "G";
 							break;
 						case "Fishing Info":
-							label += "F";
+							mapservices += "F";
 							break;
 						case "Reference":
-							label += "R";
+							mapservices += "R";
 							break;
 					}
 				}
-				category += label;
-				var mapservices = label;
+				category += mapservices;
 				var custom;
 				var mb = -1;
 				// Calculate size of file for Google Analytics stats
@@ -858,9 +1036,10 @@ function printMap(){
 					xhr.onreadystatechange = function() {
 						if (this.readyState == this.DONE) {
 							// add file size
-							console.log("content-length=");
-							console.log(xhr.getResponseHeader("Content-Length"));
-							mb = Math.round(parseInt(xhr.getResponseHeader("Content-Length"))/1048576);
+							//mb = Math.round(parseInt(xhr.getResponseHeader("Content-Length"))/1048576);
+							mb = parseInt(xhr.getResponseHeader("Content-Length"))/1048576;
+							if (!isNaN(mb))
+								mb = parseFloat(mb.toFixed(2));
 							console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale+" "+mb+"MB");
 							// In Google Analytics, Admin, Properties, Custom Definitions, Custom Dimensions(text) & Custom Metrics(integer)
 							// Set up: 
@@ -872,11 +1051,12 @@ function printMap(){
 							custom = {
 								'metric1':value,
 								'metric2': mb,
-								'dimension2':sizeCombo.attr('displayedValue'),
+								'dimension2':sizeCombo.attr('value'),
 								'dimension3':mapservices,
-								'dimension4':mapscale
+								'dimension4':mapscale,
+								'dimension5':maptype
 							};
-							ga('send', 'event', category, action, label, value, custom);
+							if (typeof ga === "function")ga('send', 'event', category, action, label, value, custom);
 							document.getElementById("printMB").innerHTML = "File size is "+mb+"MB.";
 							document.getElementById("printMB").style.display="block";
 						}
@@ -887,11 +1067,12 @@ function printMap(){
 					console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale);
 					custom = {
 						'metric1':value,
-						'dimension2':sizeCombo.attr('displayedValue'),
+						'dimension2':sizeCombo.attr('value'),
 						'dimension3':mapservices,
-						'dimension4':mapscale
+						'dimension4':mapscale,
+						'dimension5':maptype
 					};
-					ga('send', 'event', category, action, label, value, custom);
+					if (typeof ga === "function")ga('send', 'event', category, action, label, value, custom);
 				}
 				
 				console.log("printing to "+result.url);
@@ -921,7 +1102,7 @@ function printMap(){
 			}
 			function printError(err){
 				document.getElementById("printInst").style.display="none";
-				alert("Error printing: "+err,"Code Error",err);
+				alert("Error printing with basemap, "+mapBasemap+". Error Code: "+err,"Code Error",err);
 				document.getElementById("printMapLink").innerHTML = "";
 				//document.getElementById("printLegendLink").innerHTML = "";
 				for (var i=0; i<pointWithText; i++) removeDrawItem(); // remove extra text layer added for points with text because of bug in PrintTask
@@ -966,16 +1147,18 @@ function showPrintPreview(){
 		var template = new PrintTemplate();
 		var titleTxt=outputName;
 		var selectedValue_orient = orientCombo.attr("displayedValue");
-		var selectedValue_size = sizeCombo.attr("displayedValue");
+		//var selectedValue_size = sizeCombo.attr("displayedValue");
+		var selectedValue_size = sizeCombo.attr("value");
 		if (selectedValue_size == "8.5 x 11") selectedValue_size = "Letter ";
 		else if (selectedValue_size == "11 x 17") selectedValue_size = "Tabloid ";
 		else if (selectedValue_size == "17 x 22") selectedValue_size = "ANSIC ";
 		else if (selectedValue_size == "22 x 34") selectedValue_size = "ANSID ";
+		else if (selectedValue_size == "34 x 44") selectedValue_size = "ANSIE ";
 		template.layout = app+" "+selectedValue_size+selectedValue_orient; // huntingatlas Letter Portrait
 		printTask = new PrintTask(printGeoServiceUrl);
 		template.preserveScale = true; // for legend to work. This is removed for the map in the python code in geo GP print service.
 		template.format = "prev";
-		template.exportOptions = { dpi: 300 };
+		template.exportOptions = { dpi: 72, width: parseInt(inchesWidth*72), height: parseInt(inchesHeight*72) };
 		template.showAttribution = false;
 		template.layoutOptions = {
 			titleText: titleTxt,
@@ -990,35 +1173,38 @@ function showPrintPreview(){
 		function previewResult(result){
 			// Add Google Analytics stats for georef printing preview jpg
 			var millis = Date.now() - startTim;
-			var category = sizeCombo.attr('displayedValue')+" jpg ";
-			var action = sizeCombo.attr('displayedValue'); // page size
+			var maptype = "prev";
+			//var category = sizeCombo.attr('displayedValue')+" "+maptype+" ";
+			//var action = sizeCombo.attr('displayedValue'); // page size
+			var category = sizeCombo.attr('value')+" "+maptype+" ";
+			var action = sizeCombo.attr('value'); // page size
 			var mapscale = dijit.byId("mapscaleList").attr('displayedValue'); // mapscale
-			var value = Math.floor(millis/1000); // seconds to generate. Must be integer for Google Analytics
+			var value = Math.floor(millis/1000); // seconds to generate.
 			// Add map services used
-			var label=""; // Map Services
+			var label="Print Preview"; // function
+			var mapservices = "";
 			for (var i=0; i<previewMap.layerIds.length; i++){
 				switch ( previewMap.layerIds[i]){
 					case "Motor Vehicle Use Map":
-						label += "M";
-						break;
-					case "Hunter Reference":
-						label += "R";
-						break;
-					case "Game Species":
-						label += "G";
-						break;
-					case "Fishing Info":
-						label += "F";
-						break;
-					case "Reference":
-						label += "R";
-						break;
+							mapservices += "M";
+							break;
+						case "Hunter Reference":
+							mapservices += "R";
+							break;
+						case "Game Species":
+							mapservices += "G";
+							break;
+						case "Fishing Info":
+							mapservices += "F";
+							break;
+						case "Reference":
+							mapservices += "R";
+							break;
 				}
 			}
-			category += label;
-			var mapservices = label;
+			category += mapservices;
 			var custom;
-			var mb = -1;
+			/*var mb = -1;
 			// Calculate size of file for Google Analytics stats
 			if (window.XMLHttpRequest) {
 				var xhr = new XMLHttpRequest();
@@ -1026,7 +1212,9 @@ function showPrintPreview(){
 				xhr.onreadystatechange = function() {
 					if (this.readyState == this.DONE) {
 						// add file size
-						mb = Math.round(parseInt(xhr.getResponseHeader("Content-Length"))/1048576);
+						mb = parseInt(xhr.getResponseHeader("Content-Length"))/1048576;
+						if (!isNaN)
+							mb = mb.toFixed(2);
 						console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale+" "+(xhr.getResponseHeader("Content-Length")/1048576).toFixed(2)+"MB");
 						// In Google Analytics, Admin, Properties, Custom Definitions, Custom Dimensions(text) & Custom Metrics(integer)
 						// Set up: 
@@ -1038,26 +1226,28 @@ function showPrintPreview(){
 						custom = {
 							'metric1':value,
 							'metric2': mb,
-							'dimension2':sizeCombo.attr('displayedValue'),
+							'dimension2':sizeCombo.attr('value'),
 							'dimension3':mapservices,
-							'dimension4':mapscale
+							'dimension4':mapscale,
+							'dimension5':maptype
 						};
-						ga('send', 'event', category, action, label, value, custom);
+						if (typeof ga === "function")ga('send', 'event', category, action, label, value, custom);
 					}
 				};
 				xhr.send();
 			}
-			else{
-				console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale);
+			else{*/
+				console.log("Time to create preview map = " + value + " seconds for "+category+" "+mapscale);
 				custom = {
 					'metric1':value,
-					'dimension2':sizeCombo.attr('displayedValue'),
+					'dimension2':sizeCombo.attr('value'),
 					'dimension3':mapservices,
-					'dimension4':mapscale
+					'dimension4':mapscale,
+					'dimension5':maptype
 				};
-				ga('send', 'event', category, action, label, value, custom);
-			}
-			console.log("Time to create preview map = " + value + " seconds for "+category);
+				if (typeof ga === "function")ga('send', 'event', category, action, label, value, custom);
+			//}
+			//console.log("Time to create preview map = " + value + " seconds for "+category);
 			console.log("printing to "+result.url);
 			document.getElementById("print_img").src=result.url;
 			document.getElementById("previewLoading").style.display="none";

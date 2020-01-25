@@ -21,15 +21,15 @@ header("Pragma: no-cache");
         <title>Colorado Parks and Wildlife Atlas</title>
 
         <!-- *** Keep ArcGIS API version up to date here *** -->
-		<!-- When update esri version download css files also, copy and paste code into Notepad. Put in directory matching the version. Search and replace url(" with url("js.arcgis.com/3.27/esri/dijit/ -->																																															   
-        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.27/esri/css/esri.css" />
+		<!-- When update esri version download css files also, copy and paste code into Notepad. Put in directory matching the version. Search and replace url(" with url("js.arcgis.com/3.29/esri/dijit/ -->																																															   
+        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.29/esri/css/esri.css" />
         <!-- Import CSS stylesheet required for ResizeHandle module -->
-        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.27/dojox/layout/resources/ResizeHandle.css">
+        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.29/dojox/layout/resources/ResizeHandle.css">
         <!-- Available themes: claro, tundra, soria, and nihilo.-->
-        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.27/dijit/themes/claro/claro.css">
-        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.27/dijit/themes/tundra/tundra.css" /-->
-        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.27/dijit/themes/soria/soria.css" /-->
-        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.27/dijit/themes/nihilo/nihilo.css" /-->
+        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.29/dijit/themes/claro/claro.css">
+        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.29/dijit/themes/tundra/tundra.css" /-->
+        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.29/dijit/themes/soria/soria.css" /-->
+        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.29/dijit/themes/nihilo/nihilo.css" /-->
 
         <!-- icon in browser tab -->
         <link rel="shortcut icon" href="assets/images/favicon.png" />
@@ -78,10 +78,10 @@ header("Pragma: no-cache");
                 bottom: 0px;
             }
         </style>
-        <script type="text/javascript" src="https://js.arcgis.com/3.27"></script>
+        <script type="text/javascript" src="https://js.arcgis.com/3.29"></script>
         <!-- Contains dojo.js and must be loaded after dojoConfig -->
         <!-- Load external javascript files here. -->
-        <!-- pdf library from https://github.com/MrRio/jsPDF  also in js.arcgis.com 3.27, but missing saveAs function -->
+        <!-- pdf library from https://github.com/MrRio/jsPDF  also in js.arcgis.com 3.29, but missing saveAs function -->
         <!-- for saveAs funciton to save to disk -->
         <script type="text/javascript" src="jsPDF/dist/jspdf.debug.js" true></script>
         <!--link rel="stylesheet" type="text/css" href="assets/css/layout.css?v=3.20" /-->
@@ -96,7 +96,7 @@ header("Pragma: no-cache");
         <script type="text/javascript" src="javascript/identify.js?v=3.20"></script>	
         <script type="text/javascript" src="javascript/maplink.js?v=3.17"></script>
         <script type="text/javascript" src="javascript/print.js?v=3.21></script>
-        <script type="text/javascript" src="javascript/readConfig.js?v=3.21"></script>
+        <script type="text/javascript" src="javascript/readConfig.js?v=3.24a"></script>
         <script type="text/javascript" src="javascript/resourceReport.js?v=3.16"></script>
         <script type="text/javascript" src="javascript/search.js?v=3.20"></script-->
         <!--script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCnamSJ8X7vZxYVby_V52kuveWx1jXx2SQ"></script><!-- for google maps elevation data. Used by Identify -->
@@ -240,7 +240,7 @@ header("Pragma: no-cache");
                         //    urlPrefix: "https://services.arcgisonline.com",
                         //    proxyUrl: "/proxy/DotNet/proxy.ashx"
                         //});
-                        esri.config.defaults.io.timeout = 180000; // increase timeout for printing from 60 seconds (60,000) to 3 minutes
+                        esri.config.defaults.io.timeout = 180000; // increase timeout for printing from 60 seconds (60,000) to 3 minutes (180000)
                         // report warning if old browser
                         if (oldversion())
                             alert(" ", "Warning");
@@ -417,7 +417,7 @@ header("Pragma: no-cache");
             </div>
 
             <!-- Error Message -->
-            <div data-dojo-type="dijit/Dialog" data-dojo-id="errorDialog" style="width:350px;max-height:400px;margin:10px;display:none;overflow:scroll;" title="Error Message" onCancel="requrie(['dojo/dom'],function(dom){dom.byId('errMsg').innerHTML='';});">
+            <div data-dojo-type="dijit/Dialog" data-dojo-id="errorDialog" style="width:350px;max-height:400px;margin:10px;display:none;overflow:scroll;" title="Error Message" onCancel="require(['dojo/dom'],function(dom){dom.byId('errMsg').innerHTML='';});">
                 <div id="errMsg" class="dijitDialogPaneContentArea"></div>
                 <div align="center"><button onClick="errorDialog.hide();dojo.byId('errMsg').innerHTML='';" data-dojo-type="dijit/form/Button" role="presentation" type="button">Close</button></div>
             </div>
@@ -918,7 +918,7 @@ header("Pragma: no-cache");
                     <span title="Settings Help" onClick="settingsHelpDialog.show();"><img alt="help button" class="help_icon" src="assets/images/i_help.png"></span> Settings are stored in a cookie in your browser history.<br/><br/>
                     <!-- default value is set in identify.js/readSettingsWidget -->
                     <label for="settings_xy_proj" title="Set the coordinate format to use to display points.">Set coordinate format: </label>
-                    <select id="settings_xy_proj" name="settings_xy_proj" data-dojo-type="dijit/form/Select" onChange="require(['dijit/registry'],function(registry){if (registry.byId('pointUnits'))registry.byId('pointUnits').set('value',registry.byId('settings_xy_proj').value);registry.byId('help_xy_proj').set('value',registry.byId('settings_xy_proj').value);settings.XYProjection=registry.byId('settings_xy_proj').value;setCookie('prj', registry.byId('settings_xy_proj').value);});">
+                    <select id="settings_xy_proj" name="settings_xy_proj" data-dojo-type="dijit/form/Select" onChange="require(['dijit/registry'],function(registry){if (registry.byId('pointUnits'))registry.byId('pointUnits').set('value',registry.byId('settings_xy_proj').value);registry.byId('help_xy_proj').set('value',registry.byId('settings_xy_proj').value);settings.XYProjection=registry.byId('settings_xy_proj').value;setCookie('prj', registry.byId('settings_xy_proj').value);});if (typeof ga==='function')ga('send','event','settings_xy_proj','click','Settings XY Proj','1');">
 			  <option value="dd">Lat/Long Decimal Degrees</option>
 			  <option value="dms">Lat/Long Degrees, Min, Sec</option>
 			  <option value="dm">Lat/Long Degrees, Decimal Min</option>

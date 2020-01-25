@@ -2,6 +2,11 @@ function setMapLink() {
 	// Generate a url to the current map.
 	// Called when user clicks on Map Link
 	//
+	// Google Analytics count how many times Buy License is clicked on
+	if (typeof ga === "function"){
+		ga('send', 'event', "map_link", "click", "Map Link", "1");
+	}
+	
 	var len;
 	var urlStr = window.location.href;
 	// Array of all url name/value pairs

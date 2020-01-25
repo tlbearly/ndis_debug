@@ -3,8 +3,10 @@ function setBookmarks() {
 	try {
 		require(["dojo/dom","dijit/registry"], function(dom,registry){
 			registry.byId("bmTabs").watch("selectedChildWidget", function (name, oval, nval) {
-				if (nval.id == "bmAddPane")
+				if (nval.id == "bmAddPane"){
 					document.getElementById("bookmarkName").focus();
+				}
+					
 			});
 			var bmNames = getCookie("bm_" + app.toLowerCase());
 			if (bmNames != "") {
@@ -44,6 +46,8 @@ function updateBookmarkContent(value) {
 function addBookmark() {
 	try {
 		require(["dojo/dom","dijit/registry"], function(dom,registry){
+			// Google Analytics count how many times Add Bookmark is clicked on
+			if (typeof ga === "function")ga('send', 'event', "bookmark", "click", "Bookmark", "1");
 			var bmNames = getCookie("bm_" + app.toLowerCase());
 			var name = dom.byId("bookmarkName").value;
 			// clean from XSS attacks
