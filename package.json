@@ -7,8 +7,10 @@
     "clean-css": "^4.2.1",
     "gulp": "^4.0.2",
     "jshint": "^2.10.2",
+    "kind-of": "^6.0.3",
     "latest": "^0.2.0",
-    "npm-check": "^5.9.0",
+    "minimist": "^1.2.5",
+    "npm-check": "^5.9.2",
     "pump": "^3.0.0"
   },
   "devDependencies": {
