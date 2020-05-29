@@ -1296,12 +1296,13 @@ function initBasemaps() {
 		basemaps.push(basemap);
 	
 		// ESRI Digital Topo
+		// old thumb thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/30e5fe3149c34df1ba922e6f5bbf808f/info/thumbnail/ago_downloaded.jpg"
 		layer=new BasemapLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"});
 		basemap = new Basemap({
 			layers:[layer],
 			title:"ESRI Digital Topo",
 			id:"topo2",
-			thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/30e5fe3149c34df1ba922e6f5bbf808f/info/thumbnail/ago_downloaded.jpg"
+			thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/588f0e0acc514c11bc7c898fed9fc651/info/thumbnail/topo_thumb_b2wm.jpg"
 		});
 		basemaps.push(basemap);
 
