@@ -3,14 +3,14 @@ This is due the error: Uncaught DOMException: Failed to read the 'cssRules' prop
 
 When update esri version download css files also, copy and paste code into Notepad. Put in directory matching the version. -->
 These files can be downloaded from:
-https://js.arcgis.com/3.25compact/dojox/mobile/themes/iphone/iphone.css
-https://js.arcgis.com/3.25/esri/css/esri.css
-https://js.arcgis.com/3.25compact/dojox/image/resources/image.css
-https://js.arcgis.com/3.25/dijit/themes/soria/soria.css
+https://js.arcgis.com/3.31compact/dojox/mobile/themes/iphone/iphone.css
+https://js.arcgis.com/3.31/esri/css/esri.css
+https://js.arcgis.com/3.31compact/dojox/image/resources/image.css
+https://js.arcgis.com/3.31/dijit/themes/soria/soria.css
 
-In esri.css, search and replace url(" with url("https://js.arcgis.com/3.25/esri/dijit/
-In soria.css, search and replace url(" with url("https://js.arcgis.com/3.25/dijit/themes/soria/
-In image.css, search and replace url(" with url("https://js.arcgis.com/3.25compact/dojox/image/resources/
+In esri.css, search and replace url(" with url("https://js.arcgis.com/3.31/esri/dijit/
+In soria.css, search and replace url(" with url("https://js.arcgis.com/3.31/dijit/themes/soria/
+In image.css, search and replace url(" with url("https://js.arcgis.com/3.31compact/dojox/image/resources/
 Because of an error on mobile, When update ESRI version, download css files also. Put in directory matching the version.
 This is due the error: Uncaught DOMException: Failed to read the 'cssRules' property from 'CSSStyleSheet': Cannot access rules.
 
