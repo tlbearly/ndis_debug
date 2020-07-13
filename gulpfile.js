@@ -2,6 +2,7 @@
 // Goto npmjs.com, click 'Install npm', then click 'download Node.js and npm'.
 // Goto https://nodejs.org/en/ and download latest version of node.js click on downloaded file.
 // ***Keep up to date: npm install npm@latest -g
+// rm -f package-lock.json && npm install (if github says package-lock.json is out of date)
 // npm install gulp latest
 // npm install --save-dev gulp-clean-css
 // npm install --save-dev gulp-uglify
@@ -10,6 +11,7 @@
 // npm install -g gulp-cli
 // npm install -g npm-check   Use this to check for out of date packages
 //   Run npm-check -gu   for interactive uninstall. See https://www.npmjs.com/package/npm-check
+//   Run npm-check -gy   for uninteractive uninstall.
 //
 // To minify run: gulp filenameD (desktop) or filenameM (mobile) from the debug directory.
 // For example: gulp searchD
