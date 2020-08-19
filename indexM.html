@@ -1,19 +1,12 @@
 <!DOCTYPE HTML>
-<?php
-// Force browser, ISP, etc. to refresh their cache for this file.
-// Date in the past
-header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
-// always modified
-header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
-// HTTP/1.1
-header("Cache-Control: no-store, no-cache, must-revalidate");
-header("Cache-Control: post-check=0, pre-check=0", false);
-// HTTP/1.0
-header("Pragma: no-cache");
-?>
 <html>
     <head>
 		<title>CPW Atlas</title>
+		<meta http-equiv="cache-control" content="no-cache, must-revalidate, post-check=0, pre-check=0" />
+  	<meta http-equiv="cache-control" content="max-age=0" />
+  	<meta http-equiv="expires" content="0" />
+  	<meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+  	<meta http-equiv="pragma" content="no-cache" />
 		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
 		<meta content="utf-8" http-equiv="encoding">
 		<!--meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no"/-->
@@ -44,23 +37,23 @@ header("Pragma: no-cache");
 		<!-- CSS files -->
 		<!-- *** Keep ArcGIS API version up to date here *** -->
 		<!-- When update esri version download css files also, copy and paste code into Notepad. Put in directory matching the version. -->
-        <!-- In esri.css, search and replace url(" with url("https://js.arcgis.com/3.32/esri/dijit/ -->
-        <!-- In soria.css, search and replace url(" with url("https://js.arcgis.com/3.32/dijit/themes/soria/ -->
-				<!-- In image.css, search and replace url(" with url("https://js.arcgis.com/3.32compact/dojox/image/resources/ -->
+        <!-- In esri.css, search and replace url(" with url("https://js.arcgis.com/3.33/esri/dijit/ -->
+        <!-- In soria.css, search and replace url(" with url("https://js.arcgis.com/3.33/dijit/themes/soria/ -->
+				<!-- In image.css, search and replace url(" with url("https://js.arcgis.com/3.33compact/dojox/image/resources/ -->
 				<!-- See readme.txt -->
         <!-- Because of an error on mobile, When update ESRI version, download css files also. Put in directory matching the version. -->
         <!-- This is due the error: Uncaught DOMException: Failed to read the 'cssRules' property from 'CSSStyleSheet': Cannot access rules.-->
-		<link rel="stylesheet" type="text/css" href="assets/css/3.32/iphone.css?v=3.32" />
-		<!--Download from: https://js.arcgis.com/3.32compact/dojox/mobile/themes/iphone/iphone.css"/-->
-		<link rel="stylesheet" type="text/css" href="assets/css/3.32/esri.css?v=3.32" />
-		<!--Download from: https://js.arcgis.com/3.32/esri/css/esri.css" /-->
-		<link rel="stylesheet" type="text/css" href="assets/css/3.32/image.css?v=3.32" />
-		<!--Download from: https://js.arcgis.com/3.32compact/dojox/image/resources/image.css"-->  
+		<link rel="stylesheet" type="text/css" href="assets/css/3.33/iphone.css?v=3.33" />
+		<!--Download from: https://js.arcgis.com/3.33compact/dojox/mobile/themes/iphone/iphone.css"/-->
+		<link rel="stylesheet" type="text/css" href="assets/css/3.33/esri.css?v=3.33" />
+		<!--Download from: https://js.arcgis.com/3.33/esri/css/esri.css" /-->
+		<link rel="stylesheet" type="text/css" href="assets/css/3.33/image.css?v=3.33" />
+		<!--Download from: https://js.arcgis.com/3.33compact/dojox/image/resources/image.css"-->  
 		
 		<!-- Available themes: claro, tundra, soria, and nihilo.-->
 		<!-- Feature Search combo box styles -->
-		<link rel="stylesheet" type="text/css" href="assets/css/3.32/soria.css?v=3.32" />
-		<!--Download from: https://js.arcgis.com/3.32/dijit/themes/soria/soria.css"/-->
+		<link rel="stylesheet" type="text/css" href="assets/css/3.33/soria.css?v=3.33" />
+		<!--Download from: https://js.arcgis.com/3.33/dijit/themes/soria/soria.css"/-->
 																								   		
 		<!--link rel="stylesheet" type="text/css" href="assets/css/layoutM.css?v=3.20b" /-->
 		<link rel="stylesheet" type="text/css" href="javascriptM/toc/build/agsjs/css/agsjs.css?v=3.20" />
@@ -96,7 +89,7 @@ header("Pragma: no-cache");
 		};
 		</script>
 		<!-- Load our javascript. If last parameter is true it will load asyncronously. Else the script is fetched and executed immediately. -->
-		<script src="https://js.arcgis.com/3.32compact"></script>
+		<script src="https://js.arcgis.com/3.33compact"></script>
 		<!-- Load external javascript files here. -->
         <!--script>
 		<script type="text/javascript" src="javascriptM/geo.js?v=3.20"></script>
@@ -275,17 +268,20 @@ header("Pragma: no-cache");
 
 				// value
 				if (queryObj.value){
-					regexp=/([^a-zA-Z0-9 \-\',\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+					regexp=/([^a-zA-Z0-9 \-\',\.!_\*()#/&\\])/g; // allow \ for the test (\' \") but remove it for the clean
 					if (regexp.test(queryObj.value)) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
-					regexp=/([^a-zA-Z0-9 \-\',\.!_\*()])/g;
+					regexp=/([^a-zA-Z0-9 \-\',\.!_\*()#/&])/g;
 					queryObj.value=queryObj.value.replace(regexp,""); // clean it
+					// 8-18-20 single quote is used in the SQL expression, replace it with '' and it will be used as '.
+					var quote = /'/g;
+					queryObj.value = queryObj.value.replace(quote,"''");
 				}
 
 				// label
 				if (queryObj.label){
-					regexp=/([^a-zA-Z0-9 \-\',\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+					regexp=/([^a-zA-Z0-9 \-\',\.!_\*()#/&\\])/g; // allow \ for the test (\' \") but remove it for the clean
 					if (regexp.test(queryObj.label)) alert("Illegal characters were found on the URL. Point labels may not load properly.","Warning");
-					regexp=/([^a-zA-Z0-9 \-\',\.!_\*()])/g;
+					regexp=/([^a-zA-Z0-9 \-\',\.!_\*()#/&])/g;
 					queryObj.label=queryObj.label.replace(regexp,""); // clean it
 				}
 
@@ -320,9 +316,9 @@ header("Pragma: no-cache");
 
 				// Place
 				if (queryObj.place){
-					regexp=/([^a-zA-Z0-9 \-\',\.!_\*():\\])/g; // allow \ for the test (\' \") but remove it for the clean, : used in degree, min, sec point
+					regexp=/([^a-zA-Z0-9 \-\',\.!_\*():#/&\\])/g; // allow \ for the test (\' \") but remove it for the clean, : used in degree, min, sec point
 					if (regexp.test(queryObj.place)) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
-					regexp=/([^a-zA-Z0-9 \-\',\.!_\*():])/g;
+					regexp=/([^a-zA-Z0-9 \-\',\.!_\*():#/&])/g;
 					queryObj.place=queryObj.place.replace(regexp,""); // clean it
 				}
 					
@@ -812,7 +808,7 @@ header("Pragma: no-cache");
 		<div data-dojo-type="dojox/mobile/ContentPane" style="margin:5px;text-align:left;">
 			<div id="errorMsg"></div>
 			<div id="errorXbtn" style="float:right;display:none;position:absolute;right:1px;top:3px;">
-				<a href="javascript:closeAlert();"><img src="https://js.arcgis.com/3.32compact/esri/dijit/images/whitex.png" class="btn" /></a>
+				<a href="javascript:closeAlert();"><img src="https://js.arcgis.com/3.33compact/esri/dijit/images/whitex.png" class="btn" /></a>
 			</div>
 		</div>
 	</div>
