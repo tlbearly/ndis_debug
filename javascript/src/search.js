@@ -116,6 +116,10 @@ function searchInit() {
 							var expr;
 							// esriRequest only returns up to 1000 records. So update the store as the user types.
 							var userText = registry.byId("searchText").attr("displayedValue");
+							// 8-18-20 if contains a single quote, change it to ''.
+							var quote = /'/g;
+							userText = userText.replace(quote,"''");
+
 							if (searchObj[id].expression.indexOf("= UPPER('[value]')",0) > 0)
 							{
 								expr = searchObj[id].expression.replace("= UPPER('[value]')", "LIKE UPPER('"+userText+"%')");
@@ -275,9 +279,12 @@ function searchInit() {
 
 							var userTypedTxt = registry.byId("searchText").get("value");
 							// protect against xss attacks
-							var regexp=/([^a-zA-Z0-9 :#\-\',\.!_\*()])/g; 
+							var regexp=/([^a-zA-Z0-9 :#\-\',\.!_\*()/&])/g; // 8-18-20 add / character
 							if (regexp.test(userTypedTxt)) alert("Illegal characters were removed from the search text.","Warning");
 							userTypedTxt=userTypedTxt.replace(regexp,""); // clean it
+							// 8-18-20 if contains a single quote, change it to ''.
+							var quote = /'/g;
+							userTypedTxt = userTypedTxt.replace(quote,"''");
 
 							var attr = registry.byId("featureType").attr("displayedValue");
 							if (userTypedTxt == "" && attr != "Township Range") return;
@@ -429,9 +436,9 @@ function searchInit() {
 									{
 										document.getElementById("searchMsg").innerHTML="Loading...";
 										document.getElementById("searchMsg").style.display = "block";
-										// Check for single quote
-										var quote = /'/g;
-										userTypedTxt = userTypedTxt.replace(quote,"''");
+										// Check for single quote 8-18-20 ALREADY DONE ABOVE
+										//var quote = /'/g;
+										//userTypedTxt = userTypedTxt.replace(quote,"''");
 										expr = queryExpr.replace("[value]", userTypedTxt);
 										registry.byId("searchText").set("value","");
 									}

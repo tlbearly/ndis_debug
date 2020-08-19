@@ -1473,17 +1473,22 @@ function readConfig() {
 
 			// value
 			if (queryObj.value){
-				regexp=/([^a-zA-Z0-9 \-\',\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+				// 8-18-20 added # and / as safe characters in the value
+				//regexp=/([^a-zA-Z0-9 \-\',\.!_\*()\\])/g; // allow \ for the test \" but remove it for the clean
+				regexp=/([^a-zA-Z0-9 \-\',\.!_\*()\\#/&])/g; // allow \ for the test \" but remove it for the clean
 				if (regexp.test(queryObj.value)) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
-				regexp=/([^a-zA-Z0-9 \-\',\.!_\*()])/g;
+				regexp=/([^a-zA-Z0-9 \-\',\.!_\*()#/&])/g;
 				queryObj.value=queryObj.value.replace(regexp,""); // clean it
+				// 8-18-20 single quote is used in the SQL expression, replace it with '' and it will be used as '.
+				var quote = /'/g;
+				queryObj.value = queryObj.value.replace(quote,"''");
 			}
 
 			// label
 			if (queryObj.label){
-				regexp=/([^a-zA-Z0-9 \-\',\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+				regexp=/([^a-zA-Z0-9 \-\',\.!_\*()#&/\\])/g; // allow \ for the test (\' \") but remove it for the clean
 				if (regexp.test(queryObj.label)) alert("Illegal characters were found on the URL. Point labels may not load properly.","Warning");
-				regexp=/([^a-zA-Z0-9 \-\',\.!_\*()])/g;
+				regexp=/([^a-zA-Z0-9 \-\',\.!_\*()#&/])/g;
 				queryObj.label=queryObj.label.replace(regexp,""); // clean it
 			}
 
@@ -1518,9 +1523,9 @@ function readConfig() {
 
 			// Place
 			if (queryObj.place){
-				regexp=/([^a-zA-Z0-9 \-\',\.!_*():\\])/g; // allow \ for the test (\' \") but remove it for the clean, : used in degree, min, sec point
+				regexp=/([^a-zA-Z0-9 \-\',\.!_*():#&/\\])/g; // allow \ for the test (\' \") but remove it for the clean, : used in degree, min, sec point
 				if (regexp.test(queryObj.place)) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
-				regexp=/([^a-zA-Z0-9 \-\',\.!_*():])/g;
+				regexp=/([^a-zA-Z0-9 \-\',\.!_*():#&/])/g;
 				queryObj.place=queryObj.place.replace(regexp,""); // clean it
 			}
 

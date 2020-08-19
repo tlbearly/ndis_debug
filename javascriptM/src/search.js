@@ -356,6 +356,10 @@ function searchInit() {
 							var expr;
 							// esriRequest only returns up to 1000 records. So update the store as the user types.
 							var userText = registry.byId("searchText").attr("displayedValue");
+							// 8-18-20 if contains a single quote, change it to ''.
+							var quote = /'/g;
+							userText = userText.replace(quote,"''");
+
 							if (searchObj[id].expression.indexOf("= UPPER('[value]')",0) > 0)
 							{
 								expr = searchObj[id].expression.replace("= UPPER('[value]')", "LIKE UPPER('"+userText+"%')");
@@ -549,9 +553,12 @@ function searchInit() {
 							else
 								userTypedTxt = registry.byId("searchText").get("value");
 							// protect against xss attacks
-							var regexp=/([^a-zA-Z0-9 :#\-\',\.!_\*()])/g; 
+							var regexp=/([^a-zA-Z0-9 :#\-\',\.!_\*()/&])/g; // 8-18-20 added / character
 							if (regexp.test(userTypedTxt)) alert("Illegal characters were removed from the search text.","Warning");
 							userTypedTxt=userTypedTxt.replace(regexp,""); // clean it
+							// 8-18-20 if contains a single quote, change it to ''.
+							var quote = /'/g;
+							userTypedTxt = userTypedTxt.replace(quote,"''");
 
 							var attr = registry.byId("featureType").attr("displayedValue");
 							if (userTypedTxt == "" && attr != "Township Range") return;
@@ -714,12 +721,12 @@ function searchInit() {
 										document.getElementById("searchLoadingImg").style.display="block";
 										//document.getElementById("searchMsg").innerHTML="Loading...";
 										//document.getElementById("searchMsg").style.display = "block";
-										// Check for single quote
-										var quote = /'/g;
-										userTypedTxt = userTypedTxt.replace(quote,"''");
-										// for mobile use exact match
-										if (queryExpr.indexOf("LIKE UPPER('%[value]%')") > 0)
-											queryExpr = queryExpr.replace("LIKE UPPER('%[value]%')","= UPPER('[value]')");
+										// Check for single quote 8-18-20 this is done above
+										//var quote = /'/g;
+										//userTypedTxt = userTypedTxt.replace(quote,"''");
+										// for mobile use exact match 8-18-20 remove next 2 lines
+										//if (queryExpr.indexOf("LIKE UPPER('%[value]%')") > 0)
+										//	queryExpr = queryExpr.replace("LIKE UPPER('%[value]%')","= UPPER('[value]')");
 										if (usingCounty && registry.byId("searchText").get("value").lastIndexOf(" (")>-1)
 											expr = queryExpr.replace("[value]", userTypedTxt)+" AND COUNTYNAME = '"+
 												registry.byId("searchText").get("value").substring(registry.byId("searchText").get("value").lastIndexOf(" (")+2, registry.byId("searchText").get("value").length-1) +"'";
