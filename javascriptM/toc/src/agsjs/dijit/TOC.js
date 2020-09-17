@@ -19,6 +19,7 @@
 // 2011-12-20: refresh method
 // 2011-11-04: v1.06: uniquevalue renderer check on/off using definitions. group layer on/off. change css class name. inline style as default. deprecate standard style
 // 2011-08-11: support for not showing legend or layer list; slider at service level config; removed style background.
+// 2020-09-17: fix depricated dijit.Templated replaced with dijit.TemplatedMixin. Replaced .setValue(9) with .set('value', 9)
 
 /*global dojo esri*/
 
@@ -34,7 +35,7 @@ define("agsjs/dijit/TOC",
  "dojo/dom-style",
  "dojo/dom-attr",
  "dijit/_Widget",
- "dijit/_Templated",
+ "dijit/_TemplatedMixin",
  "dojo/Evented",
  "dojox/gfx",
  "dojo/fx",
@@ -57,7 +58,7 @@ define("agsjs/dijit/TOC",
   domStyle,
   domAttr,
   _Widget,
-  _Templated,
+  _TemplatedMixin,
   Evented,
   gfx,
   coreFx, 
@@ -77,7 +78,7 @@ define("agsjs/dijit/TOC",
    * _TOCNode is a node, with 3 possible types: root layer|serviceLayer|legend
    * @private
    */
-  var _TOCNode = declare([_Widget, _Templated],{
+  var _TOCNode = declare([_Widget, _TemplatedMixin],{
 	// tlb switched order of checkContainerNode and iconNode
     templateString: '<div class="agsjsTOCNode">' +
     '<div data-dojo-attach-point="rowNode" data-dojo-attach-event="onclick:_onClick">' +
@@ -424,7 +425,7 @@ define("agsjs/dijit/TOC",
 				// the new on method lost context compare to the old-good connect.
 				//dojo .connect(rootLayer, 'onOpacityChange', this, function(op){
 				rootLayer.on('opacity-change', function(evt){
-					me.slider.setValue(evt.opacity * 100);
+					me.slider.set('value', evt.opacity * 100);
 				});
 			}
 		);*/
