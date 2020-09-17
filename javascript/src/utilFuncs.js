@@ -367,7 +367,7 @@
 	  }
 	  
 	  function deleteCookie2( name ) {
-		document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+		document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax;';
 	  }
 	  
 	  function setCookie2(cname, cvalue) {
