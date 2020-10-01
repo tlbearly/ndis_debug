@@ -48,6 +48,7 @@ define("agsjs/dijit/TOC",
  "esri/config",
  "esri/layers/ArcGISDynamicMapServiceLayer",
  "esri/layers/ArcGISTiledMapServiceLayer",
+ "esri/layers/FeatureLayer",
  "dojo/sniff"], function(
   declare, 
   has,
@@ -70,7 +71,8 @@ define("agsjs/dijit/TOC",
   scaleUtils,
   esriConfig,
   ArcGISDynamicMapServiceLayer,
-  ArcGISTiledMapServiceLayer){
+  ArcGISTiledMapServiceLayer,
+  FeatureLayer){
 
  // var gmu  global variable set in index.js/mobile.js
   
@@ -832,7 +834,9 @@ define("agsjs/dijit/TOC",
           this.rootLayer.setVisibleLayers(this._getVisibleLayers(), true);
           this.rootLayerTOC._refreshLayer();
         } else if (this.rootLayer) {
-		  this.rootLayer.setVisibleLayers(this._getVisibleLayers(), true); // tlb added 4/22/16 not refreshing radio buttons and turning off layers that were not checked on startup.
+          // tlb 9/28/20 add check for setVisibleLayers
+          if ( this.rootLayer.setVisibleLayers)
+		        this.rootLayer.setVisibleLayers(this._getVisibleLayers(), true); // tlb added 4/22/16 not refreshing radio buttons and turning off layers that were not checked on startup.
           this.rootLayer.setVisibility(this.checkNode && this.checkNode.checked);
         }
         // automatically expand/collapse?
@@ -911,7 +915,12 @@ define("agsjs/dijit/TOC",
         }
       });*/
 	  // tlb Make it visible if all parent layers are also checked and it is in scale
-	  var layerInfo = this.rootLayer.layerInfos;
+    // check if layerInfos exists. FeatureService was failing. 9/28/20
+    if (!this.rootLayer.layerInfos){
+      vis.push(-1);
+      return vis;
+    }
+    var layerInfo = this.rootLayer.layerInfos;
 	  var scale = parseInt(scaleUtils.getScale(this.rootLayerTOC.tocWidget.map));
 	  for (var m=0; m<layerInfo.length; m++){
 	    // if visible and this has no children or if has no children and it is a hidden group sub-layer (ie. show only if in scale)
@@ -1113,14 +1122,14 @@ define("agsjs/dijit/TOC",
 	    if (this.rootLayer instanceof (ArcGISDynamicMapServiceLayer)) {
 	     // this._visLayerHandler = dojo .connect(this.rootLayer, "setVisibleLayers", this, "_onSetVisibleLayers");
 	     // 2013-10-17: in AMD aspect is used to replace connect to regular method, use recieveArgs=true to avoid argument shift and hitch to keep scope.
-		 this._visLayerHandler = aspect.after(this.rootLayer, "setVisibleLayers", lang.hitch(this, this._onSetVisibleLayers), true);
+		    this._visLayerHandler = aspect.after(this.rootLayer, "setVisibleLayers", lang.hitch(this, this._onSetVisibleLayers), true);
 	    }
 	    this._adjustToState();
 	    this._loaded = true;
 	    this.onLoad();
 	  } else {
 	  	//dojo .connect(this.rootLayer, 'onLoad', dojo .hitch(this, this._createRootLayerTOC));
-		this.rootLayer.on('load', lang.hitch(this, this._createRootLayerTOC));
+		  this.rootLayer.on('load', lang.hitch(this, this._createRootLayerTOC));
 	  }
 	  
     },
@@ -1178,7 +1187,8 @@ define("agsjs/dijit/TOC",
     },
 	// tlb Added this function for zoom to read just visibility of hidden group sub-layers
 	_adjustToState2: function(){
-	  if (this._rootLayerNode && this._rootLayerNode.checkNode.checked) { 
+    // tlb 9/28/20 add check for setVisibleLayers
+	  if (this._rootLayerNode && this._rootLayerNode.checkNode.checked && this.rootLayer.setVisibleLayers) { 
         this.rootLayer.setVisibleLayers(this._rootLayerNode._getVisibleLayers(), true);
 	    this._rootLayerNode._adjustToState();
 	    this._refreshLayer();

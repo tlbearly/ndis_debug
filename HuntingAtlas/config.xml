@@ -66,6 +66,10 @@
                     url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/>
 					<!--url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/--> <!-- old service -->
                     <!--url="https://apps.fs.fed.us/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/--> <!-- new service -->
+            <layer label="BLM Roads and Trails" open="true" type="dynamic" visible="false" alpha="1"
+                    url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer" />            
+            <layer label="Wildfire Perimeters" open="true" type="dynamic" visible="true" alpha="0.8"
+					url="https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/0"/>
         </operationallayers>
 		
 		<hideGroupSublayers>Emergency,Field Office,Chamber of Commerce or Welcome Center,License Agent,Campgrounds and SWA Facilities,GMU boundary (Hunting Units)</hideGroupSublayers>

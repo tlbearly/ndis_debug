@@ -254,6 +254,25 @@
 				<fields>QUAD_NAME</fields>
 				<displaynames>BLM or USGS 100K Map Name</displaynames>
 	   	</layer>
-	   	</folder>
+		</folder>
+		<folder label="BLM Roads and Trails">
+			<layer label="BLM Colorado Roads and Trails">
+				<id>0</id>
+				<url>https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer</url>
+				<geometry>line</geometry>
+				<fields>Planned Allowed Mode of Transportation,Route Primary Name,Route Primary Number</fields>
+				<displaynames>Allowed Mode of Transportation,Route Name,Route Number</displaynames>
+			</layer>
+		</folder>
+		<!-- identify is not found in this feature server.    
+		<folder label="Wildfire Perimeters">
+			<layer label="Wildfire Perimeters">
+				<id>0</id>
+				<url>https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/</url>
+				<geometry>polygon</geometry>
+				<fields>IncidentName</fields>
+				<displaynames>Incident Name</displaynames>
+			</layer>
+		</folder-->
 	</tree>
 </configuration>

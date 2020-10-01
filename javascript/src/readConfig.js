@@ -173,7 +173,7 @@ function clearAddress() {
 // Read config.xml file
 //**********************
 function readConfig() {
-	require(["dojo/dom", "dojo/io-query", "esri/layers/ArcGISDynamicMapServiceLayer", "esri/tasks/GeometryService", "esri/SpatialReference", "esri/tasks/ProjectParameters", "esri/map", "esri/geometry/Extent", "esri/dijit/Popup", "esri/symbols/SimpleFillSymbol", "esri/tasks/locator", "dijit/form/CheckBox", "agsjs/dijit/TOC", "esri/symbols/SimpleLineSymbol", "esri/layers/ArcGISTiledMapServiceLayer", "esri/dijit/BasemapGallery", "esri/dijit/Basemap", "esri/dijit/BasemapLayer", "esri/arcgis/utils", "esri/dijit/Gallery", "dojo/sniff"], function (dom, ioquery, ArcGISDynamicMapServiceLayer, GeometryService, SpatialReference, ProjectParameters, Map, Extent, Popup, SimpleFillSymbol, Locator, CheckBox, TOC, SimpleLineSymbol, ArcGISTiledMapServiceLayer, BasemapGallery, Basemap, BasemapLayer, arcgisUtils, Gallery, has) {
+	require(["dojo/dom", "dojo/io-query", "esri/layers/ArcGISDynamicMapServiceLayer", "esri/layers/FeatureLayer", "esri/tasks/GeometryService", "esri/SpatialReference", "esri/tasks/ProjectParameters", "esri/map", "esri/geometry/Extent", "esri/dijit/Popup", "esri/symbols/SimpleFillSymbol", "esri/tasks/locator", "dijit/form/CheckBox", "agsjs/dijit/TOC", "esri/symbols/SimpleLineSymbol", "esri/layers/ArcGISTiledMapServiceLayer", "esri/dijit/BasemapGallery", "esri/dijit/Basemap", "esri/dijit/BasemapLayer", "esri/arcgis/utils", "esri/dijit/Gallery", "dojo/sniff"], function (dom, ioquery, ArcGISDynamicMapServiceLayer, FeatureLayer, GeometryService, SpatialReference, ProjectParameters, Map, Extent, Popup, SimpleFillSymbol, Locator, CheckBox, TOC, SimpleLineSymbol, ArcGISTiledMapServiceLayer, BasemapGallery, Basemap, BasemapLayer, arcgisUtils, Gallery, has) {
 		var xmlDoc;
 		var ext;
 		//----------------------------------------------------------------
@@ -598,18 +598,40 @@ function readConfig() {
 						}
 					// Set layer properties from config.xml file
 					} else {
-						if (layer[i].getAttribute("visible") == "false")
-							myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
-									"opacity": Number(layer[i].getAttribute("alpha")),
-									"id": id,
-									"visible": false
-								});
-						else
-							myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
-									"opacity": Number(layer[i].getAttribute("alpha")),
-									"id": id,
-									"visible": true
-								});
+						// MapServer
+						if (layer[i].getAttribute("url").toLowerCase().indexOf("mapserver") > -1){
+							if (layer[i].getAttribute("visible") == "false")
+								myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
+										"opacity": Number(layer[i].getAttribute("alpha")),
+										"id": id,
+										"visible": false
+									});
+							else
+								myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
+										"opacity": Number(layer[i].getAttribute("alpha")),
+										"id": id,
+										"visible": true
+									});
+						} 
+						// FeatureServer tlb 9/28/20
+						else if (layer[i].getAttribute("url").toLowerCase().indexOf("featureserver") > -1){
+							if (layer[i].getAttribute("visible") == "false")
+								myLayer = new FeatureLayer(layer[i].getAttribute("url"), {
+										"opacity": Number(layer[i].getAttribute("alpha")),
+										"id": id,
+										"visible": false
+									});
+							else
+								myLayer = new FeatureLayer(layer[i].getAttribute("url"), {
+										"opacity": Number(layer[i].getAttribute("alpha")),
+										"id": id,
+										"visible": true,
+									});
+						}
+						else {
+							alert("Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit readConfig.js line 600 to add new type.");
+							return;
+						}
 					}
 					if (loadedFromCfg) {
 						collapsedFlg = false;
@@ -918,16 +940,19 @@ function readConfig() {
 					// Add basemaps by hand to use raster tile layers. vector tile layers require ArcGIS 10.5.1. These are used when
 					// showArcGISBasemaps is set to true.
 					var basemaps = [];
+					var layer;
+					var basemap;
 					// Streets
-					var layer=new BasemapLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"});
-					var basemap = new Basemap({
+					layer=new BasemapLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"});
+					basemap = new Basemap({
 						layers:[layer],
 						title:"Streets",
 						id:"streets",
 						thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/f81bc478e12c4f1691d0d7ab6361f5a6/info/thumbnail/street_thumb_b2wm.jpg"
 					});
 					basemaps.push(basemap);
-	
+					
+
 					// Aerial Photo add vector tile layer as a basemap layer
 					layers=[];
 					var vtlayer = new BasemapLayer({
@@ -947,6 +972,7 @@ function readConfig() {
 						thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
 					});
 					basemaps.push(basemap);
+					
 
 					// USGS Scanned Topo
 					// thumbnail moved no longer esists: //"https://www.arcgis.com/sharing/rest/content/items/931d892ac7a843d7ba29d085e0433465/info/thumbnail/usa_topo.jpg"
@@ -958,6 +984,7 @@ function readConfig() {
 						thumbnailUrl:"assets/images/USA_topo.png"
 					});
 					basemaps.push(basemap);
+					
 
 					// Add USGS Digital Topo back in. ESRI removed it 6-30-19
 					layer = new BasemapLayer({
@@ -1100,6 +1127,7 @@ function readConfig() {
 					});
 
 					// tlb 7-17-19 move stuff in basemapGallery.on to here because it is no longer called when showArcGISBasemaps is false
+					if (!basemapGallery.showArcGISBasemaps){
 					var items = [];
 					basemapGallery.basemaps.forEach(function (basemap) {
 						items.push({
@@ -1111,7 +1139,7 @@ function readConfig() {
 					});
 					var params = {};
 					// Move Streets to first item.
-					/*var street = null;
+					var street = null;
 					var i;
 					for (i = 0; i < items.length; i++) {
 						if (items[i].title == "Streets") {
@@ -1128,7 +1156,7 @@ function readConfig() {
 							items.moveTo(topo, 2);
 							break;
 						}
-					}*/
+					}
 					var selected_id; // to highlight selected thumbnail in basemapGallery Gallery
 					for (i = 0; i < items.length; i++) {
 						if (items[i].id == mapBasemap)
@@ -1167,136 +1195,18 @@ function readConfig() {
 					gallery.on("error", function (msg) {
 						alert("Basemap gallery error creating gallery in readConfig.js/addMap/basemapGallery.on('load'):  " + JSON.stringify(msg, null, 4), "Code Error");
 					});
+				}
 					// end tlb 7-17-19
+				
 
 					// load is call when the ArcGIS basemaps load using showArcGISBasemaps: true
-					/*basemapGallery.on("load", function () {
+					basemapGallery.on("load", function () {
 						var items = [];
 
-// debug try adding basemaps by hand
-						// other topo ??? http://server.arcgisonline.com/ArcGIS/rest/services/NGS_Topo_US_2D/MapServer
-						// other terrain https://services.arcgisonline.com/arcgis/rest/services/World_Terrain_Base/MapServer
-						
-						// Streets
-						layer=new BasemapLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"});
-						basemap = new Basemap({
-							layers:[layer],
-							title:"Streets test",
-							id:"streets2",
-							thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/f81bc478e12c4f1691d0d7ab6361f5a6/info/thumbnail/street_thumb_b2wm.jpg"
-						});
-						basemapGallery.add(basemap);
-
-						// Aerial
-						layers = [];
-						layer=new BasemapLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"});
-						layers.push(layer);
-						layer=new BasemapLayer({
-							url:"https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer",
-							isReference: true});
-						layers.push(layer);
-						basemap = new Basemap({
-							layers:layers,
-							title:"Aerial test",
-							id: "hybrid",
-							thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
-						});
-						basemapGallery.add(basemap);
-
-						// USA Topo
-						layer=new BasemapLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer"});
-						basemap = new Basemap({
-							layers:[layer],
-							title:"USA Topo",
-							id:"topo",
-							thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/931d892ac7a843d7ba29d085e0433465/info/thumbnail/usa_topo.jpg"
-						});
-						basemapGallery.add(basemap);
-						
-						// World Topo
-						layer=new BasemapLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"});
-						basemap = new Basemap({
-							layers:[layer],
-							title:"Topopogrphy",
-							id:"topo2",
-							thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/30e5fe3149c34df1ba922e6f5bbf808f/info/thumbnail/ago_downloaded.jpg"
-						});
-						basemapGallery.add(basemap);
-
-						// FS topo
-						layer=new BasemapLayer({url:"https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_FSTopo_01/MapServer"});
-						basemap = new Basemap({
-							layers:[layer],
-							title:"FS Topo",
-							id: "fstopo",
-							thumbnailUrl:"assets/images/natgeoThumb.jpg"
-						});
-						basemapGallery.add(basemap);
-						
-						// Add National Geographic Topo back in. ESRI removed it 6-30-19
-						var layer = new BasemapLayer({
-							url: "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
-						});
-						var layers;
-						var basemap = new Basemap({
-							layers:[layer],
-							title:"USGS National Map",
-							id:"natgeo",
-							thumbnailUrl:"assets/images/natgeoThumb.jpg"
-						});
-						basemapGallery.add(basemap);
-
-						// Terrain
-						layers = [];
-						layer=new BasemapLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer"});
-						layers.push(layer);
-						layer=new BasemapLayer({
-							url:"https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Reference_Overlay/MapServer",
-							isReference:true});
-						layers.push(layer);
-						basemap = new Basemap({
-							layers:layers,
-							title:"Terrain",
-							id: "terrain2",
-							thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/1536abe5e5504e5db380ccfaa9b6fd8d/info/thumbnail/Terrain_Labels_Web_map.jpg"
-						});
-						basemapGallery.add(basemap);
-
-						// Gray
-						layers=[];
-						layer=new BasemapLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"});
-						layers.push(layer);
-						layer=new BasemapLayer({
-							url:"https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer",
-							isReference:true});
-						layers.push(layer);
-						basemap = new Basemap({
-							layers:layers,
-							title:"Light Gray",
-							id: "gray2",
-							thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/de45b9cad20141ebb82fae0da8b3e2c6/info/thumbnail/lightgray_thumb_b2wm.jpg"
-						});
-						basemapGallery.add(basemap);
-
-						// Dark Gray
-						layers = [];
-						layer=new BasemapLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer"});
-						layers.push(layer);
-						layer=new BasemapLayer({
-							url:"https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer",
-							isReference:true});
-						layers.push(layer);
-						basemap = new Basemap({
-							layers:layers,
-							title:"Dark Gray",
-							id: "dark-gray",
-							thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/a343955125bf4002987c400ad6d0346c/info/thumbnail/darkgray_thumb_b2wm.jpg"
-						});
-						basemapGallery.add(basemap);
-
-//end debug test
-
 						basemapGallery.basemaps.forEach(function (basemap) {
+							var useThese = ["Imagery Hybrid", "Streets","USA Topo Maps", "National Geographic Style Map",
+							"USGS Scanned Topo","My USGS Digital Topo","Aerial Photo with USGS Contours","ESRI Digital Topo"];
+							if (!useThese.includes(basemap.title)) return;
 							// Rename ids and display titles. Ids are used for map link
 							if (basemap.title == "Imagery Hybrid") {
 								basemap.id = "hybrid";
@@ -1307,17 +1217,13 @@ function readConfig() {
 								return;
 							else if (basemap.title == "Streets")
 								basemap.id = "streets";
-							else if (basemap.title == "USA Topo Maps") {
+							else if (basemap.title == "USA Topo Maps")
 								basemap.id = "topo";
-							} else if (basemap.title == "Topographic") {
+							else if (basemap.title == "ESRI Digital Topo")
 								basemap.id = "topo2";
-							} else if (basemap.title == "Terrain with Labels")
-								basemap.id = "terrain";
-							else if (basemap.title == "Light Gray Canvas")
-								basemap.id = "gray";
 							else if (basemap.title == "OpenStreetMap")
 								basemap.id = "openstreet";
-							else if (basemap.title == "National Geographic")
+							else if (basemap.title == "National Geographic Style Map")
 								basemap.id = "natgeo";
 							items.push({
 								thumbnailUrl: basemap.thumbnailUrl,
@@ -1351,6 +1257,10 @@ function readConfig() {
 							if (items[i].id == mapBasemap)
 								selected_id = i;
 						}
+						// Add a scroll bar if necessary
+						document.getElementById("basemapGallery").style.height = "350px";
+						document.getElementById("basemapGallery").style.overflow = "auto";
+
 						params.items = items;
 						params.thumbnailStyle = "small";
 						var gallery = new Gallery(params, "basemapGallery");
@@ -1384,7 +1294,7 @@ function readConfig() {
 						gallery.on("error", function (msg) {
 							alert("Basemap gallery error creating gallery in readConfig.js/addMap/basemapGallery.on('load'):  " + JSON.stringify(msg, null, 4), "Code Error");
 						});
-					});*/
+					});
 					basemapGallery.on("error", function (msg) {
 						alert("Basemap gallery error creating basemapGallery in readConfig.js/addMap/basemapGallery.on('load'):  " + JSON.stringify(msg, null, 4), "Code Error");
 					});

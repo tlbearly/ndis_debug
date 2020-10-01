@@ -4,8 +4,8 @@ var geoLocateZoomIn=true;
 function createMap() {
 	require(["dojo/dom", "dijit/registry", "dojo/_base/lang", "esri/map", "esri/dijit/PopupMobile", "esri/symbols/SimpleLineSymbol",
 	"esri/symbols/SimpleMarkerSymbol", "esri/tasks/GeometryService", "esri/Color", "dojo/dom-construct", "esri/SpatialReference", 
-	"esri/geometry/Extent", "esri/layers/ArcGISDynamicMapServiceLayer"], function (dom, registry, lang, Map, PopupMobile,
-	SimpleLineSymbol, SimpleMarkerSymbol, GeometryService, Color, domConstruct, SpatialReference, Extent, ArcGISDynamicMapServiceLayer) {
+	"esri/geometry/Extent", "esri/layers/ArcGISDynamicMapServiceLayer", "esri/layers/FeatureLayer"], function (dom, registry, lang, Map, PopupMobile,
+	SimpleLineSymbol, SimpleMarkerSymbol, GeometryService, Color, domConstruct, SpatialReference, Extent, ArcGISDynamicMapServiceLayer, FeatureLayer) {
 		var xmlDoc;
 		function addGraphicsAndLabels() {
 			try {
@@ -374,19 +374,41 @@ function createMap() {
 					}
 					// Set layer properties from config.xml file
 					else {
-						if (layer[i].getAttribute("visible") == "false")
-							myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
-									"opacity" : Number(layer[i].getAttribute("alpha")),
-									"id" : id,
-									"visible" : false
-								});
-									
-						else
-							myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
-									"opacity" : Number(layer[i].getAttribute("alpha")),
-									"id" : id,
-									"visible" : true
-								});
+						// MapServer
+						if (layer[i].getAttribute("url").toLowerCase().indexOf("mapserver") > -1){
+							if (layer[i].getAttribute("visible") == "false")
+								myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
+										"opacity" : Number(layer[i].getAttribute("alpha")),
+										"id" : id,
+										"visible" : false
+									});
+										
+							else
+								myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
+										"opacity" : Number(layer[i].getAttribute("alpha")),
+										"id" : id,
+										"visible" : true
+									});
+						}
+						// FeatureServer tlb 9/28/20
+						else if (layer[i].getAttribute("url").toLowerCase().indexOf("featureserver") > -1){
+							if (layer[i].getAttribute("visible") == "false")
+								myLayer = new FeatureLayer(layer[i].getAttribute("url"), {
+										"opacity": Number(layer[i].getAttribute("alpha")),
+										"id": id,
+										"visible": false
+									});
+							else
+								myLayer = new FeatureLayer(layer[i].getAttribute("url"), {
+										"opacity": Number(layer[i].getAttribute("alpha")),
+										"id": id,
+										"visible": true
+									});
+						}
+						else {
+							alert("Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit readConfig.js line 600 to add new type.");
+							return;
+						}
 					}
 					if (loadedFromCfg) {
 						collapsedFlg = false;

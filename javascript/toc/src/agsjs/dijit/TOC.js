@@ -44,6 +44,7 @@ define("agsjs/dijit/TOC",
  "esri/config",
  "esri/layers/ArcGISDynamicMapServiceLayer",
  "esri/layers/ArcGISTiledMapServiceLayer",
+ "esri/layers/FeatureLayer",
  "dojo/sniff"], function(
   declare, 
   has,
@@ -63,7 +64,8 @@ define("agsjs/dijit/TOC",
   scaleUtils,
   esriConfig,
   ArcGISDynamicMapServiceLayer,
-  ArcGISTiledMapServiceLayer){
+  ArcGISTiledMapServiceLayer,
+  FeatureLayer){
 
  // var gmu  global variable set in index.js/mobile.js
   
@@ -223,7 +225,7 @@ define("agsjs/dijit/TOC",
 			  chk.startup();
 			  my.checkNode = chk;
 			});*/
-			// tlb If this is a checkbox with a single legend move the checkbox before the legend
+      // tlb If this is a checkbox with a single legend move the checkbox before the legend
 			if (!this.rootLayerTOC.config.noLegend && this.serviceLayer && this.serviceLayer._legends && this.serviceLayer._legends.length == 1){
 				domStyle.set(this.checkContainerNode, "float","left");
 				domStyle.set(this.checkContainerNode, "padding","0 0 0 16px");
@@ -281,7 +283,24 @@ define("agsjs/dijit/TOC",
       if (this.containerNode) {
         domStyle.set(this.containerNode, 'display', showChildren ? 'block' : 'none');
       }
-	  this.domNode.id = 'TOCNode_'+this.rootLayer.id + (this.serviceLayer?'_'+this.serviceLayer.id:'')+(this.legend?'_'+this.legend.id:'');
+    this.domNode.id = 'TOCNode_'+this.rootLayer.id + (this.serviceLayer?'_'+this.serviceLayer.id:'')+(this.legend?'_'+this.legend.id:'');
+    
+    // tlb 9-29-20 allow Wildfire Perimeters to have legend below
+    if (this.rootLayerTOC.config.title == "Wildfire Perimeters") {
+      // called twice for some reason! 2nd time set title to correct spelling error!
+      //if (this.checkContainerNode.style.float == "left") this.rootLayerTOC.config.title = "Wildfire Perimeters";
+      domStyle.set(this.checkContainerNode, "float","left");
+      domStyle.set(this.checkContainerNode, "padding","0 0 0 16px");
+      domStyle.set(this.labelNode, "width", "120px");
+      domStyle.set(this.labelNode, "position", "absolute");
+      domStyle.set(this.labelNode, "top", "5px");
+      domStyle.set(this.iconNode, "position","relative");
+      domStyle.set(this.iconNode, "top","-5px");
+      if (document.getElementById("showLegendChkBox").checked)
+        domStyle.set(this.labelNode, "left", "none");
+      else
+        domStyle.set(this.labelNode, "left", "35px");
+    }
     },
     // root level node, layers directly under esri.Map
     _createRootLayerNode: function(rootLayer){
@@ -763,7 +782,9 @@ define("agsjs/dijit/TOC",
           this.rootLayer.setVisibleLayers(this._getVisibleLayers(), true);
           this.rootLayerTOC._refreshLayer();
         } else if (this.rootLayer) {
-		  this.rootLayer.setVisibleLayers(this._getVisibleLayers(), true); // tlb added 4/22/16 not refreshing radio buttons and turning off layers that were not checked on startup.
+          // tlb 9/28/20 add check for setVisibleLayers
+          if ( this.rootLayer.setVisibleLayers)
+		        this.rootLayer.setVisibleLayers(this._getVisibleLayers(), true); // tlb added 4/22/16 not refreshing radio buttons and turning off layers that were not checked on startup.
           this.rootLayer.setVisibility(this.checkNode && this.checkNode.checked);
         }
         // automatically expand/collapse?
@@ -842,7 +863,12 @@ define("agsjs/dijit/TOC",
         }
       });*/
 	  // tlb Make it visible if all parent layers are also checked and it is in scale
-	  var layerInfo = this.rootLayer.layerInfos;
+    // check if layerInfos exists. FeatureService was failing. 9/28/20
+    if (!this.rootLayer.layerInfos){
+      vis.push(-1);
+      return vis;
+    }
+    var layerInfo = this.rootLayer.layerInfos;
 	  var scale = parseInt(scaleUtils.getScale(this.rootLayerTOC.tocWidget.map));
 	  for (var m=0; m<layerInfo.length; m++){
 	    // if visible and this has no children or if has no children and it is a hidden group sub-layer (ie. show only if in scale)
@@ -1103,9 +1129,10 @@ define("agsjs/dijit/TOC",
     _adjustToState: function(){
       this._rootLayerNode._adjustToState();
     },
-	// tlb Added this function for zoom to read just visibility of hidden group sub-layers
+	// tlb Added this function for zoom to read just visibility of hidden group sub-layers.
 	_adjustToState2: function(){
-	  if (this._rootLayerNode && this._rootLayerNode.checkNode.checked) { 
+    // tlb 9/28/20 add check for setVisibleLayers
+	  if (this._rootLayerNode && this._rootLayerNode.checkNode.checked && this.rootLayer.setVisibleLayers) { 
         this.rootLayer.setVisibleLayers(this._rootLayerNode._getVisibleLayers(), true);
 	    this._rootLayerNode._adjustToState();
 	    this._refreshLayer();

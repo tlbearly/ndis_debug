@@ -266,5 +266,14 @@
 				<displaynames>Stream Name</displaynames>
 			</layer>
 		</folder>
+		<folder label="BLM Roads and Trails">
+			<layer label="BLM Colorado Roads and Trails">
+				<id>0</id>
+				<url>https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer</url>
+				<geometry>line</geometry>
+				<fields>Planned Allowed Mode of Transportation,Route Primary Name,Route Primary Number</fields>
+				<displaynames>Allowed Mode of Transportation,Route Name,Route Number</displaynames>
+			</layer>
+		</folder>
 	</tree>
 </configuration>
