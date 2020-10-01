@@ -287,8 +287,6 @@ define("agsjs/dijit/TOC",
     
     // tlb 9-29-20 allow Wildfire Perimeters to have legend below
     if (this.rootLayerTOC.config.title == "Wildfire Perimeters") {
-      // called twice for some reason! 2nd time set title to correct spelling error!
-      //if (this.checkContainerNode.style.float == "left") this.rootLayerTOC.config.title = "Wildfire Perimeters";
       domStyle.set(this.checkContainerNode, "float","left");
       domStyle.set(this.checkContainerNode, "padding","0 0 0 16px");
       domStyle.set(this.labelNode, "width", "120px");
