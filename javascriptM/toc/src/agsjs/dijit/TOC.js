@@ -328,7 +328,7 @@ define("agsjs/dijit/TOC",
       if (this.containerNode) {
         domStyle.set(this.containerNode, 'display', showChildren ? 'block' : 'none');
       }
-	  this.domNode.id = 'TOCNode_'+this.rootLayer.id + (this.serviceLayer?'_'+this.serviceLayer.id:'')+(this.legend?'_'+this.legend.id:'');
+    this.domNode.id = 'TOCNode_'+this.rootLayer.id + (this.serviceLayer?'_'+this.serviceLayer.id:'')+(this.legend?'_'+this.legend.id:'');
     },
     // root level node, layers directly under esri.Map
     _createRootLayerNode: function(rootLayer){

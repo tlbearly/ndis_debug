@@ -315,6 +315,15 @@ function doIdentify(evt) {
     if (drawing) return; // If using Draw, Label, Measure widget return;
     require(["dojo/dom-construct", "dojo/query", "dojo/dom", "dojo/on", "dojo/domReady!"],
         function(domConstruct, query, dom, on) {
+            // 10-19-20 if info window is showing, close it
+            if (map.infoWindow.isShowing){
+                map.infoWindow.hide();
+                map.infoWindow.setTitle("");
+                hideLoading("");
+                return;
+            }
+
+            
             // Called for each map click or identify group change
             numDatabaseCalls = 0;
             processedDatabaseCalls = 0;
@@ -367,7 +376,8 @@ function setInfoWindowHeader() {
 
 function displayContent() {
     // Loop through each layer found at the map click
-    require(["esri/tasks/IdentifyTask", "dojo/promise/all", "dojo/Deferred"], function(IdentifyTask, all, Deferred) {
+    require(["esri/tasks/IdentifyTask", "dojo/promise/all", "dojo/Deferred", "esri/tasks/query", "esri/tasks/QueryTask"], 
+    function(IdentifyTask, all, Deferred, Query, QueryTask) {
         if (groupContent[identifyGroup]) {
             map.infoWindow.setContent(groupContent[identifyGroup]);
             hideLoading("");
@@ -385,6 +395,20 @@ function displayContent() {
         for (var i = 0; i < identifyLayerIds[identifyGroup].length; i++) {
             var item = identifyLayerIds[identifyGroup][i];
             if (item) {
+                // 10-19-20 Add identify Wildfires
+                if (item.url.indexOf("Wildfire")>-1){
+                    task = new QueryTask(item.url);
+                    var query = new Query();
+                    query.outFields = identifyLayers[identifyGroup][identifyGroup].fields;
+                    query.geometry = clickPoint;
+                    query.returnGeometry = true;
+                    query.spatialRelationship = "esriSpatialRelIntersects";
+                    query.outSpatialReference = map.spatialReference;
+                    skip = true;
+                    deferreds.push(task.execute(query, identifySuccess, handleQueryError));
+                    continue;
+                }
+                                    
                 identifyParams.layerIds = item.ids.slice(); // make a copy of this array since we change it for bighorn or goat gmu
                 if (item.geometry != "polygon") {
                     // Used to be 15,10,5
@@ -504,6 +528,57 @@ function handleQueryResults(results) {
                 return;
             }
             var title, title_subject;
+            // Set info Content Header
+            var tmpStr;
+	        var str = getIdentifyHeader(identifyGroup);
+
+            // 10-19-20 Handle Wildfire
+								if (identifyGroup == "Wildfire Perimeters"){
+									require(["esri/tasks/query", "esri/tasks/QueryTask"],
+				 						function(Query, QueryTask) {
+										if (results[0].features.length == 0){
+											title = "No " + identifyGroup;
+											map.infoWindow.setTitle(title);
+                                            getIdentifyFooter();
+                                            setInfoWindowHeader();
+											map.infoWindow.setContent("No Wildlire Perimeters at this point.<br/><br/>");
+											groupContent[identifyGroup] = "No Wildlire Perimeters at this point."; // cache content
+	          					            hideLoading("");
+											return;
+										}
+										title = results[0].features[0].attributes.IncidentName;
+										map.infoWindow.setTitle(title);
+										tmpStr = results[0].features[0].attributes.IncidentName + "</strong><div style='padding-left: 10px;'>";
+										// lookup irwinid to get incident report
+										var queryTask = new QueryTask("https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/IRWIN_to_Inciweb_View/FeatureServer/0");
+										var query = new Query();
+										var irwinid = results[0].features[0].attributes.IRWINID.substr(1,results[0].features[0].attributes.IRWINID.length -2).toLocaleLowerCase();
+										query.where = "IrwinID='"+irwinid+"'";
+										query.outFields = ["LinkURI","IrwinID"];
+										query.returnGeometry = false;
+										queryTask.execute(query, function(featureSet){
+											if (featureSet.features.length == 0 || !featureSet.features[0].attributes ||
+												!featureSet.features[0].attributes.LinkURI) {
+												tmpStr+= "<br/>No incident report found";
+											}
+											else {
+												tmpStr+="<br/><a href='" + featureSet.features[0].attributes.LinkURI + "' target='_blank'>Incident Report</a>";
+											}
+											tmpStr += "</div><br/>";
+											str += "<div><strong>" + tmpStr;
+                                            groupContent[identifyGroup] = str; // cache content
+                                            setInfoWindowHeader();
+											map.infoWindow.setContent(str);
+											getIdentifyFooter();
+	          					            hideLoading("");
+										}, function (error){ 
+											alert("Error in javascript/identify.js/handleQueryResults/queryTask.execute, url="+queryLayer+". Where irwinID='"+irwinid+"'. Error message: "+error.message,"Code Error",error);
+										});
+									});
+									return;
+                                }
+                                
+
             // Count database calls
             results.forEach(function(result) {
                 if (result && result.length > 0) {
@@ -524,8 +599,8 @@ function handleQueryResults(results) {
             setInfoWindowHeader();
 
             // Set info Content Header
-            var str = getIdentifyHeader(identifyGroup);
-            var tmpStr;
+            //var str = getIdentifyHeader(identifyGroup);
+            //var tmpStr;
 
             // Write the content for the identify 
             results.forEach(function(result) {

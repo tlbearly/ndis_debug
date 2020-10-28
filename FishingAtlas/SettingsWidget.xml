@@ -215,7 +215,7 @@
 		<folder label="Campgrounds">
 			<!-- Campground  -->
 			<layer label="Campground">
-	    	 	<id>47</id>
+	    	 	<id>48</id>
 	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
 	           	<geometry>point</geometry>
 		      	<fields>Name,Manager,CGPropertyName,CGReservable,URL1</fields>
@@ -226,7 +226,7 @@
 		<folder label="Offices and Hospitals">
 			<!-- Emergency -->
 			<layer label="Emergency">
-	      		<id>25</id>
+	      		<id>26</id>
 	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
            		<geometry>point</geometry>
 	      		<fields>Name,Address,City,Phone</fields>
@@ -234,7 +234,7 @@
 	   		</layer>
 			<!-- Field Office -->
 			<layer label="Field Office">
-	      		<id>14</id>
+	      		<id>15</id>
 	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
            		<geometry>point</geometry>
 	      		<fields>Name,Address,City,Phone</fields>
@@ -242,7 +242,7 @@
 	   		</layer>
 			<!-- Chamber of Commerce or Welcome Center -->
 			<layer label="Chamber of Commerce or Welcome Center">
-	      		<id>36</id>
+	      		<id>37</id>
 	      		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
            		<geometry>point</geometry>
 	      		<fields>Name,Address,City,Phone</fields>

@@ -121,9 +121,9 @@
 	<use_gmus>true</use_gmus>
 	<gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/2</gmu_url>
 	<gmu_field>GMUID</gmu_field>
-	<sheep_gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/79</sheep_gmu_url>
+	<sheep_gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/80</sheep_gmu_url>
 	<sheep_gmu_field>BSGMU</sheep_gmu_field>
-	<goat_gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/80</goat_gmu_url>
+	<goat_gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/81</goat_gmu_url>
 	<goat_gmu_field>MGGMU</goat_gmu_field>
 		
 	<driving_directions>true</driving_directions>
@@ -131,14 +131,24 @@
 	<elevation_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/CHA_Elevation/MapServer</elevation_url>
 	
 	<tree>
+	<!-- identify is not found in this feature server. So hard code it in identify.js. Use url with id!!! (FeatureServer/0) -->  
+		<folder label="Wildfire Perimeters">
+			<layer label="Wildfire Perimeters">
+				<id>0</id>
+				<url>https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/0</url>
+				<geometry>polygon</geometry>
+				<fields>IncidentName,IRWINID</fields>
+				<displaynames>Incident Name,Incident Report</displaynames>
+			</layer>
+		</folder>
 		<folder label="GMU and Land Management">
 			<!-- CPW Properties -->
 			<layer label="CPW Public Access Properties">
 				<id>3</id>
 				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
-        <geometry>polygon</geometry>
-		    <fields>PropName</fields>
-		   	<displaynames>CPW Property Name</displaynames>
+                <geometry>polygon</geometry>
+				<fields>PropName</fields>
+				<displaynames>CPW Property Name</displaynames>
 	   	</layer>
 			<!-- WIA Small Game ONLY -->
 			<!--
@@ -192,7 +202,7 @@
 			<desc>Hunter resources include: campgrounds, license agents, hospitals and sherrif's offices, field offices, welcome centers, and chamber of commerce.</desc>
 			<!-- Campground  -->
 			<layer label="Campground">
-	    	<id>47</id>
+	    	<id>48</id>
 				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
 				<geometry>point</geometry>
 				<fields>Name,Manager,CGPropertyName,CGReservable,URL1</fields>
@@ -200,7 +210,7 @@
 	   	</layer>	
 			<!-- Emergency -->
 			<layer label="Emergency">
-				<id>25</id>
+				<id>26</id>
 				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
 				<geometry>point</geometry>
 				<fields>Name,Address,City,Phone</fields>
@@ -208,7 +218,7 @@
 	   	</layer>
 			<!-- Field Office -->
 			<layer label="Field Office">
-				<id>14</id>
+				<id>15</id>
 				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
 				<geometry>point</geometry>
 				<fields>Name,Address,City,Phone</fields>
@@ -216,7 +226,7 @@
 	   	</layer>
 			<!-- Chamber of Commerce or Welcome Center -->
 			<layer label="Chamber of Commerce or Welcome Center">
-				<id>36</id>
+				<id>37</id>
 				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
 				<geometry>point</geometry>
 				<fields>Name,Address,City,Phone</fields>
@@ -224,7 +234,7 @@
 	   	</layer>
 			<!-- License Agent  -->
 			<layer label="License Agent">
-				<id>3</id>
+				<id>4</id>
 				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/</url>
 				<geometry>point</geometry>
 				<fields>Name,Address,City,Phone</fields>
@@ -260,19 +270,9 @@
 				<id>0</id>
 				<url>https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer</url>
 				<geometry>line</geometry>
-				<fields>Planned Allowed Mode of Transportation,Route Primary Name,Route Primary Number</fields>
-				<displaynames>Allowed Mode of Transportation,Route Name,Route Number</displaynames>
+				<fields>Route Primary Number,Route Primary Name,Planned Allowed Mode of Transportation</fields>
+				<displaynames>Route Number,Route Name,Allowed Mode of Transportation</displaynames>
 			</layer>
 		</folder>
-		<!-- identify is not found in this feature server.    
-		<folder label="Wildfire Perimeters">
-			<layer label="Wildfire Perimeters">
-				<id>0</id>
-				<url>https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/</url>
-				<geometry>polygon</geometry>
-				<fields>IncidentName</fields>
-				<displaynames>Incident Name</displaynames>
-			</layer>
-		</folder-->
 	</tree>
 </configuration>

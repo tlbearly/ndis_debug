@@ -344,19 +344,41 @@ function createMap() {
 					loadedFromCfg = true;
 					var id = layer[i].getAttribute("label");
 					if (queryObj.layer && queryObj.layer != "") {
-						if (layerObj[id])
-							myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
-									"opacity" : layerObj[id].opacity,
-									"id" : id,
-									"visible" : layerObj[id].visible,
-									"visibleLayers" : layerObj[id].visLayers
-								});
-						else
-							myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
-									"opacity" : Number(layer[i].getAttribute("alpha")),
-									"id" : id,
-									"visible" : false
-								});
+						if (layer[i].getAttribute("url").toLowerCase().indexOf("mapserver") > -1) {
+							if (layerObj[id])
+								myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
+										"opacity" : layerObj[id].opacity,
+										"id" : id,
+										"visible" : layerObj[id].visible,
+										"visibleLayers" : layerObj[id].visLayers
+									});
+							else
+								myLayer = new ArcGISDynamicMapServiceLayer(layer[i].getAttribute("url"), {
+										"opacity" : Number(layer[i].getAttribute("alpha")),
+										"id" : id,
+										"visible" : false
+									});
+						}
+						// FeatureServer tlb 10/19/20
+						else if (layer[i].getAttribute("url").toLowerCase().indexOf("featureserver") > -1){
+							if (layerObj[id]) 
+								myLayer = new FeatureLayer(layer[i].getAttribute("url"), {
+										"opacity": Number(layer[i].getAttribute("alpha")),
+										"id": id,
+										"visible" : layerObj[id].visible,
+										"visibleLayers" : layerObj[id].visLayers
+									});
+							else
+								myLayer = new FeatureLayer(layer[i].getAttribute("url"), {
+										"opacity": Number(layer[i].getAttribute("alpha")),
+										"id": id,
+										"visible": false
+									});
+						}
+						else {
+							alert("Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit readConfig.js line 600 to add new type.");
+							return;
+						}
 						loadedFromCfg = false; // not loaded from config.xml file.
 					
 						oslArr = layer[i].getAttribute("opensublayer");

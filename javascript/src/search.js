@@ -473,7 +473,11 @@ function searchInit() {
 											document.getElementById("searchMsg").style.display = "none";
 											return;
 										}
-										createRecordData(featureSet,registry.byId("featureType").attr("displayedValue"));
+										// 10/8/20 If wildlife lookup incident report as link
+										if (registry.byId("featureType").attr("displayedValue") == "Wildfire")
+											lookupWildfireIncidentReport(featureSet);
+										else
+										  createRecordData(featureSet,registry.byId("featureType").attr("displayedValue"));
 										
 									}, function (error){ 
 										alert("Error in javascript/search.js/setSelect/queryTask.execute, url="+queryLayer+". Where "+expr+". Error message: "+error.message,"Code Error",error);
@@ -488,6 +492,57 @@ function searchInit() {
 							document.getElementById("searchLoadingImg").style.display="none";
 							document.getElementById("searchMsg").style.display = "none";
 						}
+					}
+
+					function lookupWildfireIncidentReport(featureSet){
+						// 10-8-20 Get Wildfire report link
+							var count=0;
+							for(i=0;i<featureSet.features.length;i++){
+								if (!featureSet.features[i].attributes.IRWINID) {count++;continue;}
+								queryTask = new QueryTask("https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/IRWIN_to_Inciweb_View/FeatureServer/0");
+								var query = new Query();
+								var irwinid = featureSet.features[i].attributes.IRWINID.substr(1,featureSet.features[i].attributes.IRWINID.length -2).toLocaleLowerCase();
+								query.where = "IrwinID='"+irwinid+"'";
+								query.outFields = ["LinkURI","IrwinID"];
+								query.returnGeometry = false;
+								queryTask.execute(query, function(featureSet2){
+									var index=0;
+									count++;
+									if (featureSet2.features.length == 0 || !featureSet2.features[0].attributes ||
+										!featureSet2.features[0].attributes.IrwinID || !featureSet.features[index].attributes.IRWINID) {
+										
+									}
+									else {
+										// find the matching index
+										for(j=0; j<featureSet.features.length;j++)
+											if (featureSet.features[j].attributes.IRWINID && 
+												featureSet2.features[0].attributes.IrwinID &&
+												featureSet.features[j].attributes.IRWINID.toLowerCase() == "{"+featureSet2.features[0].attributes.IrwinID.toLowerCase()+"}")
+												index=j;
+											featureSet.features[index].attributes.IRWINID = featureSet2.features[0].attributes.LinkURI;
+									}
+									if (count==featureSet.features.length){
+										// remove records with no incident report
+										var featureSet3 = [];
+										for (j=0; j<featureSet.features.length;j++){
+											if (featureSet.features[j].attributes.IRWINID && featureSet.features[j].attributes.IRWINID.indexOf("inciweb") > -1)
+												featureSet3.push(featureSet.features[j]);
+										}
+										featureSet.features = featureSet3;
+										if (featureSet.features.length > 0)
+											createRecordData(featureSet,registry.byId("featureType").attr("displayedValue"));
+										else {
+											alert("No wildfire incident reports found with that name. Please try again.","Warning");
+											document.getElementById("searchLoadingImg").style.display="none";
+											document.getElementById("searchMsg").style.display="none";
+										}	
+									}
+								}, function (error){ 
+									alert("Error in javascript/search.js/setSelect/queryTask.execute, url="+queryLayer+". Where irwinID='"+irwinid+"'. Error message: "+error.message,"Code Error",error);
+									document.getElementById("searchLoadingImg").style.display="none";
+									document.getElementById("searchMsg").style.display = "none";
+								});
+							}
 					}
 
 					function makeLink(data){
@@ -991,7 +1046,11 @@ function searchInit() {
 											document.getElementById("searchMsg").style.display = "none";
 											return;
 										}
-										createRecordData(featureSet,registry.byId("featureTypeGraphic").attr("displayedValue"));
+										// 10/8/20 If wildlife lookup incident report as link
+										if (registry.byId("featureType").attr("displayedValue") == "Wildfire")
+											lookupWildfireIncidentReport(featureSet);
+										else
+										  createRecordData(featureSet,registry.byId("featureTypeGraphic").attr("displayedValue"));
 									}
 									catch (error)
 									{
@@ -1194,7 +1253,7 @@ function searchInit() {
 						registry.byId("searchRemoveBtn").set("disabled", true);
 						document.getElementById("clearSearchGraphics").style.display="none";
 						// hide table
-						document.getElementById("searchTools").style.display = "none";
+						//document.getElementById("searchTools").style.display = "none";
 						document.getElementById("searchGrid").style.display = "none";
 						document.getElementById("searchContent").style.height = tabHeight;
 					}

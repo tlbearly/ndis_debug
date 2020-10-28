@@ -12,6 +12,7 @@ function searchInit() {
 			content: 'Search for a named location by feature type. Allows searching for <b>township, range, and section</b>. The Fishing Atlas '+
 				'will highlight water bodies where certain <b>fish species</b> can be found. Select feature type and enter search text.  As you '+
 				'type, matches will be suggested. To remove the highlighted features from the map, press the Clear button on the main menu. '+
+				'Feature attributes will be displayed in a table. Click on a row to zoom to that feature.'+
 				'<br/><br/>'
 		});
 		document.body.appendChild(searchHelp.domNode);
@@ -26,11 +27,11 @@ function searchInit() {
 			try {
 				// Populate the Feature Type drop down list with the layer names from SearchWidget.xml
 				require(["dojo/dom","dijit/registry","dojo/_base/lang","dojo/mouse","dojo/_base/Color","dojo/store/Memory","dijit/form/ComboBox", "dijit/form/Select", "esri/toolbars/draw",
-					"esri/request", "esri/tasks/query", "esri/tasks/QueryTask", "esri/graphic", "esri/layers/GraphicsLayer",
-					"esri/urlUtils","esri/geometry/Point","esri/symbols/PictureMarkerSymbol","esri/symbols/SimpleLineSymbol",
+				"esri/request", "esri/tasks/query", "esri/tasks/QueryTask", "esri/graphic", "esri/layers/GraphicsLayer", "esri/InfoTemplate",
+				"esri/dijit/InfoWindowLite", "dojo/dom-construct",	"esri/urlUtils","esri/geometry/Point","esri/symbols/PictureMarkerSymbol","esri/symbols/SimpleLineSymbol",
 					"esri/symbols/SimpleFillSymbol","dojo/_base/declare","dgrid/OnDemandGrid","dgrid/extensions/DijitRegistry","dojo/domReady!"
 					], function(dom,registry,lang,mouse,Color,Memory, ComboBox, Select, Draw, esriRequest, Query, QueryTask, Graphic, GraphicsLayer,
-					urlUtils, Point, PictureMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, declare, OnDemandGrid,DijitRegistry){
+					InfoTemplate, InfoWindowLite, domConstruct, urlUtils, Point, PictureMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, declare, OnDemandGrid,DijitRegistry){
 					function showWarning(tag) {
 						// Show warning for required fields.
 						var layerName = layers[i].getElementsByTagName("name")[0] && layers[i].getElementsByTagName("name")[0].childNodes[0] ?
@@ -764,7 +765,11 @@ function searchInit() {
 											//document.getElementById("searchMsg").style.display = "none";
 											return;
 										}
-										createRecordData(featureSet,registry.byId("featureType").attr("displayedValue"));
+										// 10/8/20 If wildlife lookup incident report as link
+										if (registry.byId("featureType").attr("displayedValue") == "Wildfire")
+											lookupWildfireIncidentReport(featureSet);
+										else
+											createRecordData(featureSet,registry.byId("featureType").attr("displayedValue"));
 										
 									}, function (error){ 
 										alert("Error in javascript/search.js/setSelect/queryTask.execute, url="+queryLayer+". Where "+expr+". Error message: "+error.message,"Code Error",error);
@@ -779,6 +784,56 @@ function searchInit() {
 							document.getElementById("searchLoadingImg").style.display="none";
 							//document.getElementById("searchMsg").style.display = "none";
 						}
+					}
+
+					function lookupWildfireIncidentReport(featureSet){
+						// 10-8-20 Get Wildfire report link
+							var count=0;
+							for(i=0;i<featureSet.features.length;i++){
+								if (!featureSet.features[i].attributes.IRWINID) {count++;continue;}
+								queryTask = new QueryTask("https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/IRWIN_to_Inciweb_View/FeatureServer/0");
+								var query = new Query();
+								var irwinid = featureSet.features[i].attributes.IRWINID.substr(1,featureSet.features[i].attributes.IRWINID.length -2).toLocaleLowerCase();
+								query.where = "IrwinID='"+irwinid+"'";
+								query.outFields = ["LinkURI","IrwinID"];
+								query.returnGeometry = false;
+								queryTask.execute(query, function(featureSet2){
+									var index=0;
+									count++;
+									if (featureSet2.features.length == 0 || !featureSet2.features[0].attributes ||
+										!featureSet2.features[0].attributes.IrwinID || !featureSet.features[index].attributes.IRWINID) {
+										
+									}
+									else {
+										// find the matching index
+										for(j=0; j<featureSet.features.length;j++)
+											if (featureSet.features[j].attributes.IRWINID && 
+												featureSet2.features[0].attributes.IrwinID &&
+												featureSet.features[j].attributes.IRWINID.toLowerCase() == "{"+featureSet2.features[0].attributes.IrwinID.toLowerCase()+"}")
+												index=j;
+											featureSet.features[index].attributes.IRWINID = featureSet2.features[0].attributes.LinkURI;
+									}
+									if (count==featureSet.features.length){
+										// remove records with no incident report
+										var featureSet3 = [];
+										for (j=0; j<featureSet.features.length;j++){
+											if (featureSet.features[j].attributes.IRWINID && featureSet.features[j].attributes.IRWINID.indexOf("inciweb") > -1)
+												featureSet3.push(featureSet.features[j]);
+										}
+										featureSet.features = featureSet3;
+										if (featureSet.features.length > 0)
+											createRecordData(featureSet,registry.byId("featureType").attr("displayedValue"));
+										else {
+											alert("No wildfire incident reports found with that name. Please try again.","Warning");
+											document.getElementById("searchLoadingImg").style.display="none";
+										}	
+									}
+								}, function (error){ 
+									alert("Error in javascript/search.js/setSelect/queryTask.execute, url="+queryLayer+". Where irwinID='"+irwinid+"'. Error message: "+error.message,"Code Error",error);
+									document.getElementById("searchLoadingImg").style.display="none";
+									document.getElementById("searchMsg").style.display = "none";
+								});
+							}
 					}
 
 					function makeLink(data){
@@ -828,7 +883,8 @@ function searchInit() {
 									};
 
 									// Add data for each row
-									/*var row = new Object();
+									// 10-14-20 Begin uncomment section ------------
+									var row = new Object();
 									row.id = index++;
 									for (j=0;j<displayFields.length;j++){
 										if (obj[displayFields[j]]) {
@@ -845,7 +901,8 @@ function searchInit() {
 									itemList.push(row);
 									row = null;		
 				
-									var i = 0;*/
+									var i = 0;
+									// 10-14-20  end uncomment section ------------------------------------
 									for (j=0; j<displayNames.length; j++)
 									{
 										try{    		        	    		       
@@ -860,8 +917,9 @@ function searchInit() {
 											graInfoData.title = value;
 											infoData.title = value;
 										}
-									}/*
+									//} // 10/14/20 comment out
 									
+									// 10/12/20 uncomment following section
 
 										// Link, if displayNames = key it will need to lookup the value in a database and add the column later
 										if (queryLinkField.indexOf(displayFields[j])>-1)
@@ -906,7 +964,8 @@ function searchInit() {
 												else infoData[displayFields[j]] = value;
 											}
 										}
-									}*/
+									} 
+									// 10/12/20 end remove comment
 								   
 									recAC.push(infoData);
 									gra.attributes = graInfoData;
@@ -930,11 +989,15 @@ function searchInit() {
 											break;
 										}
 									}
+									
 									graphicsLayer.add(gra);
+									
+									// Clear button
 									document.getElementById("searchRemoveBtn").style.visibility="visible";
 
 									// for mobile always add label
-									//addLabel(Graphic(gra.attributes.point), gra.attributes.title, graphicsLayer, "11pt")
+									// 10/12/20 uncomment addLabel to show the label.
+									addLabel(Graphic(gra.attributes.point), gra.attributes.title, graphicsLayer, "11pt");
 									graphicAC.push(gra);  // store array of points    
 								}
 								else {
@@ -952,17 +1015,20 @@ function searchInit() {
 						if(!featureSet.features){
 							alert("No features found. Please try again.","Warning");
 							// hide table
-							//document.getElementById("searchMsg").style.display = "none";
+							// 10-14-20 uncomment section
+							document.getElementById("searchMsg").style.display = "none";
 							//document.getElementById("searchTools").style.display = "none";
-							//document.getElementById("searchGrid").style.display = "none";
+							document.getElementById("searchGrid").style.display = "none";
 							//document.getElementById("searchContent").style.height = tabHeight;
+							// 10-14-20  end uncomment section
 							document.getElementById("searchLoadingImg").style.display="none";
 							return;
 						}
 						graphicsLayer.id="searchLayer0";
 	/*					graphicsLayer.on("mouse-over", mouseOverGraphic);
 						graphicsHLLayer.on("mouse-out", function(){ graphicsHLLayer.clear(); });
-
+*/
+						// 10-14-20 uncomment section
 						// Grid header
 						var header={};
 						for (i=0; i<displayNames.length; i++){
@@ -1054,8 +1120,10 @@ function searchInit() {
 									map.centerAt(row.data.point);
 								}
 							});
+							closeMenu(); // added 10-14-20
+							document.getElementById("searchPane").style.display="none"; // added 10-14-20
 						});
-						fsGrid.on(".dgrid-row:mouseout",function(event){graphicsHLLayer.clear();});
+						/*fsGrid.on(".dgrid-row:mouseout",function(event){graphicsHLLayer.clear();});
 						fsGrid.on(".dgrid-row:mouseover",function(event){
 							var row = fsGrid.row(event);
 							graphicsHLLayer.clear();
@@ -1083,17 +1151,23 @@ function searchInit() {
 							// Add label  
 							addLabel(Graphic(row.data.point), row.data.title, graphicsHLLayer, "11pt")
 							gra = null;
-						});
+						});*/
 						
 						//document.getElementById("searchContent").style.height = tabWithGridHeight;
 						width = null;
-	*/					
+					// */ 10-14-20  end remove comment -----------------------------------------------	
 						document.getElementById("searchLoadingImg").style.display="none";
-	//					document.getElementById("searchOpenBtn").style.display="none";
-	//					document.getElementById("searchCloseBtn").style.display="inline-block";
-	//					document.getElementById("searchTools").style.display="block";
-	//					document.getElementById("searchGrid").style.display="block";
-						//document.getElementById("searchMsg").style.display = "none";
+
+
+						// 10-14-20 begin rmove comment ----------------------------------
+						//document.getElementById("searchOpenBtn").style.display="none";
+						//document.getElementById("searchCloseBtn").style.display="inline-block";
+						//document.getElementById("searchTools").style.display="block";
+						document.getElementById("searchGrid").style.display="block";
+						document.getElementById("searchMsg").style.display = "none";
+						// 10-14-20 end rmove comment ----------------------------------
+
+
 						// Zoom to point if only one was found
 						if (recAC && recAC.length == 1)
 						{
@@ -1135,13 +1209,15 @@ function searchInit() {
 							queryGraphicalDatabase(recAC,fsGrid,gridDiv,header);
 						}
 						else {
+							*/ // 10-14-20 uncomment section -----------------------
 							fsGrid.renderArray(recAC);
 							//append the new grid to the div
 							gridDiv.appendChild(fsGrid.domNode);
 							fsGrid.startup();
+							/* // 10-14-20 end uncomment section --------------------
 						}*/
-						closeMenu();
-						document.getElementById("searchPane").style.display="none";
+						// 10-14-20 comment out     closeMenu();
+						// 10-14-20 comment out     document.getElementById("searchPane").style.display="none";
 					}
 					
 	/*				function mouseOverGraphic(event){
@@ -1289,7 +1365,11 @@ function searchInit() {
 											//document.getElementById("searchMsg").style.display = "none";
 											return;
 										}
-										createRecordData(featureSet,registry.byId("featureTypeGraphic").attr("displayedValue"));
+										// 10/8/20 If wildlife lookup incident report as link
+										if (registry.byId("featureType").attr("displayedValue") == "Wildfire")
+											lookupWildfireIncidentReport(featureSet);
+										else
+											createRecordData(featureSet,registry.byId("featureTypeGraphic").attr("displayedValue"));
 									}
 									catch (error)
 									{
@@ -1487,9 +1567,11 @@ function searchInit() {
 						graphicsHLLayer.clear();
 						document.getElementById("searchRemoveBtn").style.visibility="hidden";
 						// hide table
+						// 10-14-20 uncomment section --------------------
 						//document.getElementById("searchTools").style.display = "none";
-						//document.getElementById("searchGrid").style.display = "none";
+						document.getElementById("searchGrid").style.display = "none";
 						//document.getElementById("searchContent").style.height = tabHeight;
+						// 10-14-20 enduncomment section --------------------
 					}
 					
 					function clearAndClose(){
