@@ -167,7 +167,11 @@
 			secX = Number(pointX.substring(pos+pos2+2));
 		}
 		else minX = Number(pointX.substring(pos+1));
-		pointX = Number(degX) + Number(minX)/60 + Number(secX)/3600;
+		// if degX is the longitude value and it is negative subtract the numbers 11/6/20
+		if (degX < 0)
+			pointX = Number(degX) - Number(minX)/60 - Number(secX)/3600;
+		else
+			pointX = Number(degX) + Number(minX)/60 + Number(secX)/3600;
 		if (pointX >= 100 && pointX <= 110) pointX = pointX*-1;
 		
 		pos = pointY.indexOf(":");
@@ -186,7 +190,11 @@
 			secY = Number(pointY.substring(pos+pos2+2));
 		}
 		else minY = Number(pointY.substring(pos+1));
-		pointY = Number(degY) + Number(minY)/60 + Number(secY)/3600;
+		// if degY is the longitude value and it is negative subtract the numbers 11/6/20
+		if (degY < 0)
+			pointY = Number(degY) - Number(minY)/60 - Number(secY)/3600;
+		else
+			pointY = Number(degY) + Number(minY)/60 + Number(secY)/3600;
 		label = degY+'° ' +minY+ '\' ';
 		if (secY > 0) label += secY + '" N, ';
 		else label += " N, ";

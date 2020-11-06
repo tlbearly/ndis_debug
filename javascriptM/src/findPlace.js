@@ -154,12 +154,16 @@ function handleCoordinate(label) {
 			var degX = pointX.substring(0, pos);
 			var secX = 0;
 			var minX;
-			pos2 = pointX.substring(pos + 1).indexOf(":")
-				if (pos2 > -1) {
+			pos2 = pointX.substring(pos + 1).indexOf(":");
+			if (pos2 > -1) {
 					minX = pointX.substr(pos + 1, pos2);
 					secX = pointX.substring(pos + pos2 + 2);
-				} else
+			} else
 					minX = pointX.substring(pos + 1);
+			// if degX is the longitude value and it is negative subtract the numbers 11/6/20
+			if (degX < 0)
+				pointX = Number(degX) - Number(minX) / 60 - Number(secX) / 3600;
+			else
 				pointX = Number(degX) + Number(minX) / 60 + Number(secX) / 3600;
 			if (pointX >= 100 && pointX <= 110)
 				pointX = pointX * -1;
@@ -168,11 +172,15 @@ function handleCoordinate(label) {
 			var secY = 0;
 			var minY;
 			pos2 = pointY.substring(pos + 1).indexOf(":")
-				if (pos2 > -1) {
-					minY = pointY.substr(pos + 1, pos2);
-					secY = pointY.substring(pos + pos2 + 2);
-				} else
-					minY = pointY.substring(pos + 1);
+			if (pos2 > -1) {
+				minY = pointY.substr(pos + 1, pos2);
+				secY = pointY.substring(pos + pos2 + 2);
+			} else
+				minY = pointY.substring(pos + 1);
+			// if degY is the longitude value and it is negative subtract the numbers 11/6/20
+			if (degY < 0)
+				pointY = Number(degY) - Number(minY) / 60 - Number(secY) / 3600;
+			else
 				pointY = Number(degY) + Number(minY) / 60 + Number(secY) / 3600;
 			if (pointY >= 100 && pointY <= 110)
 				pointY = pointY * -1;
