@@ -106,7 +106,7 @@
             document.write('<script type="text/javascript" src="' + path + '/bookmark.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/disclaimer.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/draw.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/findPlace.js?v=' + jsVer +'"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/findPlace.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/gmu.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/identify.js?v=g"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/maplink.js?v=' + jsVer + '"><\/script>');
@@ -1012,7 +1012,9 @@
                 m.parentNode.insertBefore(a, m)
             })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
             /* Create the ID for tracking and pass the app name for reporting */
-            ga('create', 'UA-102394177-2', 'auto');
+            ga('create', 'UA-102394177-2', {
+                cookieFlags: 'max-age=7200;secure;samesite=none'
+            });
             /* Custom Dimension Value to pass app name. Set this up in Google Analytics in Admin/Property/Custom Definitions/Custom Dimension/New Custom Dimension/
             	give it a variable name to use on the reports, save it, view it again and it will generate the javascript below. */
             var theApp;
