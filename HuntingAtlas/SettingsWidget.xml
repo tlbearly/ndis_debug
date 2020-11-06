@@ -131,16 +131,6 @@
 	<elevation_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/CHA_Elevation/MapServer</elevation_url>
 	
 	<tree>
-	<!-- identify is not found in this feature server. So hard code it in identify.js. Use url with id!!! (FeatureServer/0) -->  
-		<folder label="Wildfire Perimeters">
-			<layer label="Wildfire Perimeters">
-				<id>0</id>
-				<url>https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/0</url>
-				<geometry>polygon</geometry>
-				<fields>IncidentName,IRWINID</fields>
-				<displaynames>Incident Name,Incident Report</displaynames>
-			</layer>
-		</folder>
 		<folder label="GMU and Land Management">
 			<!-- CPW Properties -->
 			<layer label="CPW Public Access Properties">
@@ -185,9 +175,18 @@
 	     	<geometry>polygon</geometry>
 		   	<fields>GMUID</fields>
 	     	<displaynames>GMU Number</displaynames>
-	   	</layer>	
+	   	</layer>
 		</folder>
-		
+		<!-- identify is not found in this feature server. So hard code it in identify.js. Use url with id!!! (FeatureServer/0) -->  
+		<folder label="Wildfire Perimeters">
+			<layer label="Wildfire Perimeters">
+				<id>0</id>
+				<url>https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/0</url>
+				<geometry>polygon</geometry>
+				<fields>IncidentName,IRWINID</fields>
+				<displaynames>Incident Name,Incident Report</displaynames>
+			</layer>
+		</folder>
 		<folder label="Contact Info">
 			<layer label="Contact Info">
 	    	<id>1</id>
