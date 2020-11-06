@@ -335,7 +335,7 @@ function readConfig() {
 							console.log("Layer failed to load: "+response[i].layer.id+" "+response[i].layer.url);
 							// Not MVUM since that is handled above
 							if (response[i].layer.id.indexOf("Motor Vehicle")==-1){
-								alert(response[i].layer.id+" service is not reponding.","Data Error");
+								alert(response[i].layer.id+" service is busy or not responding. Please try reloading this page.","Data Error");
 								rmLayers.push(response[i].layer.id); // index of layers to remove
 							}
 						}
@@ -974,6 +974,27 @@ function readConfig() {
 					});
 					basemaps.push(basemap);
 					
+					// Streets Relief Vector 10-30-20
+					// The hill shade is not vector. The vector tiles are the annotation in World_Basemap_v2 in the root.json.
+					// The hill shade layer flashes on then the streets slowly paints. 
+					// DO NOT USE!!
+					/*layers=[];
+					layer=new BasemapLayer({url:"https://server.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer"});
+					layers.push(layer);
+					layer = new BasemapLayer({
+						styleUrl: "https://www.arcgis.com/sharing/rest/content/items/b266e6d17fc345b498345613930fbd76/resources/styles/root.json",
+						type: "VectorTileLayer",
+						opacity:1
+					});
+					layers.push(layer);
+					basemap = new Basemap({
+						layers:layers,
+						title:"Streets Vector",
+						id:"streets-vector",
+						thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/f81bc478e12c4f1691d0d7ab6361f5a6/info/thumbnail/street_thumb_b2wm.jpg"
+					});
+					basemaps.push(basemap);
+					*/
 
 					// Aerial Photo add vector tile layer as a basemap layer
 					layers=[];

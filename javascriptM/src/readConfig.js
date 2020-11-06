@@ -134,7 +134,7 @@ function createMap() {
 							console.log("Layer failed to load: "+response[i].layer.id+" "+response[i].layer.url);
 							// Not MVUM since that is handled above
 							if (response[i].layer.id.indexOf("Motor Vehicle")==-1){
-								alert(response[i].layer.id+" service is not reponding.","Data Error");
+								alert(response[i].layer.id+" service is busy or not responding. Please try reloading this page.","Data Error");
 								rmLayers.push(response[i].layer.id); // index of layers to remove
 							}
 						}
