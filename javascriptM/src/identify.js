@@ -35,7 +35,7 @@
 	  require(["esri/tasks/IdentifyParameters", "esri/symbols/SimpleLineSymbol", "esri/symbols/SimpleFillSymbol", "esri/symbols/PictureMarkerSymbol",
 	      "dojo/_base/Color"
 	  ], function(IdentifyParameters, SimpleLineSymbol, SimpleFillSymbol, PictureMarkerSymbol, Color) {
-	      //setup generic identify parameters
+			//setup generic identify parameters
 	      identifyParams = new IdentifyParameters();
 	      identifyParams.tolerance = 5;
 	      identifyParams.returnGeometry = true;
@@ -204,7 +204,7 @@
 
 
 	                  // Read the Identify Groups from the folder tags
-	                  folder = xmlDoc.getElementsByTagName("folder");
+										folder = xmlDoc.getElementsByTagName("folder");
 	                  for (var f = 0; f < folder.length; f++) {
 	                      // Set default identifyGroup to first in the list
 	                      if (f == 0) identifyGroup = folder[f].getAttribute("label");
@@ -527,6 +527,19 @@
 
 									// 10-19-20 Add identify Wildfires
 									if (item.url.indexOf("Wildfire")>-1){
+										 // 11-11-20 if wildfire feature service failed to load display error message
+										 var mapLayers = map.getLayersVisibleAtScale();
+										 var found = 0;
+										 for (var g=0; g < mapLayers.length; g++){
+												 if (mapLayers[g].id.indexOf("Wildfire") > -1){
+														 found = 1;
+														 break;
+												 }
+										 }
+										 if (!found) {
+												 alert("Wildfire Perimeters map from the National Interagency Fire Center failed to load. Cannot display incident report at this time.");
+												 continue;
+										 }
 										task = new QueryTask(item.url);
 										var query = new Query();
 										query.outFields = identifyLayers[identifyGroup][identifyGroup].fields;
@@ -709,7 +722,7 @@
 											str += "<div><strong>" + tmpStr;
 											groupContent[identifyGroup] = str; // cache content
 											map.infoWindow.setContent(str);
-											getIdentifyFooter()
+											getIdentifyFooter();
 	          					hideLoading("");
 										}, function (error){ 
 											alert("Error in javascript/identify.js/handleQueryResults/queryTask.execute, url="+queryLayer+". Where irwinID='"+irwinid+"'. Error message: "+error.message,"Code Error",error);
@@ -757,16 +770,18 @@
 	              } else if (results[i][j].displayFieldName == "LOC_ID") title = results[i][j].layerName;
 	              else if (results[i][j].displayFieldName == "GMUID") title = "GMU " + results[i][j].feature.attributes[results[i][j].displayFieldName];
 	              else if (results[i][j].layerName.indexOf("Land Management") != -1 && results[i][j].feature.attributes[results[i][j].displayFieldName] == "")
-	                  title = results[i][j].feature.attributes["MANAGER"];
+	                  title = results[i][j].feature.attributes.MANAGER; //["MANAGER"];
 	              else if (results[i][j].layerName.indexOf("Mule Deer") > -1) title = "Mule Deer Ranges";
 								else if (results[i][j].layerName.indexOf("Elk") > -1) title = "Elk Ranges";
 								// 10-19-20 show BLM road number in title instead of mode of travel.
 								else if (results[i][j].layerName.indexOf("BLM Colorado Roads and Trails") > -1) {
-									if (results[i][j].feature.attributes["Route Primary Name"] != "Null")
+									if (results[i][j].feature.attributes["Route Primary Name"] != "Null" &&
+										results[i][j].feature.attributes["Route Primary Name"].trim() != "")
 										title = results[i][j].feature.attributes["Route Primary Name"];
-									else if (results[i][j].feature.attributes["Route Primary Number"] != "Null")
+									else if (results[i][j].feature.attributes["Route Primary Number"] != "Null" &&
+									results[i][j].feature.attributes["Route Primary Number"].trim() != "")
 										title = results[i][j].feature.attributes["Route Primary Number"];
-										else title = results[i][j].feature.attributes[results[i][j].displayFieldName];
+									else title = results[i][j].feature.attributes[results[i][j].displayFieldName];
 								}
 	              else title = results[i][j].feature.attributes[results[i][j].displayFieldName];
 

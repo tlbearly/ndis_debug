@@ -144,7 +144,7 @@ function readSettingsWidget() {
 
                         // Read the layer tags for each group
                         var layer = folder[f].getElementsByTagName("layer");
-                        identifyLayers[identifyGroups[f]] = new Object();
+                        identifyLayers[identifyGroups[f]] = {};
                         // Description
                         if (folder[f].getElementsByTagName("desc")[0])
                             identifyLayers[identifyGroups[f]].desc = folder[f].getElementsByTagName("desc")[0].firstChild.nodeValue;
@@ -161,7 +161,7 @@ function readSettingsWidget() {
                                 if (!layer[i].getElementsByTagName("vis_url")[0] || !layer[i].getElementsByTagName("vis_id")[0])
                                     alert("Error in " + app + "/SettingsWidget.xml. When vis_id_only is set in a folder, every layer in the folder must have a vis_id and vis_url tag for the layer that is in the map to check if it is visible or not. Missing vis_url and vis_id tags in folder: " + identifyGroups[f] + ".", "Data Error");
                             }
-                            identifyLayers[identifyGroups[f]][label] = new Object();
+                            identifyLayers[identifyGroups[f]][label] = {};
 
                             // Create list of ids for this layer
                             var found = false;
@@ -274,13 +274,13 @@ function readSettingsWidget() {
 
                                 // Add ability to identify sheep and goat GMUs. 4-18-18 change label to Big Game GMU Boundaries for use with AssetReport_Data mapservice
 	                              if (label == "Big Game GMU Boundaries") {
-                                    identifyLayers[identifyGroups[f]]["Bighorn GMU"] = new Object();
+                                    identifyLayers[identifyGroups[f]]["Bighorn GMU"] = {};
                                     identifyLayers[identifyGroups[f]]["Bighorn GMU"].url = settings.sheepUrl.slice(0, settings.sheepUrl.length - 2);
                                     identifyLayers[identifyGroups[f]]["Bighorn GMU"].id = settings.sheepUrl.slice(settings.sheepUrl.length - 1);
                                     identifyLayers[identifyGroups[f]]["Bighorn GMU"].geometry = "polygon";
                                     identifyLayers[identifyGroups[f]]["Bighorn GMU"].fields = [settings.sheepField];
                                     identifyLayers[identifyGroups[f]]["Bighorn GMU"].displaynames = ["GMU Number"];
-                                    identifyLayers[identifyGroups[f]]["Goat GMU"] = new Object();
+                                    identifyLayers[identifyGroups[f]]["Goat GMU"] = {};
                                     identifyLayers[identifyGroups[f]]["Goat GMU"].url = settings.goatUrl.slice(0, settings.goatUrl.length - 2);
                                     identifyLayers[identifyGroups[f]]["Goat GMU"].id = settings.goatUrl.slice(settings.goatUrl.length - 1);
                                     identifyLayers[identifyGroups[f]]["Goat GMU"].geometry = "polygon";
@@ -397,6 +397,20 @@ function displayContent() {
             if (item) {
                 // 10-19-20 Add identify Wildfires
                 if (item.url.indexOf("Wildfire")>-1){
+                    // 11-11-20 if wildfire feature service failed to load display error message
+                    var mapLayers = map.getLayersVisibleAtScale();
+                    var found = 0;
+                    for (var g=0; g < mapLayers.length; g++){
+                        if (mapLayers[g].id.indexOf("Wildfire") > -1){
+                            found = 1;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        alert("Wildfire Perimeters map from the National Interagency Fire Center failed to load. Cannot display incident report at this time.");
+                        continue;
+                    }
+
                     task = new QueryTask(item.url);
                     var query = new Query();
                     query.outFields = identifyLayers[identifyGroup][identifyGroup].fields;
@@ -648,7 +662,7 @@ function handleQueryResults(results) {
                                                                 for (j = 0; j < identifyLayers[identifyGroup][r.layerName].one2one_fields.length; j++) {
                                                                     if (xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][r.layerName].one2one_fields[j]).length > 0) {
                                                                         var one2one_field = xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][r.layerName].one2one_fields[j])[0];
-                                                                        if ((one2one_field.getElementsByTagName("linkname").length > 0) && (one2one_field[h].getElementsByTagName("linkurl").length > 0)) {
+                                                                        if ((one2one_field.getElementsByTagName("linkname").length > 0) && (one2one_field.getElementsByTagName("linkurl").length > 0)) {
                                                                             tmpStr += identifyLayers[identifyGroup][r.layerName].one2one_display[j] + ": ";
                                                                             tmpStr += "<a href='" + one2one_field.getElementsByTagName("linkurl")[0].firstChild.nodeValue + "'>" + one2one_field.getElementsByTagName("linkname")[0].firstChild.nodeValue + "</a>";
                                                                             tmpStr += "<br/>";
@@ -680,7 +694,7 @@ function handleQueryResults(results) {
                                                             }
                                                         }
                                                     }
-                                                    tmpStr += "</div><br/>"
+                                                    tmpStr += "</div><br/>";
                                                     processedDatabaseCalls++;
                                                     // don't add it twice, but add it to the features geometry array
                                                     if (str.indexOf(tmpStr) == -1) {
@@ -717,7 +731,7 @@ function handleQueryResults(results) {
                                                     displayInfoWindow();
                                                 }
                                             }
-                                        }
+                                        };
                                     }(index);
                                     XMLHttpRequestObjects[index].send();
                                 } catch (error) {
@@ -890,8 +904,8 @@ function displayInfoWindow() {
         else {
             // tlb 6-8-18 added + "</div>" to the end of infowindow content for scrolling on ipad.
             if (map.infoWindow._contentPane.innerHTML.indexOf("Loading") != -1){
-                var str = map.infoWindow.map.infoWindow._contentPane.innerHTML+"</div>";
-                map.infoWindow.setContent(str);
+                var str1 = map.infoWindow.map.infoWindow._contentPane.innerHTML+"</div>";
+                map.infoWindow.setContent(str1);
             }
         }
 
