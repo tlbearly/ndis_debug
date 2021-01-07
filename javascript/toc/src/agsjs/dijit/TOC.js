@@ -289,7 +289,7 @@ define("agsjs/dijit/TOC",
     if (this.rootLayerTOC.config.title == "Wildfire Perimeters") {
       domStyle.set(this.checkContainerNode, "float","left");
       domStyle.set(this.checkContainerNode, "padding","0 0 0 16px");
-      domStyle.set(this.labelNode, "width", "120px");
+      domStyle.set(this.labelNode, "width", "200px");
       domStyle.set(this.labelNode, "position", "absolute");
       domStyle.set(this.labelNode, "top", "5px");
       domStyle.set(this.iconNode, "position","relative");
