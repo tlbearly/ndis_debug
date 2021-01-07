@@ -335,7 +335,10 @@ function readConfig() {
 							console.log("Layer failed to load: "+response[i].layer.id+" "+response[i].layer.url);
 							// Not MVUM since that is handled above
 							if (response[i].layer.id.indexOf("Motor Vehicle")==-1){
-								alert(response[i].layer.id+" service is busy or not responding. Please try reloading this page.","Data Error");
+								if (response[i].layer.id.indexOf("Wildfire") > -1)
+									alert(response[i].layer.id+" service from the National Interagency Fire Center is busy or not responding. Please try reloading this page.","Data Error");
+								else
+									alert(response[i].layer.id+" service is busy or not responding. Please try reloading this page.","Data Error");
 								rmLayers.push(response[i].layer.id); // index of layers to remove
 							}
 						}
