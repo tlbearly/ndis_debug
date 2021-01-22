@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<head>
+  <script type="text/javascript" src="jquery-1.7.1.min.js"></script>    
+    <script type="text/javascript" src="jquery-ui-1.8.17.custom.min.js"></script> 
+  <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.2.0/jspdf.es.js" integrity="sha512-8mLUi0A30AdJSvlBC8Jg6GtLsw+6K5gcqD7h2TwXaNVCXOisvWoCM4wx2XgAAsPiIS0UVTJAqQB1L39NebS2cQ==" crossorigin="anonymous"></script>
+<script type="module">
+import { jspdf } from "jsPDF";
+
+// Default export is a4 paper, portrait, using millimeters for units
+const doc = new jsPDF();
+
+doc.text("Hello world!", 10, 10);
+doc.save("a4.pdf");
+</script>
+</head>
+<body>
+creating jspdf file a4.pdf...
+</body>
+</html>
