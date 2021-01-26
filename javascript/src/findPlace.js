@@ -317,13 +317,14 @@ function zoomToFindLocation(label, x, y) {
 					_highlightPolygonResults(results, label, point);
 				}
 			}, function (error) {
-				if (error.details && error.details.length == 2){
+				/*if (error.details && error.details.length == 2){
 					hideLoading();
 					alert("Error querying in FindPlace.js " + error.message + " " + error.details[0] + " " + error.details[1] + ". Check url.xml and findplaceservice tag in config.xml.", "Data Error");
-				}else {
+				}else {*/
 					hideLoading();
-					alert(error.message + " Check the URLs in url.xml and findplaceservice tag in config.xml.", "Data Error");
-				}
+					// note:  if receiving this error, check the URLs in url.xml and findplaceservice tag in config.xml.
+					alert("Service is busy or not responding. Please try again. Error at: FindPlace.js line 325. Query value: "+label, "Data Error");
+				//}
 			});
 			query = null;
 			queryTask = null;
