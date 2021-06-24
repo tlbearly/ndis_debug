@@ -285,19 +285,22 @@ define("agsjs/dijit/TOC",
       }
     this.domNode.id = 'TOCNode_'+this.rootLayer.id + (this.serviceLayer?'_'+this.serviceLayer.id:'')+(this.legend?'_'+this.legend.id:'');
     
-    // tlb 9-29-20 allow Wildfire Perimeters to have legend below
+    // tlb 6-23-21 allow Wildfire Perimeters 2021 to have legend below
     if (this.rootLayerTOC.config.title == "Wildfire Perimeters") {
-      domStyle.set(this.checkContainerNode, "float","left");
-      domStyle.set(this.checkContainerNode, "padding","0 0 0 16px");
-      domStyle.set(this.labelNode, "width", "200px");
-      domStyle.set(this.labelNode, "position", "absolute");
-      domStyle.set(this.labelNode, "top", "5px");
+      //domStyle.set(this.checkContainerNode, "float","left");
+      //domStyle.set(this.checkContainerNode, "padding","0 0 0 16px");
+      //domStyle.set(this.labelNode, "width", "200px");
+      //domStyle.set(this.labelNode, "position", "absolute");
+      //domStyle.set(this.labelNode, "top", "5px");
+      domStyle.set(this.labelNode, "position", "relative");
+      if(this.labelNode.innerHTML != "Wildfire Perimeters")
+        domStyle.set(this.labelNode, "top", "-10px");
       domStyle.set(this.iconNode, "position","relative");
       domStyle.set(this.iconNode, "top","-5px");
-      if (document.getElementById("showLegendChkBox").checked)
-        domStyle.set(this.labelNode, "left", "none");
-      else
-        domStyle.set(this.labelNode, "left", "35px");
+      //if (document.getElementById("showLegendChkBox").checked)
+      //  domStyle.set(this.labelNode, "left", "none");
+      //else
+      //  domStyle.set(this.labelNode, "left", "35px");
     }
     },
     // root level node, layers directly under esri.Map
