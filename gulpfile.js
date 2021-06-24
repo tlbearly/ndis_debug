@@ -1,4 +1,8 @@
 // Minify css and js into one file.
+//
+// Or use https://www.minifier.org/
+//
+//
 // Goto npmjs.com, click 'Install npm', then click 'download Node.js and npm'.
 // Goto https://nodejs.org/en/ and download latest version of node.js click on downloaded file.
 // ***Keep up to date: npm install npm@latest -g
