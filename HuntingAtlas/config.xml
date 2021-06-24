@@ -28,13 +28,13 @@
     </style>
     
     <!-- REST endpoint to a GeometryService. This should be a service published by CPW and not pointing at an ESRI service.  Use to convert points to new projections. -->
-    <geometryservice url="//ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+    <geometryservice url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
     
 	<!--printservicegeo>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting</printservicegeo-->
     <!--printservice>https://utility.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printservice-->
     <printservice>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printservice>
-    <printservicegeo>https://ndis-flex-2.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting</printservicegeo>
-	<!--printservice>https://ndis-flex-2.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printservice-->
+    <printservicegeo>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting</printservicegeo>
+	<!--printservice>https://ndis-2020-dev.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printservice-->
     
 	
 	<!-- Find a Place Service **NEW** -->
@@ -58,18 +58,22 @@
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/mvum/MapServer"/-->
 			<!-- Layer must be named "Hunter Reference".  It is used in widgets/Legend/toc/tocClasses/TocMapLayerItem.as -->
 			<layer label="Hunter Reference" open="true" type="dynamic" visible="true" alpha="0.8"
-					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer"/>
+					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer"/>
 			<!-- Layer must be named "Game Species".  It is used in widgets/Legend/toc/tocClasses/TocMapLayerItem.as -->
 			<layer label="Game Species" open="false" type="dynamic" visible="false" alpha="0.7"
-					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_BigGameSpecies_Map/MapServer"/>					
+					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map/MapServer"/>					
 			<layer label="Motor Vehicle Use Map" open="true" type="dynamic" visible="false" alpha="1"
                     url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/>
 					<!--url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/--> <!-- old service -->
                     <!--url="https://apps.fs.fed.us/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/--> <!-- new service -->
             <layer label="BLM Roads and Trails" open="true" type="dynamic" visible="false" alpha="1"
-                    url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer" />            
+                    url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer" />     
+            <layer label="Wildfire Points" open="true" type="dynamic" visible="true" alpha="0.8"
+                    url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0" />      
             <layer label="Wildfire Perimeters" open="true" type="dynamic" visible="true" alpha="0.8"
-					url="https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/0"/>
+                    url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1" />
+            <!--layer label="Wildfire Perimeters 2020" open="true" type="dynamic" visible="true" alpha="0.8"
+					url="https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/0"/-->
         </operationallayers>
 		
 		<hideGroupSublayers>Emergency,Field Office,Chamber of Commerce or Welcome Center,License Agent,Campgrounds and SWA Facilities,GMU boundary (Hunting Units)</hideGroupSublayers>
