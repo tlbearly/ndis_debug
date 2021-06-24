@@ -88,7 +88,7 @@
     <!-- 
     	REST endpoint to a map service that will be displayed in the report print window and included in the printed report
      -->    
-    <reportserviceurl>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Print/MapServer</reportserviceurl>
+    <reportserviceurl>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Print/MapServer</reportserviceurl>
 	
 	<!-- GPService for printing -->
     <printserviceurl>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printserviceurl>

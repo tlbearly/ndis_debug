@@ -101,7 +101,7 @@
 <configuration>
 	<layer>
 		<keyword>county</keyword>
-		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_FindAPlaceTool_Data/MapServer/1</url>
+		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HunterAtlas_FindAPlaceTool_Data/MapServer/1</url>
 		<expression>UPPER(COUNTYNAME)=UPPER('[value]')</expression>
 		<mapscale></mapscale>
 		<field>COUNTYNAME</field>
@@ -114,7 +114,7 @@
 	</layer>
 	<layer>
 		<keyword>gmu</keyword>
-		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_FindAPlaceTool_Data/MapServer/4</url>
+		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HunterAtlas_FindAPlaceTool_Data/MapServer/4</url>
 		<expression>GMUID=[value]</expression>
 		<mapscale></mapscale>
 		<field>GMUID</field>
@@ -132,28 +132,28 @@
 	</layer>
 	<layer>
 		<keyword>poi</keyword>
-		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/0</url>
+		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/0</url>
 		<expression>UPPER(Name)=UPPER('[value]')</expression>
 		<mapscale>10</mapscale>
 	</layer>
 	<!-- forest boundary one polygon, uses Support map boundaries, Forest Service map -->
 	<layer>
 		<keyword>forest</keyword>
-		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/5</url>
+		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/5</url>
 		<expression>UPPER(MapName)=UPPER('[value]')</expression>
 		<field>MapName</field>
 	</layer>
 	<!-- grassland boundary one polygon, uses Support map boundaries, Forest Service map -->
 	<layer>
 		<keyword>grassland</keyword>
-		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/5</url>
+		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/5</url>
 		<expression>UPPER(MapName)=UPPER('[value]')</expression>
 		<field>MapName</field>
 	</layer>
 	<!-- Uses Land Management -->
 	<layer>
 		<keyword>wilderness</keyword>
-		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/4</url>
+		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/4</url>
 		<expression>UPPER(NAME)=UPPER('[value]')</expression>
 		<field>NAME</field>
 	</layer>
