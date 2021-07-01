@@ -180,7 +180,7 @@
 		<!-- Set the IRWIN_to_Inciweb_View feature service here. Used in identify. Use url with id!!! (FeatureServer/0) -->  
 		<folder label="Wildfire Perimeters">
 			<layer label="Wildfire Perimeters">
-				<id>0</id>
+				<id>1</id>
 				<!--url>https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/0</url-->
 				<url>https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1</url>
 				<irwin_to_inciweb>https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/IRWIN_to_Inciweb_View/FeatureServer/0</irwin_to_inciweb>
@@ -188,11 +188,20 @@
 				<fields>IncidentName,IRWINID</fields>
 				<displaynames>Incident Name,Incident Report</displaynames>
 			</layer>
+			<layer label="Wildfire Incidents">
+				<id>0</id>
+				<!--url>https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/0</url-->
+				<url>https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0</url>
+				<irwin_to_inciweb>https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/IRWIN_to_Inciweb_View/FeatureServer/0</irwin_to_inciweb>
+				<geometry>point</geometry>
+				<fields>IncidentName,IrwinID</fields>
+				<displaynames>Incident Name,Incident Report</displaynames>
+			</layer>
 		</folder>
 		<folder label="Contact Info">
 			<layer label="Contact Info">
 	    	<id>1</id>
-	    	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/</url>
+	    	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
 	      <geometry>polygon</geometry>
 		    <fields>COUNTYNAME,CDOW_Area,CDOW_AWM,CDOW_FOName,CDOW_FOAddress,CDOW_FOCity,CDOW_FOPhone,CDOW_District,CDOW_DWM</fields>
 	    	<displaynames>County,CPW Area,Area Manager,Office Name,Address,City,Phone,CPW District,District Manager</displaynames>
