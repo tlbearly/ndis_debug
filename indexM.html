@@ -115,7 +115,7 @@
 			document.write('<script type="text/javascript" src="'+path+'/errorBox.js?v='+jsVer+'"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/xmlUtils.js?v='+jsVer+'"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/findPlace.js?v='+jsVer+'"><\/script>');
-			document.write('<script type="text/javascript" src="'+path+'/identify.js?v=ab"><\/script>');
+			document.write('<script type="text/javascript" src="'+path+'/identify.js?v='+jsVer+'"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/print.js?v='+jsVer+'"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/readConfig.js?v='+jsVer+'"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/search.js?v='+jsVer+'"><\/script>');
@@ -180,11 +180,12 @@
 			"dojo/domReady!"
 			],
 			function(parser,esriConfig,ioquery) {
-				// If not loaded as secure redirect to secure url
-				if (window.location.href.indexOf("https")<0) {
-					var str = window.location.href;
-					window.location = "https"+str.substring(4);
-				}
+// for ndis-2020-dev until we get secure setup
+//				// If not loaded as secure redirect to secure url
+//				if (window.location.href.indexOf("https")<0) {
+//					var str = window.location.href;
+//					window.location = "https"+str.substring(4);
+//				}
 				parser.parse();
 				esriConfig.defaults.io.proxyUrl = "/proxy/DotNet/proxy.ashx";
 				esriConfig.defaults.io.alwaysUseProxy = false;
@@ -808,7 +809,7 @@
 	</div>
 
 	<!-- Error Box -->
-	<div id="errorMsgBox" data-dojo-type="dojox/mobile/Overlay" style="min-height:25px;max-height:375px;overflow-y:auto;padding-top:5px;border-top:1px solid grey;background-image:linear-gradient(to bottom, #fff 0%, #fff 100%);webkit-gradient(linear, left top, left bottom, from(#fff), to(#fff));">
+	<div id="errorMsgBox" data-dojo-type="dojox/mobile/Overlay" style="min-height:25px;max-height:375px;overflow-y:auto;padding-top:5px;border-top:1px solid grey;background-image:none;background-color: white;">
 		<div data-dojo-type="dojox/mobile/ContentPane" style="margin:5px;text-align:left;">
 			<div id="errorMsg"></div>
 			<div id="errorXbtn" style="float:right;display:none;position:absolute;right:1px;top:3px;">

@@ -548,7 +548,7 @@ function setupIdentify(theWellLabel) {
                                 registry.byId("XYReportBtn").set("label", "Generate Report");
                                 registry.byId("XYReportBtn").set('disabled', false);
                                 hideLoading();
-                            }
+                            };
                             doc.setProperties({
                                 title: "HB1298 Report",
                                 author: 'Colorado Parks and Wildlife',
@@ -752,7 +752,7 @@ function setupIdentify(theWellLabel) {
                                     }
                                     if (hb1298LayerIds[i].fields[j] != "Energy Liaison Phone") {
                                         doc.text(marginLeft, y, hb1298LayerIds[i].display[j] + ":");
-                                        doc.text(marginLeft + 140, y, data["Biologists"][hb1298LayerIds[i].fields[j]]);
+                                        doc.text(marginLeft + 140, y, data.Biologists[hb1298LayerIds[i].fields[j]]);
                                     }
                                     if (hb1298LayerIds[i].fields[j] == "Energy Liaison Phone") {
                                         doc.text(marginLeft + 290, y, data["Biologists"][hb1298LayerIds[i].fields[j]]);
@@ -788,6 +788,7 @@ function setupIdentify(theWellLabel) {
                             var swhIndex = -1;
                             // Find RSO layer index
                             require(["esri/layers/ArcGISDynamicMapServiceLayer"], function(ArcGISDynamicMapServiceLayer) {
+                                var j;
                                 for (var i = 0; i < map.layerIds.length; i++) {
                                     if (map.getLayer(map.layerIds[i]).declaredClass == "esri.layers.ArcGISDynamicMapServiceLayer") {
                                         if (map.getLayer(map.layerIds[i]).url.indexOf("RSO") > 0) {
@@ -820,7 +821,7 @@ function setupIdentify(theWellLabel) {
                                 var found;
                                 for (i = 0; i < rso.length; i++) {
                                     found = false;
-                                    for (var j = 0; j < map.getLayer(map.layerIds[rsoIndex]).layerInfos.length; j++) {
+                                    for (j = 0; j < map.getLayer(map.layerIds[rsoIndex]).layerInfos.length; j++) {
                                         if (map.getLayer(map.layerIds[rsoIndex]).layerInfos[j].name.toUpperCase().trim() == rso[i].LayerName.toUpperCase()) {
                                             visLayers.push(map.getLayer(map.layerIds[rsoIndex]).layerInfos[j].id);
                                             found = true;
@@ -870,7 +871,7 @@ function setupIdentify(theWellLabel) {
                             alert("Missing readDB.aspx file. app=" + app, "Data Error");
                             hideLoading();
                         }
-                    }
+                    };
                     xmlhttp.send(null);
                 });
             });
@@ -1295,12 +1296,12 @@ function HB1298init() {
                             alert("Missing bmpdir tag in HB1298Widget.xml file.", "Data Error");
                         }
                         try {
-                            wellidUrl = xmlDoc.getElementsByTagName("wellid")[0].getElementsByTagName("url")[0].firstChild.nodeValue
+                            wellidUrl = xmlDoc.getElementsByTagName("wellid")[0].getElementsByTagName("url")[0].firstChild.nodeValue;
                         } catch (e) {
                             alert("Missing wellid url tags in HB1298Widget.xml file.", "Data Error");
                         }
                         try {
-                            wellidExp = xmlDoc.getElementsByTagName("wellid")[0].getElementsByTagName("expression")[0].firstChild.nodeValue
+                            wellidExp = xmlDoc.getElementsByTagName("wellid")[0].getElementsByTagName("expression")[0].firstChild.nodeValue;
                         } catch (e) {
                             alert("Missing wellid expression tags in HB1298Widget.xml file.", "Data Error");
                         }
@@ -1315,7 +1316,7 @@ function HB1298init() {
                                     fields: layers[i].getElementsByTagName("fields")[0].childNodes[0].nodeValue.split(","),
                                     display: layers[i].getElementsByTagName("displaynames")[0].childNodes[0].nodeValue.split(","),
                                     label: layers[i].getAttribute("label")
-                                }
+                                };
                             }
                         } catch (e) {
                             alert("Missing layer tag attribute label or tags: url, ids, fields, or display inside each layer tag in HB1298Widget.xml file.", "Data Error");

@@ -416,13 +416,21 @@ function displayContent() {
                         }
                     }
                     if (!found) {
-                        alert("Wildfire Perimeters map from the National Interagency Fire Center failed to load. Cannot display incident report at this time.");
+                        alert("Wildfire Perimeters map from the National Interagency Fire Center failed to load. Cannot display incident report at this time.","Notice");
                         continue;
                     }
 
                     task = new QueryTask(item.url);
                     var query = new Query();
-                    query.outFields = identifyLayers[identifyGroup][identifyGroup].fields;
+                    if (identifyLayers[identifyGroup][identifyGroup].url === task.url)
+                        query.outFields = identifyLayers[identifyGroup][identifyGroup].fields;
+                    else if (identifyLayers[identifyGroup]["Wildfire Incidents"].url === task.url){
+                        query.outFields = identifyLayers[identifyGroup]["Wildfire Incidents"].fields;
+                        query.distance =2;
+                        query.units = "miles";
+                    }
+                    else
+                        alert("In SettingsWidget.xml tag Wildfire Perimeters folder, must contain layers with the following names: Wildfire Perimeters or Wildfire Incidents.", "Data Error");
                     query.geometry = clickPoint;
                     query.returnGeometry = true;
                     query.spatialRelationship = "esriSpatialRelIntersects";
@@ -497,7 +505,7 @@ function displayContent() {
             }
         }
         // Add goat and sheep gmus
-        if (identifyGroup == "GMU and Land Management") {
+        if (identifyGroup === "GMU and Land Management") {
             if (gmu == "Bighorn GMU") {
                 identifyParams.tolerance = 1;
                 identifyParams.layerIds = [settings.sheepUrl.slice(settings.sheepUrl.lastIndexOf("/") + 1)];
@@ -556,50 +564,59 @@ function handleQueryResults(results) {
 	        var str = getIdentifyHeader(identifyGroup);
 
             // 10-19-20 Handle Wildfire
-								if (identifyGroup == "Wildfire Perimeters"){
-									require(["esri/tasks/query", "esri/tasks/QueryTask"],
-				 						function(Query, QueryTask) {
-										if (results[0].features.length == 0){
-											title = "No " + identifyGroup;
-											map.infoWindow.setTitle(title);
-                                            getIdentifyFooter();
-                                            setInfoWindowHeader();
-											map.infoWindow.setContent("No Wildlire Perimeters at this point.<br/><br/>");
-											groupContent[identifyGroup] = "No Wildlire Perimeters at this point."; // cache content
-	          					            hideLoading("");
-											return;
-										}
-										title = results[0].features[0].attributes.IncidentName;
-										map.infoWindow.setTitle(title);
-										tmpStr = results[0].features[0].attributes.IncidentName + "</strong><div style='padding-left: 10px;'>";
-										// lookup irwinid to get incident report
-										var queryTask = new QueryTask(irwin_to_inciweb_url);//"https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/IRWIN_to_Inciweb_View/FeatureServer/0");
-                                        var query = new Query();
-										var irwinid = results[0].features[0].attributes.IRWINID.substr(1,results[0].features[0].attributes.IRWINID.length -2).toLocaleLowerCase();
-										query.where = "IrwinID='"+irwinid+"'";
-										query.outFields = ["LinkURI","IrwinID"];
-										query.returnGeometry = false;
-										queryTask.execute(query, function(featureSet){
-											if (featureSet.features.length == 0 || !featureSet.features[0].attributes ||
-												!featureSet.features[0].attributes.LinkURI) {
-												tmpStr+= "<br/>No incident report found";
-											}
-											else {
-												tmpStr+="<br/><a href='" + featureSet.features[0].attributes.LinkURI + "' target='_blank'>Incident Report</a>";
-											}
-											tmpStr += "</div><br/>";
-											str += "<div><strong>" + tmpStr;
-                                            groupContent[identifyGroup] = str; // cache content
-                                            setInfoWindowHeader();
-											map.infoWindow.setContent(str);
-											getIdentifyFooter();
-	          					            hideLoading("");
-										}, function (error){ 
-											alert("Error in javascript/identify.js/handleQueryResults/queryTask.execute, url="+queryLayer+". Where irwinID='"+irwinid+"'. Error message: "+error.message,"Code Error",error);
-										});
-									});
-									return;
-                                }
+            if (identifyGroup == "Wildfire Perimeters"){
+                require(["esri/tasks/query", "esri/tasks/QueryTask"],
+                function(Query, QueryTask) {
+                    var i;
+                    if (results[0].features.length == 0 && results[1].features.length == 0){
+                        title = "No " + identifyGroup;
+                        map.infoWindow.setTitle(title);
+                        getIdentifyFooter();
+                        setInfoWindowHeader();
+                        map.infoWindow.setContent("No Wildfire Perimeters/Incidents at this point.<br/><br/>");
+                        groupContent[identifyGroup] = "No Wildfire Perimeters/Incidents at this point."; // cache 
+                        displayElevation();
+                        hideLoading("");
+                        return;
+                    }
+                    // results[0] = Wildfire Perimeters
+                    // results[1] = Wildfire Incidents
+                    if (results[0].features.length > 0)i=0;
+                    else i=1;
+                    title = results[i].features[0].attributes.IncidentName;
+                    map.infoWindow.setTitle(title);
+                    tmpStr = results[i].features[0].attributes.IncidentName + "</strong><div style='padding-left: 10px;'>";
+                    // lookup irwinid to get incident report
+                    var queryTask = new QueryTask(irwin_to_inciweb_url);//"https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/IRWIN_to_Inciweb_View/FeatureServer/0");
+                    var query = new Query();
+                    var irwinid;
+                    if (i==0) irwinid = results[i].features[0].attributes.IRWINID.substr(1,results[i].features[0].attributes.IRWINID.length -2).toLocaleLowerCase();
+                    else irwinid = results[i].features[0].attributes.IrwinID.substr(1,results[i].features[0].attributes.IrwinID.length -2).toLocaleLowerCase();
+                    query.where = "IrwinID='"+irwinid+"'";
+                    query.outFields = ["LinkURI","IrwinID"];
+                    query.returnGeometry = false;
+                    queryTask.execute(query, function(featureSet){
+                        if (featureSet.features.length == 0 || !featureSet.features[0].attributes ||
+                            !featureSet.features[0].attributes.LinkURI) {
+                            tmpStr+= "<br/>No incident report found";
+                        }
+                        else {
+                            tmpStr+="<br/><a href='" + featureSet.features[0].attributes.LinkURI + "' target='_blank'>Incident Report</a>";
+                        }
+                        tmpStr += "</div><br/>";
+                        str += "<div><strong>" + tmpStr;
+                        groupContent[identifyGroup] = str; // cache content
+                        setInfoWindowHeader();
+                        map.infoWindow.setContent(str);
+                        getIdentifyFooter();
+                        displayElevation();
+                        hideLoading("");
+                    }, function (error){ 
+                        alert("Error in javascript/identify.js/handleQueryResults/queryTask.execute, url="+queryLayer+". Where irwinID='"+irwinid+"'. Error message: "+error.message,"Code Error",error);
+                    });
+                });
+                return;
+            }
                                 
 
             // Count database calls
@@ -919,7 +936,106 @@ function displayInfoWindow() {
         }
 
         // Add elevation data
-        /* using google.maps.ElevationService see google-developers.appspot.com/maps/documentation/javascript/examples/elevation-simple */
+        displayElevation();
+
+        map.infoWindow.show(clickPoint);
+
+        /* place infoWindow. when anchor=auto seems to work, move pointer around.
+			require([
+"esri/dijit/InfoWindow", ... 
+], function(InfoWindow, ... ) {
+map.infoWindow.show(location, InfoWindow.ANCHOR_UPPERRIGHT);
+...
+});*/
+        hideLoading("");
+    }
+}
+
+function displayElevation(){
+    // use our raster map service
+    if (elevation_url) {
+        require(["esri/request"], function(esriRequest) {
+            var ext = '{"xmin":' + map.extent.xmin + ',"ymin":' + map.extent.ymin + ',"xmax":' + map.extent.xmax + ',"ymax":' + map.extent.ymax + ',"spatialReference":{"wkid":102100,"latestWkid":102100}}';
+            //map.extent.xmin+","+map.extent.ymin+","+map.extent.xmax+","+map.extent.ymax;
+            var layersRequest = esriRequest({
+                url: elevation_url + "/identify",
+                content: {
+                    f: "json",
+                    geometry: JSON.stringify(clickPoint),
+                    geometryType: "esriGeometryPoint",
+                    tolerance: "5",
+                    mapExtent: ext,
+                    sr: "102100",
+                    imageDisplay: map.width + "," + map.height + ",96",
+                    returnGeometry: false
+                },
+                handleAs: "json",
+                callbackParamName: "callback"
+            });
+            layersRequest.then(
+                function(response) {
+                    require(["dojo/dom-attr", "dojo/dom-construct", "dojo/query", "dojo/dom", "dojo/on", "dojo/domReady!"],
+                        function(domAttr, domConstruct, query, dom, on) {
+                            // If user clicks outsite colorado there is no data. Was throwing an error. tlb 6-28-18
+                            if (response.results.length == 0 || isNaN(response.results[0].attributes["Pixel Value"])) {
+                                if (query(".actionList #elevation", map.infoWindow.domNode)[0]) {
+                                    domConstruct.empty(query(".actionList #elevation", map.infoWindow.domNode)[0]);
+                                    domConstruct.place(
+                                        domConstruct.toDom("Elevation: data not available"),
+                                        query(".actionList #elevation", map.infoWindow.domNode)[0]);
+                                } else {
+                                    domConstruct.create("span", {
+                                        "class": "action",
+                                        "id": "elevation",
+                                        "innerHTML": "Elevation: data not available"
+                                    }, query(".actionList", map.infoWindow.domNode)[0]);
+                                }
+                                return;
+                            }
+                            
+                            if (query(".actionList #elevation", map.infoWindow.domNode)[0]) {
+                                domConstruct.empty(query(".actionList #elevation", map.infoWindow.domNode)[0]);
+                                domConstruct.place(
+                                    // if pixel value is in meters
+                                    //domConstruct.toDom("Elevation: "+ Math.round(response.results[0].attributes["Pixel Value"]*3.28084) + " ft "+Math.round(response.results[0].attributes["Pixel Value"]) + " m"),
+                                    // if pixel value is in feet
+                                    domConstruct.toDom("Elevation: " + Math.round(response.results[0].attributes["Pixel Value"]) + " ft " + Math.round(response.results[0].attributes["Pixel Value"] * 0.3048) + " m"),
+                                    query(".actionList #elevation", map.infoWindow.domNode)[0]);
+                            } else {
+                                domConstruct.create("span", {
+                                    "class": "action",
+                                    "id": "elevation",
+                                    // if pixel value is in meters
+                                    //"innerHTML":  "Elevation: "+ Math.round(response.results[0].attributes["Pixel Value"]*3.28084) + " ft "+Math.round(response.results[0].attributes["Pixel Value"]) + " m"
+                                    // if pixel value is in feet
+                                    "innerHTML": "Elevation: " + Math.round(response.results[0].attributes["Pixel Value"]) + " ft " + Math.round(response.results[0].attributes["Pixel Value"] * 0.3048) + " m"
+                                }, query(".actionList", map.infoWindow.domNode)[0]);
+                            }
+                        });
+                },
+                function(error) {
+                    require(["dojo/dom-attr", "dojo/dom-construct", "dojo/query", "dojo/dom", "dojo/on", "dojo/domReady!"],
+                        function(domAttr, domConstruct, query, dom, on) {
+                            if (query(".actionList #elevation", map.infoWindow.domNode)[0]) {
+                                domConstruct.empty(query(".actionList #elevation", map.infoWindow.domNode)[0]);
+                                domConstruct.place(
+                                    domConstruct.toDom("Elevation: data not available"),
+                                    query(".actionList #elevation", map.infoWindow.domNode)[0]);
+                            } else {
+                                domConstruct.create("span", {
+                                    "class": "action",
+                                    "id": "elevation",
+                                    "innerHTML": "Elevation: data not available"
+                                }, query(".actionList", map.infoWindow.domNode)[0]);
+                            }
+                        });
+                    hideLoading("");
+                }
+
+            );
+        });
+    }
+    /* using google.maps.ElevationService see google-developers.appspot.com/maps/documentation/javascript/examples/elevation-simple */
         /* returns elevation in meters */
         /*if (show_elevation){
         	require(["esri/urlUtils","esri/geometry/webMercatorUtils"], function(urlUtils,webMercatorUtils) {
@@ -975,89 +1091,6 @@ function displayInfoWindow() {
         	});
         }*/
 
-        // use our raster map service
-        if (elevation_url) {
-            require(["esri/request"], function(esriRequest) {
-                var ext = '{"xmin":' + map.extent.xmin + ',"ymin":' + map.extent.ymin + ',"xmax":' + map.extent.xmax + ',"ymax":' + map.extent.ymax + ',"spatialReference":{"wkid":102100,"latestWkid":102100}}';
-                //map.extent.xmin+","+map.extent.ymin+","+map.extent.xmax+","+map.extent.ymax;
-                var layersRequest = esriRequest({
-                    url: elevation_url + "/identify",
-                    content: {
-                        f: "json",
-                        geometry: JSON.stringify(clickPoint),
-                        geometryType: "esriGeometryPoint",
-                        tolerance: "5",
-                        mapExtent: ext,
-                        sr: "102100",
-                        imageDisplay: map.width + "," + map.height + ",96",
-                        returnGeometry: false
-                    },
-                    handleAs: "json",
-                    callbackParamName: "callback"
-                });
-                layersRequest.then(
-                    function(response) {
-                        require(["dojo/dom-attr", "dojo/dom-construct", "dojo/query", "dojo/dom", "dojo/on", "dojo/domReady!"],
-                            function(domAttr, domConstruct, query, dom, on) {
-                                // If user clicks outsite colorado there is no data. Was throwing an error. tlb 6-28-18
-                                if (response.results.length == 0 || isNaN(response.results[0].attributes["Pixel Value"])) {
-                                    if (query(".actionList #elevation", map.infoWindow.domNode)[0]) {
-                                        domConstruct.empty(query(".actionList #elevation", map.infoWindow.domNode)[0]);
-                                        domConstruct.place(
-                                            domConstruct.toDom("Elevation: data not available"),
-                                            query(".actionList #elevation", map.infoWindow.domNode)[0]);
-                                    } else {
-                                        domConstruct.create("span", {
-                                            "class": "action",
-                                            "id": "elevation",
-                                            "innerHTML": "Elevation: data not available"
-                                        }, query(".actionList", map.infoWindow.domNode)[0]);
-                                    }
-                                    return;
-                                }
-                                
-                                if (query(".actionList #elevation", map.infoWindow.domNode)[0]) {
-                                    domConstruct.empty(query(".actionList #elevation", map.infoWindow.domNode)[0]);
-                                    domConstruct.place(
-                                        // if pixel value is in meters
-                                        //domConstruct.toDom("Elevation: "+ Math.round(response.results[0].attributes["Pixel Value"]*3.28084) + " ft "+Math.round(response.results[0].attributes["Pixel Value"]) + " m"),
-                                        // if pixel value is in feet
-                                        domConstruct.toDom("Elevation: " + Math.round(response.results[0].attributes["Pixel Value"]) + " ft " + Math.round(response.results[0].attributes["Pixel Value"] * 0.3048) + " m"),
-                                        query(".actionList #elevation", map.infoWindow.domNode)[0]);
-                                } else {
-                                    domConstruct.create("span", {
-                                        "class": "action",
-                                        "id": "elevation",
-                                        // if pixel value is in meters
-                                        //"innerHTML":  "Elevation: "+ Math.round(response.results[0].attributes["Pixel Value"]*3.28084) + " ft "+Math.round(response.results[0].attributes["Pixel Value"]) + " m"
-                                        // if pixel value is in feet
-                                        "innerHTML": "Elevation: " + Math.round(response.results[0].attributes["Pixel Value"]) + " ft " + Math.round(response.results[0].attributes["Pixel Value"] * 0.3048) + " m"
-                                    }, query(".actionList", map.infoWindow.domNode)[0]);
-                                }
-                            });
-                    },
-                    function(error) {
-                        require(["dojo/dom-attr", "dojo/dom-construct", "dojo/query", "dojo/dom", "dojo/on", "dojo/domReady!"],
-                            function(domAttr, domConstruct, query, dom, on) {
-                                if (query(".actionList #elevation", map.infoWindow.domNode)[0]) {
-                                    domConstruct.empty(query(".actionList #elevation", map.infoWindow.domNode)[0]);
-                                    domConstruct.place(
-                                        domConstruct.toDom("Elevation: data not available"),
-                                        query(".actionList #elevation", map.infoWindow.domNode)[0]);
-                                } else {
-                                    domConstruct.create("span", {
-                                        "class": "action",
-                                        "id": "elevation",
-                                        "innerHTML": "Elevation: data not available"
-                                    }, query(".actionList", map.infoWindow.domNode)[0]);
-                                }
-                            });
-                        hideLoading("");
-                    }
-
-                );
-            });
-        }
         // Esri's elevation data, requires a password and fee
         /*
         if (elevation_url) {
@@ -1120,17 +1153,6 @@ function displayInfoWindow() {
         		);
         	});
         }*/
-        map.infoWindow.show(clickPoint);
-
-        /* place infoWindow. when anchor=auto seems to work, move pointer around.
-			require([
-"esri/dijit/InfoWindow", ... 
-], function(InfoWindow, ... ) {
-map.infoWindow.show(location, InfoWindow.ANCHOR_UPPERRIGHT);
-...
-});*/
-        hideLoading("");
-    }
 }
 
 function getDirections(evt) {
