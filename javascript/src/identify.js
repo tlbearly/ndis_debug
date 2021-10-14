@@ -416,7 +416,7 @@ function displayContent() {
                         }
                     }
                     if (!found) {
-                        alert("Wildfire Perimeters map from the National Interagency Fire Center failed to load. Cannot display incident report at this time.","Notice");
+                        alert("Cannot display incident report at this time. The external map service that provides Wildfire Perimeters is experiencing problems. This issue is out of CPW control. We will make the National Interagency Fire Center aware of this issue.","Notice");
                         continue;
                     }
 
