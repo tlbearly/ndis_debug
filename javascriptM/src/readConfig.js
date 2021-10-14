@@ -134,8 +134,9 @@ function createMap() {
 							console.log("Layer failed to load: "+response[i].layer.id+" "+response[i].layer.url);
 							// Not MVUM since that is handled above
 							if (response[i].layer.id.indexOf("Motor Vehicle")==-1){
-								if (response[i].layer.id.indexOf("Wildfire") > -1)
-									alert(response[i].layer.id+" service from the National Interagency Fire Center is busy or not responding. Please try reloading this page.","Data Error");
+								if (response[i].layer.id.indexOf("Wildfire") > -1 ||
+									response[i].layer.id.indexOf("BLM") > -1)
+									alert("The external map service that provides "+response[i].layer.id+" is experiencing problems.  This issue is out of CPW control.  We will make the BLM aware of the issue.  We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
 								else
 									alert(response[i].layer.id+" service is busy or not responding. Please try reloading this page.","Data Error");
 								rmLayers.push(response[i].layer.id); // index of layers to remove

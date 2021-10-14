@@ -91,7 +91,7 @@ function alert() {
 			loc = loc.replace(/%2520/g, "%20");
 			ref = ref.replace(/%2520/g, "%20");
 			msg = msg.replace(/'/g, "");
-			if (title == "Data Error")
+			if (title === "Data Error" || title === "External (Non-CPW) Map Service Error")
 				email = "ndisadmin@nrel.colostate.edu";
 			msg += "%0D%0A%0D%0AApp: " + app + "%0D%0AReferrer URL: " + ref + "%0D%0ACurrent URL: " + loc + "%0D%0ABrowser: " + navigator.sayswho + "%0D%0AOp Sys: " + navigator.platform + "%0D%0ABrowser Info: " + navigator.userAgent + "%0D%0A";
 			dom.byId("errorMsg").innerHTML += " <a href='mailto:" + email + "?subject=Mobile " + app + ": " + title + "&body=" + msg + "' onClick='checkMailTo()'/><button class='mblButton' data-dojo-type='dojox/mobile/Button'>Report</button></a><br/>";
