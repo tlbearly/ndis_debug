@@ -75,10 +75,10 @@
     	gameunits:			polygon featurelayer containing various game unit IDs
      -->
     <querylayers>
-		<layers name="Fishing Information Point" type="point" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_Angler_Data/MapServer/0" />
-	    <layers name="POI" type="point" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/0" />
-		<layers name="Special Fishing Regulations (stream)" type="line" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_Angler_Data/MapServer/5" />
-		<layers name="Special Fishing Regulations (lake)" type="poly" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_Angler_Data/MapServer/12" />
+		<layers name="Fishing Information Point" type="point" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/0" />
+	    <layers name="POI" type="point" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/0" />
+		<layers name="Special Fishing Regulations (stream)" type="line" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/5" />
+		<layers name="Special Fishing Regulations (lake)" type="poly" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/12" />
     </querylayers>
     
     <reporttitle>Colorado Fishing Atlas Asset Report</reporttitle>
@@ -160,7 +160,7 @@
     <!-- 
     	REST endpoint to a map service that will be displayed in the report print window and included in the printed report
      -->    
-    <reportserviceurl>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_AnglerMain_Map/MapServer</reportserviceurl>
+    <reportserviceurl>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Main_Map/MapServer</reportserviceurl>
 	
 	<!-- GPService for printing -->
 	<printserviceurl>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printserviceurl>

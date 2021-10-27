@@ -54,9 +54,9 @@
          <!--     example: open="true" opensublayer="Places of Interest,Township Range Sections" --> 
         <operationallayers>
             <layer label="Reference" open="false" type="dynamic" visible="false" alpha="0.85"
-            		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_AnglerBase_Map/MapServer"/>
+            		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Base_Map/MapServer"/>
 			<layer label="Fishing Info" open="true" opensublayer="Recommended opportunties" type="dynamic" visible="true" alpha="0.9"
-            		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_AnglerMain_Map/MapServer"/>
+            		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Main_Map/MapServer"/>
 			<layer label="Motor Vehicle Use Map" open="true" type="dynamic" visible="false" alpha="1"
 					url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/>
             <layer label="BLM Roads and Trails" open="false" type="dynamic" visible="false" alpha="1"

@@ -29,9 +29,9 @@ function searchInit() {
 				require(["dojo/dom","dijit/registry","dojo/_base/lang","dojo/mouse","dojo/_base/Color","dojo/store/Memory","dijit/form/ComboBox", "dijit/form/Select", "esri/toolbars/draw",
 				"esri/request", "esri/tasks/query", "esri/tasks/QueryTask", "esri/graphic", "esri/layers/GraphicsLayer", "esri/InfoTemplate",
 				"esri/dijit/InfoWindowLite", "dojo/dom-construct",	"esri/urlUtils","esri/geometry/Point","esri/symbols/PictureMarkerSymbol","esri/symbols/SimpleLineSymbol",
-					"esri/symbols/SimpleFillSymbol","dojo/_base/declare","dgrid/OnDemandGrid","dgrid/extensions/DijitRegistry","dojo/domReady!"
+					"esri/symbols/SimpleFillSymbol","dojo/_base/declare","dgrid/OnDemandGrid","dgrid/extensions/DijitRegistry","dgrid/extensions/ColumnResizer","dojo/domReady!"
 					], function(dom,registry,lang,mouse,Color,Memory, ComboBox, Select, Draw, esriRequest, Query, QueryTask, Graphic, GraphicsLayer,
-					InfoTemplate, InfoWindowLite, domConstruct, urlUtils, Point, PictureMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, declare, OnDemandGrid,DijitRegistry){
+					InfoTemplate, InfoWindowLite, domConstruct, urlUtils, Point, PictureMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, declare, OnDemandGrid,DijitRegistry,ColumnResizer){
 					function showWarning(tag) {
 						// Show warning for required fields.
 						var layerName = layers[i].getElementsByTagName("name")[0] && layers[i].getElementsByTagName("name")[0].childNodes[0] ?
@@ -1050,7 +1050,7 @@ function searchInit() {
 						var gridDiv = dom.byId("searchGrid");
 						// remove old grid from html dom
 						if (gridDiv.childNodes.length>0)gridDiv.removeChild(gridDiv.childNodes[0]);
-						fsGrid = new (declare([OnDemandGrid, DijitRegistry]))({
+						fsGrid = new (declare([OnDemandGrid, DijitRegistry, ColumnResizer]))({
 							columns: header,
 							selectionMode: "single", // for Selection; only select a single row at a time
 							cellNavigation: false // for Keyboard; allow only row-level keyboard navigation
