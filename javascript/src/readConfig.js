@@ -4,7 +4,6 @@ var locator;
 var addressGraphicsCount = []; // store names of graphics layers used to display address.
 var addressGraphicsCounter = 0;
 var layerObj; // holds layer id, visiblelayers, visible when read from url &layer=...
-var loadedFromCfg; // true when the layer has loaded and set the visiblelayers when setting layers from URL
 function unloadHandler(evt) {
 	// prevent memory leaks on exit
 	// remove all event handler functions
@@ -174,8 +173,10 @@ function clearAddress() {
 //**********************
 function readConfig() {
 	require(["dojo/dom", "dojo/io-query", "esri/layers/ArcGISDynamicMapServiceLayer", "esri/layers/FeatureLayer", "esri/tasks/GeometryService", "esri/SpatialReference", "esri/tasks/ProjectParameters", "esri/map", "esri/geometry/Extent", "esri/dijit/Popup", "esri/symbols/SimpleFillSymbol", "esri/tasks/locator", "dijit/form/CheckBox", "agsjs/dijit/TOC", "esri/symbols/SimpleLineSymbol", "esri/layers/ArcGISTiledMapServiceLayer", "esri/dijit/BasemapGallery", "esri/dijit/Basemap", "esri/dijit/BasemapLayer", "esri/arcgis/utils", "esri/dijit/Gallery", "dojo/sniff"], function (dom, ioquery, ArcGISDynamicMapServiceLayer, FeatureLayer, GeometryService, SpatialReference, ProjectParameters, Map, Extent, Popup, SimpleFillSymbol, Locator, CheckBox, TOC, SimpleLineSymbol, ArcGISTiledMapServiceLayer, BasemapGallery, Basemap, BasemapLayer, arcgisUtils, Gallery, has) {
-		var xmlDoc;
+		var xmlDoc; // config.xml document json
 		var ext;
+		var tries={}; // number of times we have tried to load each map layer
+		var loadedFromCfg; // true when the layer has loaded and set the visiblelayers when setting layers from URL
 		//----------------------------------------------------------------
 		// Add Points, Lines, Polygons, Rectangles, Labels
 		//----------------------------------------------------------------
@@ -243,6 +244,7 @@ function readConfig() {
 		function testLayers(){
 			// handle errors in layer loading
 			require(["dojo/promise/all","dojo/Deferred","dojo/json"],function(all,Deferred,JSON){
+				var gaveWarningFlag = false;
 				function cancelRequest(request){
 					if (request.status==0)
 						request.abort();
@@ -265,8 +267,25 @@ function readConfig() {
 										deferred.resolve({ layer: layer, resolution: false });
 								} else {
 										var response = JSON.parse(this.response);
-										if (response.error) {
-												//console.log("Could not load " + layer.id);
+
+										// 3-10-22 Make sure all of the layers are there. MVUM is sometimes missing all of the sublayers. Contacted victoria.smith-campbell@usda.gov
+										// at USFS and they restarted one of their map services and it fixed the problem.
+										var missingLayers = false;
+										if(response.layers){
+											var count = 0;
+											for (var j=0; j<response.layers.length; j++){
+												if (response.layers[j].subLayerIds) {
+													for (k=0; k<response.layers[j].subLayerIds.length; k++){
+														if(!response.layers[response.layers[j].subLayerIds[k]]){
+															missingLayers = true;
+														}
+													}
+												}
+											}
+											
+										}
+										if (response.error || missingLayers) {
+												console.log("Could not load " + layer.id);
 												deferred.resolve({ layer: layer, resolution: false });
 										} else {
 												deferred.resolve({ layer: layer, resolution: true });
@@ -276,7 +295,92 @@ function readConfig() {
 						request.send();
 						return deferred.promise;
 				}
+
+				function tryAgain(layer){
+					// Try again. Test to see if layer is up
+					var layer_retry = {
+						"id": layer.id,
+						"url": layer.url 
+					};
+					setTimeout(function(layer){
+						console.log("Retry loading "+layer.id);
+						promises = [];
+						promises.push(testService(layer));
+						// Process Map Service Responses - Up or Down
+						var allPromises = new all(promises);
+						errflag=true;
+						allPromises.then(processPromises);
+
+					}, 3000, layer_retry);
+				}
+
+				function processPromises(response) {
+					//var errflag = false; // did any layer have problems? addMapLayers will replace xmlDoc layers with these in response
+					var mvumflag = false;
+					var rmLayers = [];
+					for (var i=0; i<response.length; i++) {
+//console.log("processing "+response[i].layer.id+" resolution="+response[i].resolution);
+						if (response[i].layer.id.indexOf("Motor Vehicle")>-1) mvumflag = true;
+						else mvumflag = false;
+						if (response[i].resolution) {
+							// layer did not have errors
+							if (mvumflag == true){
+								// The given MVUM worked
+								if (mvum1Index == i) {
+									response.pop(); // pop 2nd MVUM
+									//response.pop(); // pop 3rd MVUM
+								}
+								// The second MVUM worked replace this URL and remove the last 1 MVUM maps
+								else if (mvum2Index == i) {
+									//console.log("Layer loaded: "+response[i].layer.id+" "+response[i].layer.url);
+									response[mvum1Index].layer.url = response[i].layer.url;
+									response[mvum1Index].resolution = true;
+									response.pop(); // pop 2nd MVUM
+									errflag = true;
+									ourMVUM = true;// set flag because will need to move this layer to the bottom later in TOC.
+								}
+							}
+						}
+						// layer is down
+						else {
+							console.log("Layer failed to load: "+response[i].layer.id+" "+response[i].layer.url);
+							
+							// Not MVUM since that is handled above
+							if (response[i].layer.id.indexOf("Motor Vehicle")==-1){
+								if (!gaveWarningFlag){
+									if (response[i].layer.id.indexOf("Wildfire") > -1)
+										alert("The external map service that provides "+response[i].layer.id+" is experiencing problems.  This issue is out of CPW control. We will continue to try to load it. We will make the National Interagency Fire Center aware of the issue.  We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
+									else if(response[i].layer.id.indexOf("BLM") > -1)
+										alert("The external map service that provides "+response[i].layer.id+" is experiencing problems.  This issue is out of CPW control. We will continue to try to load it. We will make the BLM aware of the issue.  We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
+									else
+										alert(response[i].layer.id+" service is busy or not responding. We will continue to try to reload it.","Data Error");
+								}
+								errflag = true;
+								tryAgain(response[i].layer);
+								rmLayers.push(response[i].layer.id); // index of layers to remove
+							}
+						}
+					}
+		
+					gaveWarningFlag = true;
+					// Remove map services that were down, from the response array			
+					if (rmLayers.length > 0){
+						errflag = true;
+						for (j=0;j<rmLayers.length;j++){
+							for (i=0;i<response.length;i++){
+								if (rmLayers[j] == response[i].layer.id){	
+									response.splice(i,1);
+									break;
+								}
+							}
+						}
+					}
+					// Pass services to use. If there were services that were down errflag = true.
+//console.log("Adding layer (1st in this group): "+response[0].layer.id+" "+response[0].layer.url+" errflag="+errflag);					
+					addMapLayers(response,errflag,ourMVUM);
+				}
 			
+				var errflag = false;
 				var promises = [];
 				var layersToAdd = [];
 				var layers = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer");
@@ -295,7 +399,7 @@ function readConfig() {
 					mvum2Index = layersToAdd.length;
 					layersToAdd[layersToAdd.length] = {
 						"id": "Motor Vehicle Use Map",
-						"url": "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/mvum/MapServer"
+						"url": "https://ndismaps.nrel.colostate.edu/rest/services/..."
 					};
 				}
 				layersToAdd.forEach(function (layer) {
@@ -304,103 +408,164 @@ function readConfig() {
 				
 				// Process Map Service Responses - Up or Down
 				var allPromises = new all(promises);
-				allPromises.then(function (response) {
-					var errflag = false; // did any layer have problems? addMapLayers will replace xmlDoc layers with these in response
-					var mvumflag = false;
-					var rmLayers = [];
-					for (var i=0; i<response.length; i++) {
-						if (response[i].layer.id.indexOf("Motor Vehicle")>-1) mvumflag = true;
-						else mvumflag = false;
-						if (response[i].resolution) {
-							// layer did not have errors
-							if (mvumflag == true){
-								// The given MVUM worked
-								if (mvum1Index == i) {
-									response.pop(); // pop 2nd MVUM
-									//response.pop(); // pop 3rd MVUM
-								}
-								// The second MVUM worked replace this URL and remove the last 1 MVUM maps
-								else if (mvum2Index == i) {
-									console.log("Layer loaded: "+response[i].layer.id+" "+response[i].layer.url);
-									response[mvum1Index].layer.url = response[i].layer.url;
-									response[mvum1Index].resolution = true;
-									response.pop(); // pop 2nd MVUM
-									errflag = true;
-									ourMVUM = true;// set flag because will need to move this layer to the bottom later in TOC.
-								}
-							}
-						}
-						// layer is down
-						else {
-							console.log("Layer failed to load: "+response[i].layer.id+" "+response[i].layer.url);
-							// Not MVUM since that is handled above
-							if (response[i].layer.id.indexOf("Motor Vehicle")==-1){
-								if (response[i].layer.id.indexOf("Wildfire") > -1)
-									alert("The external map service that provides "+response[i].layer.id+" is experiencing problems.  This issue is out of CPW control.  We will make the National Interagency Fire Center aware of the issue.  We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
-								else if(response[i].layer.id.indexOf("BLM") > -1)
-									alert("The external map service that provides "+response[i].layer.id+" is experiencing problems.  This issue is out of CPW control.  We will make the BLM aware of the issue.  We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
-								else
-									alert(response[i].layer.id+" service is busy or not responding. Please try reloading this page.","Data Error");
-								rmLayers.push(response[i].layer.id); // index of layers to remove
-							}
-						}
-					}
-					// Remove map services that were down, from the response array
-					if (rmLayers.length > 0){
-						errflag = true;
-						for (j=0;j<rmLayers.length;j++){
-							for (i=0;i<response.length;i++){
-								if (rmLayers[j] == response[i].layer.id){	
-									response.splice(i,1);
-									break;
-								}
-							}
-						}
-					}
-					// Pass services to use. If there were services that were down errflag = true.
-					addMapLayers(response,errflag,ourMVUM);
-				});
+				allPromises.then(processPromises);
 			});
 		}
 		//******************
-		//  Add Map Layers
+		//  ADD MAP LAYERS
+		//
+		//  addMapLayers calls creatLayer for each layer in the operationallayers tag in the config.xml file.
+		//  createLayer calls layerLoadedHandler or layerLoadFailedHandler
+		//  layerLoadFailedHandler waits then calls createLayer again, reports error after 5 tries and increases time between calls to 30 seconds.
+		//  layerLoadedHandler adds layer to legendLayers and the map.
+		//  map.on("layer-add-result") listens for layer to load to map. Updates the toc with new layers. Waits for all to have tried to load,
+		//  reorders legendLayers and map layers
 		//******************
-		function addMapLayers(response,errflag,ourMVUM) {
-			// tlb 2/19/19 Called from testLayers which will see if the mapservice is up.
-			// Passes 3 new parameters:
-			//   response: an object containing id and url of map services that were up
-			//   errflag: a boolean. If true any map services were down. Update xmlDoc
-			//   ourMVM: a boolean. If true USFS MVUM service is down use ours, but will need to switch the order. Put on bottom.
-			// Add layer after it has loaded
-			function layerLoadHandler(event) {
-				try {
-					var num = new Array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
-					var j;
-					var layerInfos = [];
-					if (layerObj[event.layer.id]) {
-						layerInfos = event.layer.layerInfos;
-						// See what gmu is turned on		   
-						if (event.layer.id == "Hunter Reference") {
-							for (j = 0; j < layerObj[event.layer.id].visLayers.length; j++) {
-								if (layerInfos[layerObj[event.layer.id].visLayers[j]].name.substr(layerInfos[layerObj[event.layer.id].visLayers[j]].name.length - 3, 3).indexOf("GMU") > -1) {
-									gmu = layerInfos[layerObj[event.layer.id].visLayers[j]].name;
-									break;
-								}
-							}
-						// if gmu was not visible but a game species was selected then set gmu
-						} else if (event.layer.id == "Game Species") {
-							for (j = 0; j < layerObj[event.layer.id].visLayers.length; j++) {
-								if (layerInfos[layerObj[event.layer.id].visLayers[j]].name === "Bighorn Sheep") {
-									gmu = "Bighorn GMU";
-									break;
-								} else if (layerInfos[layerObj[event.layer.id].visLayers[j]].name === "Mountain Goat") {
-									gmu = "Goat GMU";
-									break;
-								}
-							}
+		function addMapLayers2(){
+			// 3-21-22 use layer.on("load") and layer.on("error") to make sure layers have loaded
+
+			// Create Layer 3-21-22
+			// Get layers from url of config.xml
+			function createLayer(layer){
+				var id = layer.getAttribute("label");
+				var myLayer;
+				tries[id]++;
+				// Set layer properties on startup if specified on url
+				if (queryObj.layer && queryObj.layer != "") {
+					if (layer.getAttribute("url").toLowerCase().indexOf("mapserver") > -1) {
+						if (layerObj[id]){
+							myLayer = new ArcGISDynamicMapServiceLayer(layer.getAttribute("url"), {
+									"opacity": layerObj[id].opacity,
+									"id": id,
+									"visible": layerObj[id].visible,
+									"visibleLayers": layerObj[id].visLayers
+								});
+						// not found on url, not visible
+						}else {
+							myLayer = new ArcGISDynamicMapServiceLayer(layer.getAttribute("url"), {
+									"opacity": Number(layer.getAttribute("alpha")),
+									"id": id,
+									"visible": false
+								});
 						}
-						// 2-19-19 use default visibility for old MVUM
-						if (!ourMVUM){
+					}
+					// FeatureServer tlb 10/19/20
+					else if (layer.getAttribute("url").toLowerCase().indexOf("featureserver") > -1){
+						if (layerObj[id]) 
+							myLayer = new FeatureLayer(layer.getAttribute("url"), {
+									"opacity": Number(layer.getAttribute("alpha")),
+									"id": id,
+									"visible" : layerObj[id].visible,
+									"visibleLayers" : layerObj[id].visLayers
+								});
+						else
+							myLayer = new FeatureLayer(layer.getAttribute("url"), {
+									"opacity": Number(layer.getAttribute("alpha")),
+									"id": id,
+									"visible": false
+								});
+					}
+					else {
+						alert("Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit readConfig.js line 600 to add new type.");
+						return;
+					}
+				// Set layer properties from config.xml file
+				} else {
+					// MapServer
+					if (layer.getAttribute("url").toLowerCase().indexOf("mapserver") > -1){
+						if (layer.getAttribute("visible") == "false")
+							myLayer = new ArcGISDynamicMapServiceLayer(layer.getAttribute("url"), {
+									"opacity": Number(layer.getAttribute("alpha")),
+									"id": id,
+									"visible": false
+								});
+						else
+							myLayer = new ArcGISDynamicMapServiceLayer(layer.getAttribute("url"), {
+									"opacity": Number(layer.getAttribute("alpha")),
+									"id": id,
+									"visible": true
+								});
+					} 
+					// FeatureServer tlb 9/28/20
+					else if (layer.getAttribute("url").toLowerCase().indexOf("featureserver") > -1){
+						if (layer.getAttribute("visible") == "false")
+							myLayer = new FeatureLayer(layer.getAttribute("url"), {
+									"opacity": Number(layer.getAttribute("alpha")),
+									"id": id,
+									"visible": false
+								});
+						else
+							myLayer = new FeatureLayer(layer.getAttribute("url"), {
+									"opacity": Number(layer.getAttribute("alpha")),
+									"id": id,
+									"visible": true,
+								});
+					}
+					else {
+						alert("Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit readConfig.js line 600 to add new type.");
+						return;
+					}
+				}
+				// 3-21-22 check if loaded
+				myLayer.on("load", layerLoadedHandler);
+				myLayer.on("error", layerLoadFailedHandler);
+			}
+
+			// If layer loaded add to legend and map 3-21-22
+			function layerLoadedHandler(event){
+				try{
+					var collapsedFlg;
+					var openSubLayers = [];
+					var layer;
+					// search for layer in xmlDoc
+					for (var i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+						if (event.layer.id === xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label")) {
+							layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i];
+						}
+					}
+					// layer from config.xml
+					if (loadedFromCfg) {
+						collapsedFlg = false;
+						
+						if (layer.getAttribute("open") == "false")
+							collapsedFlg = true;
+						var oslArr = layer.getAttribute("opensublayer");
+						if (oslArr)
+							openSubLayers = oslArr.split(",");
+						oslArr = null;
+					}
+					// layer from &map or &layer on url
+					else {
+						collapsedFlg = true;
+						if (event.layer.visible)
+							collapsedFlg = false;
+						var num = new Array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+						var j;
+						var layerInfos = [];
+						// Set gmu = elk, bighorn, or goat based on what was on url	
+						if (layerObj[event.layer.id]) {
+							layerInfos = event.layer.layerInfos;
+							// See what gmu is turned on		   
+							if (event.layer.id == "Hunter Reference") {
+								for (j = 0; j < layerObj[event.layer.id].visLayers.length; j++) {
+									if (layerInfos[layerObj[event.layer.id].visLayers[j]].name.substr(layerInfos[layerObj[event.layer.id].visLayers[j]].name.length - 3, 3).indexOf("GMU") > -1) {
+										gmu = layerInfos[layerObj[event.layer.id].visLayers[j]].name;
+										break;
+									}
+								}
+							// if gmu was not visible but a game species was selected then set gmu
+							} else if (event.layer.id == "Game Species") {
+								for (j = 0; j < layerObj[event.layer.id].visLayers.length; j++) {
+									if (layerInfos[layerObj[event.layer.id].visLayers[j]].name === "Bighorn Sheep") {
+										gmu = "Bighorn GMU";
+										break;
+									} else if (layerInfos[layerObj[event.layer.id].visLayers[j]].name === "Mountain Goat") {
+										gmu = "Goat GMU";
+										break;
+									}
+								}
+							}
+							// Set default visibility
 							for (j = 0; j < layerInfos.length; j++) {
 								// If layer is found in the visLayers make it visible.
 								if (layerObj[event.layer.id].visLayers.indexOf(layerInfos[j].id) != -1)
@@ -428,8 +593,218 @@ function readConfig() {
 								return a - b;
 							}));
 							event.layer.refresh();
-						} // if not ourMVUM
+						}	
 					}
+
+					legendLayers.push({
+						layer: event.layer,
+						title: event.layer.id,
+						autoToggle: true, // If true, closes the group when unchecked and opens the group when checked. If false does nothing.
+						slider: true, // whether to display a transparency slider
+						slider_ticks: 3,
+						slider_labels: ["transparent", "50%", "opaque"],
+						hideGroupSublayers: hideGroupSublayers,
+						radioLayers: radioLayers,
+						noLegend: true,
+						openSubLayers: openSubLayers,
+						collapsed: collapsedFlg // whether this root layer should be collapsed initially, default false. 
+					});
+//console.log("add layer to map "+event.layer.id);
+					map.addLayer(event.layer);							
+					
+					openSubLayers = null;
+				} catch (e) {
+					alert("Error in readConfig.js/layerLoadedHandler " + e.message, "Code Error", e);
+				}
+			}
+
+			function layerLoadFailedHandler(event){
+				// Layer failed to load 3-21-22
+				// Wait 2 seconds, retry up to 5 times, then report the error and continue trying every 30 seconds
+				// 3-10-22 NOTE: MVUM is sometimes missing some of the sublayers. Contacted victoria.smith-campbell@usda.gov
+				// at USFS and they restarted one of their map services and it fixed the problem.
+//console.log(event.target.id+" failed to load!!!!!!!");
+//console.log("tries="+tries[event.target.id]);
+				var layer;
+				for(var i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+					if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label") === event.target.id){
+						layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i];
+						break;
+					}
+				}
+				// Try every 2 seconds for up to 5 times 
+				if (tries[event.target.id] < 5){
+					setTimeout(function(){createLayer(layer);},2000);
+				} 
+				// Greater than 5 tries, give warning
+				else if (tries[event.target.id] == 5){
+					if (event.target.id.indexOf("Motor Vehicle") > -1 || event.target.id.indexOf("Wildfire") > -1 || event.target.id.indexOf("BLM") > -1)
+						alert("The external map service that provides "+event.target.id+" is experiencing problems.  This issue is out of CPW control. We will continue to try to load it. We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
+					else
+						alert(event.target.id+" service is busy or not responding. We will continue to try to load it.","Data Error");
+					setTimeout(function(){createLayer(layer);},30000);
+				}
+				// Greater than 5 tries. Keep trying every 30 seconds
+				else {
+//DEBUG
+//console.log("Retrying to load: "+event.target.id);
+//if(event.target.id.indexOf("Hunter Reference")>-1)
+//layer.setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer");
+//if(event.target.id.indexOf("Game Species")>-1)
+//layer.setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map/MapServer");
+//if(event.target.id.indexOf("Motor Vehicle")>-1)
+//layer.setAttribute("url","https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer");
+//console.log("url="+layer.getAttribute("url"));
+					setTimeout(function(){createLayer(layer);},30000);
+				}
+			}
+			
+			//-----------
+			// Variables
+			//-----------
+			loadedFromCfg = true; // the layer is loaded from config.xml. If false loaded from url &layers.
+
+			// Store layers from URL into layerObj
+			// 		&layer= basemap | id | opacity | visible layers , id | opacity | visible layers , repeat...
+			// 		&layer= streets|layer2|.8|3-5-12,layer3|.65|2-6-10-12
+			// 		get array of layers without the basemap stuff;
+			if (queryObj.layer && queryObj.layer != "") {
+				loadedFromCfg = false; // the layer is loaded from config.xml. If false loaded from url &layers.
+				var layersArr = queryObj.layer.substring(queryObj.layer.indexOf("|") + 1).split(",");
+				layerObj = {};
+				//if (layersArr.length == 1) layersArr.pop(); // remove empty element if no layers are visible
+				for (i = 0; i < layersArr.length; i++) {
+					// build an array of objects indexed by layer id
+					var layerArr = layersArr[i].split("|");
+					if (layerArr[0] == "") continue;// tlb 1-5-18 if no layers are visible 
+					layerArr[0] = layerArr[0].replace(/~/g, " ");
+					if (layerArr.length == 3)
+						layerArr.push(true);
+					if (layerArr[2] == -1)
+						layerObj[layerArr[0]] = {
+							"opacity": layerArr[1],
+							"visLayers": [], // tlb 1-5-18 used to be [-1],
+							"visible": true
+						};
+					else
+						layerObj[layerArr[0]] = {
+							"opacity": layerArr[1],
+							"visLayers": layerArr[2].split("-"),
+							"visible": layerArr[3] == "1" ? true : false
+						};
+					// Convert visLayers from strings to int using bitwise conversion
+					for (j = 0; j < layerObj[layerArr[0]].visLayers.length; j++)
+						layerObj[layerArr[0]].visLayers[j] = layerObj[layerArr[0]].visLayers[j] | 0;
+				}
+			}
+
+			// Get hide GroupSublayers & radioLayers from config.xml
+			try {
+				if (xmlDoc.getElementsByTagName("hideGroupSublayers")[0] && xmlDoc.getElementsByTagName("hideGroupSublayers")[0].firstChild)
+					hideGroupSublayers = xmlDoc.getElementsByTagName("hideGroupSublayers")[0].firstChild.nodeValue.split(",");
+			} catch (e) {
+				alert("Warning: Missing hideGroupSublayers tag in " + app + "/config.xml file. " + e.message, "Data Error");
+			}
+			try {
+				if (xmlDoc.getElementsByTagName("radiolayers")[0] && xmlDoc.getElementsByTagName("radiolayers")[0].firstChild)
+					radioLayers = xmlDoc.getElementsByTagName("radiolayers")[0].firstChild.nodeValue.split(",");
+			} catch (e) {
+				alert("Warning: Missing radiolayers tag in " + app + "/config.xml file. " + e.message, "Data Error");
+			}
+			
+			// ---------------------------------------------------
+			//  Load each Layer from config.xml operationallayers
+			// ---------------------------------------------------
+			var layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer");
+// DEBUG: make if fail
+//layer[0].setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map2/MapServer");
+//layer[1].setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map2/MapServer");
+//layer[2].setAttribute("url","https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_03/MapServer");
+			for (i = 0; i < layer.length; i++) {
+				tries[layer[i].getAttribute("label")] = 0;				
+				createLayer(layer[i]);			
+			}
+		}
+
+
+
+
+
+
+
+
+		// TODO remove if addMapLayers2 works
+		function addMapLayers(response,errflag,ourMVUM) {
+			// tlb 2/19/19 Called from testLayers which will see if the mapservice is up.
+			// Passes 3 new parameters:
+			//   response: an object containing id and url of map services that were up
+			//   errflag: a boolean. If true any map services were down. Update xmlDoc
+			//   ourMVM: a boolean. If true USFS MVUM service is down use ours, but will need to switch the order. Put on bottom.
+			
+
+			// Add layer after it has loaded
+			function layerLoadHandler(event) {
+				try {
+					var num = new Array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+					var j;
+					var layerInfos = [];
+					// Set gmu = elk, bighorn, or goat based on what was on url
+					if (!loadedFromCfg){		
+						if (layerObj[event.layer.id]) {
+							layerInfos = event.layer.layerInfos;
+							// See what gmu is turned on		   
+							if (event.layer.id == "Hunter Reference") {
+								for (j = 0; j < layerObj[event.layer.id].visLayers.length; j++) {
+									if (layerInfos[layerObj[event.layer.id].visLayers[j]].name.substr(layerInfos[layerObj[event.layer.id].visLayers[j]].name.length - 3, 3).indexOf("GMU") > -1) {
+										gmu = layerInfos[layerObj[event.layer.id].visLayers[j]].name;
+										break;
+									}
+								}
+							// if gmu was not visible but a game species was selected then set gmu
+							} else if (event.layer.id == "Game Species") {
+								for (j = 0; j < layerObj[event.layer.id].visLayers.length; j++) {
+									if (layerInfos[layerObj[event.layer.id].visLayers[j]].name === "Bighorn Sheep") {
+										gmu = "Bighorn GMU";
+										break;
+									} else if (layerInfos[layerObj[event.layer.id].visLayers[j]].name === "Mountain Goat") {
+										gmu = "Goat GMU";
+										break;
+									}
+								}
+							}
+							// 2-19-19 use default visibility for old MVUM
+							if (!ourMVUM){
+								for (j = 0; j < layerInfos.length; j++) {
+									// If layer is found in the visLayers make it visible.
+									if (layerObj[event.layer.id].visLayers.indexOf(layerInfos[j].id) != -1)
+										layerInfos[j].defaultVisibility = true;
+									// Else if this is not the top layer and it has no sub-layers set default visibility
+									else if (layerInfos[j].parentLayerId != -1 && !layerInfos[j].subLayerIds) {
+										// if this is a gmu layer make sure it is the one that was turned on in visLayers
+										if (layerInfos[j].name.substr(layerInfos[j].name.length - 3, 3).indexOf("GMU") > -1) {
+											// handle this later below when all layers have loaded. Need to wait for Game Species to load. If GMU layer is not set was not working.
+										}
+										// use the default value for sub menu item layers that are under a menu item that is unchecked
+										else if ((layerInfos[j].defaultVisibility == true) && (layerObj[event.layer.id].visLayers.indexOf(layerInfos[j].parentLayerId) === -1)) {
+											layerObj[event.layer.id].visLayers.push(j);
+											// If by default it is visible see if the name of the parent is a number (varies with extent) and make it visible also
+											if (num.indexOf(parseInt(layerInfos[layerInfos[j].parentLayerId].name.substr(0, 1))) > -1) {
+												layerObj[event.layer.id].visLayers.push(layerInfos[j].parentLayerId);
+												layerInfos[layerInfos[j].parentLayerId].defaultVisibility = true;
+											}
+										}
+									// Else this is a top level toc menu item and not found in the visible list, make it not visible.
+									} else
+										layerInfos[j].defaultVisibility = false;
+								}
+								event.layer.setVisibleLayers(layerObj[event.layer.id].visLayers.sort(function (a, b) {
+									return a - b;
+								}));
+								event.layer.refresh();
+							} // if not ourMVUM
+						}
+					}
+
 					collapsedFlg = true;
 					if (event.layer.visible)
 						collapsedFlg = false;
@@ -445,21 +820,13 @@ function readConfig() {
 						noLegend: true,
 						openSubLayers: [],
 						collapsed: collapsedFlg // whether this root layer should be collapsed initially, default false. 
-					});
+					});				
 					mapLayers.push(event.layer);
+									
 					if (mapLayers.length == xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length) {
-						// reverse order of layer for legendLayers
-						var tmp = [layer.length];
-						var m = 0;
-						for (j = layer.length - 1; j > -1; j--) {
-							for (k = 0; k < layer.length; k++) {
-								if (legendLayers[k].title === layer[j].getAttribute("label")) {
-									tmp[m++] = legendLayers[k];
-									break;
-								}
-							}
-						}
-						legendLayers = tmp;
+						// Display operational layers in reverse order so that the layer that is on top of map is displayed at top of TOC.
+						legendLayers.reverse();
+						
 						// set gmu after Game Species and Hunter Reference have been processed
 						for (var k = 0; k < mapLayers.length; k++) {
 							if ((mapLayers[k].id == "Hunter Reference") && (layerObj["Hunter Reference"])) {
@@ -480,8 +847,8 @@ function readConfig() {
 									}
 								}
 								mapLayers[k].setVisibleLayers(layerObj["Hunter Reference"].visLayers.sort(function (a, b) {
-										return a - b;
-									}));
+									return a - b;
+								}));
 							}
 						}
 						map.addLayers(mapLayers);
@@ -509,6 +876,7 @@ function readConfig() {
 						// If the service was not up remove it from xmlDoc
 						if (!found)rmLayers.push(i);
 					}
+					// remove layers that did not load
 					for (i=rmLayers.length-1;i>=0;i--){
 						var element = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[rmLayers[i]];
 						element.parentNode.removeChild(element);
@@ -623,6 +991,13 @@ function readConfig() {
 						} else {
 							myLayer.on("load", layerLoadHandler);
 						}
+						// handle error 3-21-22
+						if(myLayer.error){
+							console.log("Layer did not load: "+myLayer.id);
+						}
+						else {
+							myLayer.on("error", function(){console.log("Layer did not load: "+myLayer.id);});
+						}
 					// Set layer properties from config.xml file
 					} else {
 						// MapServer
@@ -659,6 +1034,10 @@ function readConfig() {
 							alert("Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit readConfig.js line 600 to add new type.");
 							return;
 						}
+						// 3-21-22 check if loaded
+						myLayer.on("error", function(){
+							console.log("Layer did not load: "+myLayer.id);
+						});
 					}
 					if (loadedFromCfg) {
 						collapsedFlg = false;
@@ -680,13 +1059,13 @@ function readConfig() {
 							noLegend: true,
 							openSubLayers: openSubLayers,
 							collapsed: collapsedFlg // whether this root layer should be collapsed initially, default false. 
-						});
+						});						
 						mapLayers.push(myLayer);
 						openSubLayers = null;
 						oslArr = null;
 					}
 				}
-				if (loadedFromCfg) {
+				if (loadedFromCfg) {								
 					map.addLayers(mapLayers);
 					// Display operational layers in reverse order so that the layer that is on top of map is displayed at top of TOC.
 					legendLayers.reverse();
@@ -867,8 +1246,10 @@ function readConfig() {
 						window.open(licenseURL, "_new");
 					});
 				}
-				testLayers(); // will call addMapLayers if they exist 2/19/19
+				//3-21-22testLayers(); // will call addMapLayers if they exist 2/19/19
 				//addMapLayers(); 2/19/19
+
+				addMapLayers2(); //3-21-22
 			});
 		}
 
@@ -1490,6 +1871,7 @@ function readConfig() {
 			document.getElementById("mapDescFile").href = app + "/definitions.html";
 			var xmlhttp = createXMLhttpRequest();
 			var configFile = app + "/config.xml?v=" + ndisVer;
+			var calledFlag = false; // 3-21-22 call readSettingsWidget and addGraphicsAndLabels only once
 			xmlhttp.onreadystatechange = function () {
 				if (xmlhttp.readyState == 4 && xmlhttp.status === 200) {
 					xmlDoc = createXMLdoc(xmlhttp);
@@ -1651,14 +2033,181 @@ function readConfig() {
 					} catch (e) {
 						alert("Error creating map in readConfig.js. " + e.message, "Code Error", e);
 					}
+
+
+
+
+
+
+					// 3-21-22
+					// load legend/layer list. Fires after one layer is added to the map using the map.addLayer method.
+					var toc;
+					var legendChkBox;
+					map.on('layer-add-result', function (event) {
+						var errFlag = false;
+						var i,j;
+//console.log("map.on layer add result: "+event.layer.id);
+						try {	
+							if (event.error) {
+								errFlag = true;
+								alert("Problem adding layer to map: " + event.layer.url + ". Reason: " + event.error.message + ". At javascript/readConfig.js", "Code Error");
+							}
+							// Turn off MVUM extra layers
+							else if (event.layer.url && event.layer.url.indexOf("MVUM") > -1){
+								for (j = 0; j < event.layer.layerInfos.length; j++) {
+									if (event.layer.layerInfos[j].name == "Visitor Map Symbology") {
+										event.layer.layerInfos[j].defaultVisibility = false;
+									}
+									else if (event.layer.layerInfos[j].name =="Status") {
+										event.layer.layerInfos[j].defaultVisibility = false;
+									}
+								}
+							}
+						} catch (e) {
+							alert("Error loading layer, "+event.layer.id+", to map. Reason: " + e.message + " in javascript/readConfig.js layer-add-result", "Code Error", e);
+						}
+
+						// if event.layer is in legendLayer and toc exists remove TOC and add again
+						var layerInTOC = false;
+						for(i=0; i<legendLayers.length;i++){
+							if(event.layer.id === legendLayers[i].title){
+								layerInTOC = true;
+								break;
+							}
+						}
+						if (layerInTOC){
+							// check if all layers have tried to load
+							var allTriedToLoad = true;
+							for (i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+								if (tries[xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label")] == 0)
+									allTriedToLoad = false;
+							}
+							// Reorder TOC and map layers. map.reorderLayer(layer, index) index=0 is bottom most
+							if (allTriedToLoad){
+								// reorder layers according to config.xml operationallayers
+								var copyLegendLayers = [];
+								var copyMapLayers = [];
+								// copy legend
+								for (i=0;i<legendLayers.length;i++){
+									copyLegendLayers[i] = Object.assign({}, legendLayers[i]);
+								}
+								// copy map layers
+								var numBasemaps=0; // count number of basemaps
+								for (i=0;i<map.layerIds.length;i++){
+									copyMapLayers[i] = Object.assign({}, map.getLayer(map.layerIds[i]));
+									if (map.getLayer(map.layerIds[i]).id.indexOf("layer") > -1) numBasemaps++;
+								}
+								var k=0;
+								var n=0;
+								for (i=0; i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+									// put legend in reverse order
+									for (j=0; j<legendLayers.length;j++){
+										if (copyLegendLayers[j].title === xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label")){
+											legendLayers[k++] = Object.assign({}, copyLegendLayers[j]);
+											break;
+										}
+									}
+									// put map layers in order
+									for (var m=0;m<copyMapLayers.length;m++){
+										if (copyMapLayers[m].id === xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label")){
+											// map.reorderLayer(layer, index) The basemap is 0.
+											map.reorderLayer(Object.assign({}, copyMapLayers[m]), i+numBasemaps);
+											break;
+										}
+									}
+								}
+								legendLayers.reverse();
+							}
+							
+							try {
+								// If TOC already created just refresh it and update legend if showing
+								if(toc){
+									// display legend
+									if(legendChkBox.checked){
+										for (var t = 0; t < toc.layerInfos.length; t++) {
+											toc.layerInfos[t].noLegend = false;
+										}
+									}
+									toc.refresh();
+									toc._adjustToState();
+									return;
+								}
+								
+								// Load TOC
+								toc = new TOC({
+										map: map,
+										layerInfos: legendLayers
+									}, 'tocDiv');
+								toc.startup();
+								
+								// load Show Legend checkbox click event after toc has loaded
+								legendChkBox = new CheckBox({
+										name: "showLegendChkBox",
+										onChange: function () {
+											// called from Map Layers & Legend Show Legend checkbox click event
+											require(["dijit/registry"], function (registry) {
+												try {
+													var tocWait = document.getElementById("tocLoading");
+													tocWait.style.display = "block";
+													tocWait.style.visibility = "visible";
+													var noLegend = true;
+													var toc2 = registry.byId("tocDiv");
+													if (legendChkBox.checked) {
+														noLegend = false;
+														setCookie("legend", "1");
+													} else
+														setCookie("legend", "0");
+													for (var t = 0; t < toc2._rootLayerTOCs.length; t++) {
+														toc2._rootLayerTOCs[t].config.noLegend = noLegend;
+													}
+													toc2.refresh();
+													toc2._adjustToState();
+													// Wait 1 second then remove wait
+													setTimeout(function () {
+														tocWait.style.display = "none";
+														tocWait.style.visibility = "hidden";
+													}, 1000);
+												} catch (e) {
+													alert("Error in readConfig.js. Loading click event for Show Legend checkbox. " + e.message, "Code Error", e);
+													hideLoading();
+												}
+											});
+										}
+									}, "showLegendChkBox");
+								legendChkBox.startup();
+								if (getCookie("legend") == 1) {
+									legendChkBox.set("checked", true);
+								}
+							} catch (e) {
+								alert("Error loading TOC Map Layers & Legend: " + e.message + " in javascript/readConfig.js or toc/src/agsjs/dijit/TOC.js", "Code Error", e);
+							}
+						}
+						if (!calledFlag && allTriedToLoad) {
+							calledFlag = true;
+							try{
+								readSettingsWidget(); // initialize Identify, found in identify.js
+							} catch(e){
+								alert("Error reading SettingsWidget.xml. Reason: " + e.message + " in javascript/readConfig.js", "SettingsWidget Error", e);
+							}
+							try {
+								addGraphicsAndLabels();
+							} catch (e) {
+								alert("Error loading graphics and labels from the URL: " + e.message + " in javascript/readConfig.js", "URL Graphics Error", e);
+							}
+						}
+					});
+
+
+
+
 					// load legend/layer list. Fires after all layers are added to the map using the map.addLayers method.
-					map.on('layers-add-result', function (layer) {
+					/*map.on('layers-add-result', function (layer) {
 						var errFlag = false;
 						try {
-							for (var i = 0; i < layer.layers.length; i++) {
+							for (var i = 0; i < layer.layers.length; i++) {						
 								if (layer.layers[i].error) {
 									errFlag = true;
-									alert("Problem loading layer: " + layer.layers[i].layer.url + ". " + layer.layers[i].error.message + ". At javascript/readConfig.js", "Code Error");
+									alert("Problem adding layer to map: " + layer.layers[i].layer.url + ". Reason: " + layer.layers[i].error.message + ". At javascript/readConfig.js", "Code Error");
 								}
 								// Turn off MVUM extra layers
 								else if (layer.layers[i].layer.url.indexOf("MVUM") > -1){
@@ -1731,7 +2280,7 @@ function readConfig() {
 						} catch (e) {
 							alert("Error loading graphics and labels from the URL: " + e.message + " in javascript/readConfig.js", "URL Graphics Error", e);
 						}
-					});
+					});*/
 					
 					// Load listener function for when the first or base layer has been successfully added
 					map.on("load", function () {

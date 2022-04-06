@@ -18,7 +18,9 @@ var show_elevation = false;
 var elevation_url = null;
 var polySymbol, pointSymbol, lineSymbol;
 var irwin_to_inciweb_url = "";
-
+var firstClick = false; // 4-1-22
+var secondClick = false; // 4-1-22
+var lastIdentifyTime=0; // 4-1-22
 require(["esri/tasks/IdentifyParameters", "esri/symbols/SimpleLineSymbol", "esri/symbols/SimpleFillSymbol", "esri/symbols/PictureMarkerSymbol",
     "dojo/_base/Color"
 ], function(IdentifyParameters, SimpleLineSymbol, SimpleFillSymbol, PictureMarkerSymbol, Color) {
@@ -322,17 +324,42 @@ function readSettingsWidget() {
 
 function doIdentify(evt) {
     if (drawing) return; // If using Draw, Label, Measure widget return;
-    require(["dojo/dom-construct", "dojo/query", "dojo/dom", "dojo/on", "dojo/domReady!"],
-        function(domConstruct, query, dom, on) {
-            // 10-19-20 if info window is showing, close it
+    // 3-30-22 Allow double click to zoom in. Don't show identify popup if time since last click was < a 1/4 second
+    if (firstClick) secondClick = true;
+    else firstClick = true;
+    var d = new Date();
+    var now = d.getTime();
+    setTimeout(function(){
+        // if 2nd click was < a 1/4 second zoom in
+        if (secondClick && (now - lastIdentifyTime) < 250){
+            firstClick=false;
+            secondClick=false;
             if (map.infoWindow.isShowing){
                 map.infoWindow.hide();
                 map.infoWindow.setTitle("");
                 hideLoading("");
-                return;
-            }
-
-            
+            }        
+            return; // double click
+        }
+        else if (!firstClick) return;
+        else if (!secondClick) {           
+            firstClick=false;
+            secondClick=false;
+            doIdentify2(evt);
+        }
+    },250);
+    lastIdentifyTime = now;
+    return;
+}
+function doIdentify2(evt){
+    if (map.infoWindow.isShowing){
+        map.infoWindow.hide();
+        map.infoWindow.setTitle("");
+        hideLoading("");
+        return;
+    }
+    require(["dojo/dom-construct", "dojo/query", "dojo/dom", "dojo/on", "dojo/domReady!"],
+        function(domConstruct, query, dom, on) {
             // Called for each map click or identify group change
             numDatabaseCalls = 0;
             processedDatabaseCalls = 0;
@@ -345,7 +372,7 @@ function doIdentify(evt) {
                 groupContent[identifyGroups[i]] = null;
             }
             clickPoint = evt.mapPoint;
-
+            // 10-19-20 if info window is showing, close it
             map.infoWindow.hide();
             map.infoWindow.setTitle("Identify");
             map.infoWindow.setContent("<p align='center'>Loading...</p>");

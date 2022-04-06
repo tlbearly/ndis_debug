@@ -117,7 +117,7 @@
 			document.write('<script type="text/javascript" src="'+path+'/findPlace.js?v='+jsVer+'"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/identify.js?v='+jsVer+'"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/print.js?v='+jsVer+'"><\/script>');
-			document.write('<script type="text/javascript" src="'+path+'/readConfig.js?v='+jsVer+'"><\/script>');
+			document.write('<script type="text/javascript" src="'+path+'/readConfig.js?v=d"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/search.js?v='+jsVer+'"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/swipe.js?v='+jsVer+'"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/utilFuncs.js?v='+jsVer+'"><\/script>');
@@ -363,14 +363,6 @@
 		function openTOC(){
 			// show toc window
 			slideRight(document.getElementById("tocPane"));
-			//document.getElementById("tocPane").style.display="block";
-			// _loadBookmarks in Bookmark.js also calls initTOC
-			if (!tocFlag){
-				require(["dojo/_base/lang"],function(lang){
-					window.setTimeout(lang.hitch(this, "initTOC"),400);
-				});
-				tocFlag=true;
-			}
 		}
 		
 		// Initialize Feature Search & open dialog

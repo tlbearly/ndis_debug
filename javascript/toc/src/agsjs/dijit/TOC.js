@@ -559,7 +559,7 @@ define("agsjs/dijit/TOC",
      * @param {Object} type rootLayer|serviceLayer|legend. It's name will be passed in constructor of _TOCNode.
      */
     _createChildrenNodes: function(chdn, type){
-      // ---tlb--- Insert Legend for MVUM---
+    /*  // ---tlb--- Insert Legend for MVUM---
 	  if (ourMVUM && this.rootLayer.id == "Motor Vehicle Use Map")
 	  {	
 		var MVUMimg = domConstruct.create("img", {src: "assets/images/USFS_MVUM_legend_small.png"}, this.containerNode);
@@ -570,7 +570,7 @@ define("agsjs/dijit/TOC",
 		});
 		return;
 	  }
-	  // --- tlb end ---	
+	  // --- tlb end ---	*/
 		
 	  this.rootLayerTOC._currentIndent++;
       var c = [];
@@ -962,7 +962,10 @@ define("agsjs/dijit/TOC",
       var url = '';
       // the else is causing a CORS error each time. Always append /legend. tlb 1-15-19
       //if (this.rootLayer.version >= 10.01) {
-        url = this.rootLayer.url + '/legend';
+        url = this.rootLayer.url + '/legend';       
+// DEBUG
+//console.log("Loading legend: "+url);
+//if (url.indexOf("Base_Map")>-1) url = "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map2/MapServer";       
       //} else {
       //  url = 'https://www.arcgis.com/sharing/tools/legend';
       //  var i = this.rootLayer.url.toLowerCase().indexOf('/rest/');
@@ -982,22 +985,43 @@ define("agsjs/dijit/TOC",
       });    
     },
     _processLegendError: function(err){
-      // tlb 7-30-19 give it 3 tries to load
-      if (this.tries < 4){
-        this._getLegendInfo();
+      // tlb 7-30-19 give it 5 tries to load, then display error, then try every 30 seconds
+      var myLayer = this;
+console.log("Legend failed to load: "+this.rootLayer.id);      
+      if (this.tries < 5){
+        setTimeout(function(layer){
+          layer._getLegendInfo();
+        },3000, myLayer);
       }
-      else {
-        this._createRootLayerTOC();
-        if (err.message.toLowerCase().indexOf("services/") == -1) alert ("Problem loading legend: "+err.message,"Data Error");
+      else if (this.tries == 5){
+        this._createRootLayerTOC(); // don't add it to the toc 3-10-22 ???????
+        var from = "";
+        if (this.rootLayer.id.indexOf("Motor")>-1) from = " from the USFS servers";
+        if (this.rootLayer.id.indexOf("BLM")>-1) from = " from the BLM servers";
+        if (this.rootLayer.id.indexOf("Wildlife")>-1) from = " from the National Interagency Fire Center servers";
+        
+        if (err.message.toLowerCase().indexOf("services/") == -1) {  
+          alert("We are having trouble retrieving the "+this.rootLayer.id+" legend"+from+", we will continue to try to load it.","Data Error");
+          //alert ("Problem loading legend: "+err.message,"Data Error"); // tlb 3-8-22 reworded
+        }
         else{
           var map = err.message.substring(err.message.toLowerCase().indexOf("services/")+9,err.message.toLowerCase().indexOf("/mapserver"));
           if (err.message.indexOf("HunterBase")>-1) map="Hunter Reference";
           else if (err.message.indexOf("MVUM")>-1) map="MVUM";
           else if (err.message.indexOf("GameSpecies")>-1) map="Game Species";
-          else if (err.message.indexOf("AnglerBase")>-1) map="Fishing Reference";
-          else if (err.message.indexOf("AnglerMain")>-1) map="Fishing Info";
-          alert("Problem loading "+map+" legend. Please reload "+app,"Data Error");
+          else if (err.message.indexOf("FishingAtlas_Base")>-1) map="Fishing Reference";
+          else if (err.message.indexOf("FishingAtlas_Main")>-1) map="Fishing Info";
+          alert("We are having trouble retrieving the "+map+" legend"+from+", we will continue to try to load it.","Data Error");
         }
+        setTimeout(function(layer){
+          layer._getLegendInfo();
+        },30000, myLayer);
+      }
+      // if > 5 tries call it every 30 seconds
+      else {
+        setTimeout(function(layer){
+          layer._getLegendInfo();
+        },30000, myLayer);
       }
     },
     _processLegendInfo: function(json){
@@ -1008,6 +1032,7 @@ define("agsjs/dijit/TOC",
         // generally id = index, this is to assure we find the right layer by ID
         // note: not all layers have an entry in legend response.
         var layerLookup = {};
+ //console.log(layer.layerInfos);
         layer.layerInfos.forEach(function(layerInfo){
           layerLookup['' + layerInfo.id] = layerInfo;
           // used for later reference.
@@ -1034,9 +1059,9 @@ define("agsjs/dijit/TOC",
           if (layerInfo.subLayerIds) {
             var subLayerInfos = [];
             layerInfo.subLayerIds.forEach(function(id, i){
-              subLayerInfos[i] = layerLookup[id];
-              subLayerInfos[i]._parentLayerInfo = layerInfo;
-            });
+                subLayerInfos[i] = layerLookup[id];
+                subLayerInfos[i]._parentLayerInfo = layerInfo;
+           });
             layerInfo._subLayerInfos = subLayerInfos;
           }
         });

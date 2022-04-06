@@ -754,7 +754,12 @@ function printMap(){
 				}
 				else {
 					document.getElementById("printInst").innerHTML = "Disable pop-up blocker. Printout will open in a new tab.";
-					window.open(result.url,"_blank");
+					// 3-21-22 add try catch
+					try{
+						window.open(result.url,"_blank");
+					}catch(e){
+						console.log("Can't open printout in new window. Use link provided.");
+					}
 					document.getElementById("printMapLink").innerHTML = "Opened map in a new tab.<br/>Link to <a href='"+result.url+"' target='_blank'>"+template.format.toUpperCase()+" File</a>";
 				}
 				for (i=0; i<pointWithText; i++) removeDrawItem(); // remove extra text layer added for points with text because of bug in PrintTask
@@ -817,7 +822,12 @@ function printMap(){
 				
 				function printResult2(result){
 					console.log("printing legend to "+result.url);
-					window.open(result.url,"_blank");
+					// 3-21-22 add try catch
+					try{
+						window.open(result.url,"_blank");
+					}catch(e){
+						console.log("Can't open printout in new window. Use link provided.");
+					}
 					if (done){
 						registry.byId("print_button").set("label", "Print");
 						document.getElementById("printLoading").style.display="none";

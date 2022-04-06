@@ -406,16 +406,16 @@
 	      }
 	      if (dragging) return; // If using Way Point widget return;
 
-				var map = this; //window.map;
-				
-				// 10-19-20 if info window is showing, close it
-				if (map.infoWindow.isShowing && !map.infoWindow.wayPt){
-					map.infoWindow.hide();
-					map.infoWindow.setTitle("");
-					hideLoading("");
-					if (navigator.userAgent.indexOf('Android') != -1) evt.stopImmediatePropagation();
-					return;
-				}
+			var map = this; //window.map;
+			
+			// 10-19-20 if info window is showing, close it
+			if (map.infoWindow.isShowing && !map.infoWindow.wayPt){
+				map.infoWindow.hide();
+				map.infoWindow.setTitle("");
+				hideLoading("");
+				if (navigator.userAgent.indexOf('Android') != -1) evt.stopImmediatePropagation();
+				return;
+			}
 
 	      require(["dojo/dom-construct", "dojo/query", "dojo/dom", "dojo/on", "dojo/domReady!"], function(domConstruct, query, dom, on) {
 	          clickPoint = getScreenClick(evt); //evt.mapPoint;
