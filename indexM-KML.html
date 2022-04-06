@@ -362,14 +362,6 @@ header("Pragma: no-cache");
             function openTOC() {
                 // show toc window
                 slideRight(document.getElementById("tocPane"));
-                //document.getElementById("tocPane").style.display="block";
-                // _loadBookmarks in Bookmark.js also calls initTOC
-                if (!tocFlag) {
-                    require(["dojo/_base/lang"], function(lang) {
-                        window.setTimeout(lang.hitch(this, "initTOC"), 400);
-                    });
-                    tocFlag = true;
-                }
             }
 
             // Initialize Feature Search & open dialog
