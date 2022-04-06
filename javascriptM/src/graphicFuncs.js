@@ -59,55 +59,6 @@ define([
 			return url;
 		},
 
-		/*mlGetLayers: function() {
-			// load the toc and basemap if necessary then get layers
-			if (!tocFlag || !basemapFlag){
-			var gf = this;
-			require(["agsjs/dijit/TOC"], function (TOC) {
-				if (!basemapFlag){
-					initBasemaps();
-					var timer = setInterval(function(){
-						// wait for basemaps to load
-						if (document.getElementById("basemapLoading").style.display == "none") {
-							clearInterval(timer);
-							basemapFlag=true;
-							// load toc if necessary
-							if (!tocFlag){
-								var toc = new TOC({
-										map : map,
-										layerInfos : legendLayers
-									}, 'tocDiv');
-								toc.startup();
-								var tocHandle= toc.on("load", function(){
-									tocFlag = true;
-									// remove the on load handler
-									tocHandle.remove();
-									return gf.mlGetLayers2();
-								});
-							}
-							else return gf.mlGetLayers2();
-						}
-					},50);	
-				}
-				// load toc
-				else if (!tocFlag){
-					var toc = new TOC({
-							map : map,
-							layerInfos : legendLayers
-						}, 'tocDiv');
-					toc.startup();
-					var tocHandle = toc.on("load", function () {
-						tocFlag = true;
-						// remove the on load handler
-						tocHandle.remove();
-						return gf.mlGetLayers2();
-					});
-				}
-			});
-			}
-			else return this.mlGetLayers2();
-		},*/
-		
 		mlGetLayers: function() {
 			// Returns a portion of the URI with &layers=all visible layers
 			// &layer= basemap| id | opacity | visible layers, repeat...

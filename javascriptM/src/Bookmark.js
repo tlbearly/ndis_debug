@@ -347,48 +347,15 @@ map.spatialReference ); }
 			}
 		},
 		_loadBasemapsToc: function(cfg, bm) {
-			//require(["agsjs/dijit/TOC"], function (TOC) {
-				//if (!basemapFlag){
-					initBasemaps();
-					var timer = setInterval(function(){
-						// wait for basemaps to load
-						if (document.getElementById("basemapLoading").style.display == "none") {
-							clearInterval(timer);
-							basemapFlag=true;
-							// load toc if necessary
-							/*if (!tocFlag){
-								var toc = new TOC({
-										map : map,
-										layerInfos : legendLayers
-									}, 'tocDiv');
-								toc.startup();
-								var tocHandle= toc.on("load", function(){
-									tocFlag = true;
-									// remove the on load handler
-									tocHandle.remove();
-									bm._loadBookmark(cfg);
-								});
-							}
-							else*/
-							bm._loadBookmark(cfg);
-						}
-					},50);
-				//}
-				// load toc
-				/*else if (!tocFlag){
-					var toc = new TOC({
-							map : map,
-							layerInfos : legendLayers
-						}, 'tocDiv');
-					toc.startup();
-					var tocHandle = toc.on("load", function () {
-						tocFlag = true;
-						// remove the on load handler
-						tocHandle.remove();
-						bm._loadBookmark(cfg);
-					});
-				}*/
-			//});
+			initBasemaps();
+			var timer = setInterval(function(){
+				// wait for basemaps to load
+				if (document.getElementById("basemapLoading").style.display == "none") {
+					clearInterval(timer);
+					basemapFlag=true;
+					bm._loadBookmark(cfg);
+				}
+			},50);
 		},
 		_loadBookmark: function(cfg) {
 			try {
