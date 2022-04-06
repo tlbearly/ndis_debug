@@ -101,7 +101,7 @@
 	<layers>
 		<layer>
 			<name>Fish species</name>
-			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_Angler_Data/MapServer/2</url>
+			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/2</url>
 			<expression>UPPER(FA_NAME2) LIKE UPPER('%[value]%')</expression>
 			<graphicalexpression></graphicalexpression>
 			<searchfield>FA_NAME2</searchfield>
@@ -121,12 +121,12 @@
 			<lookupfilename>LUT_AtlasFishList</lookupfilename>
 			<lookupfield>AtlasFish</lookupfield>
 			
-			<database>https://ndis-flex-2.nrel.colostate.edu/fishingatlas/SearchFishingSpeciesTextDB.aspx</database>
+			<database>https://ndismaps.nrel.colostate.edu/fishingatlas/SearchFishingSpeciesTextDB.aspx</database>
 			<filename>tblMasterSpecies</filename>
 		    <database_field>WATERCODE</database_field>
 		    <database_field_type>string</database_field_type>
 			
-			<graphical_database>https://ndis-flex-2.nrel.colostate.edu/fishingatlas/SearchFishingSpeciesGraphicalDB.aspx</graphical_database>
+			<graphical_database>https://ndismaps.nrel.colostate.edu/fishingatlas/SearchFishingSpeciesGraphicalDB.aspx</graphical_database>
 		    <graphical_filename>tblMasterSpecies</graphical_filename>
 		    <graphical_db_fields>AtlasFish</graphical_db_fields>
 		    <graphical_db_displayfields>Fish Species</graphical_db_displayfields>
@@ -135,7 +135,7 @@
 
 		<layer>
 			<name>Known fishing spots</name>
-			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_Angler_Data/MapServer/0</url>
+			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/0</url>
 			<expression>UPPER(FA_NAME2) LIKE UPPER('%[value]%')</expression>
 			<graphicalexpression></graphicalexpression>
 			<searchfield>FA_NAME2</searchfield>
@@ -154,7 +154,7 @@
 
 		<layer>
 			<name>Fishing Pressure</name>
-			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_Angler_Data/MapServer/0</url>
+			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/0</url>
 			<expression>UPPER(FISH_PRESSURE) LIKE UPPER('%[value]%')</expression>
 			<graphicalexpression></graphicalexpression>
 			<searchfield>FISH_PRESSURE</searchfield>
@@ -173,7 +173,7 @@
 		
 		<layer>
 			<name>All lakes</name>
-			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_Angler_Data/MapServer/11</url>
+			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/11</url>
 			<expression>UPPER(Search_Name) LIKE UPPER('%[value]%')</expression>
 			<graphicalexpression></graphicalexpression>
 			<searchfield>Search_Name</searchfield>
@@ -189,7 +189,7 @@
 		</layer>
 		<layer>
 			<name>All streams</name>
-			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/CFA_Angler_Data/MapServer/10</url>
+			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/10</url>
 			<expression>UPPER(Search_Nam) LIKE UPPER('%[value]%')</expression>
 			<graphicalexpression></graphicalexpression>
 			<searchfield>Search_Nam</searchfield>

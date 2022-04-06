@@ -20,7 +20,7 @@ Sub Page_Load(Sender As Object, E as EventArgs)
   Dim strCommand As String
   Dim DataSet1 As New DataSet
 
-  strConnect =  "Provider=Microsoft.ACE.OLEDB.12.0;"
+  strConnect =  "Provider=Microsoft.ACE.OLEDB.16.0;"
 '*************************************************
 '        Update database url here
 '*************************************************
