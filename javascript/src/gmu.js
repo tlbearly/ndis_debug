@@ -10,28 +10,33 @@ function showGMUCombo(url,field) {
 		gmu_field = field;
 		gmu_url = url;
 		if (!gmu_url || !gmu_field) {
-			Alert.show("Missing gmu_url or gmu_field tag in SettingsWidget.xml.  This must be set when use_gmus is true.","Data Error");
+			alert("Missing gmu_url or gmu_field tag in SettingsWidget.xml.  This must be set when use_gmus is true.","Data Error");
 			return;
 		}
 		// populate the gmu dropdown list
 		require (["esri/tasks/query", "esri/tasks/QueryTask"], 
-		function (Query, QueryTask) {	
-			var queryTask = new QueryTask(gmu_url);
-			var query = new Query();
-			query.returnGeometry = false;
-			query.outFields = [gmu_field];
-			if (gmu_combo == "Goat GMU" || gmu_combo == "Bighorn GMU"){
-				query.where = "'" +gmu_field+ "' <> ''";
-				query.outFields.push("HUNTING");
+		function (Query, QueryTask) {
+			try{
+				var queryTask = new QueryTask(gmu_url);
+				var query = new Query();
+				query.returnGeometry = false;
+				query.outFields = [gmu_field];
+				if (gmu_combo == "Goat GMU" || gmu_combo == "Bighorn GMU"){
+					query.where = "'" +gmu_field+ "' <> ''";
+					query.outFields.push("HUNTING");
+				}
+				else
+					query.where = gmu_field +" <> -1";
+				queryTask.execute(query,showResults,onLoadFault);
+				queryTask = null;
 			}
-			else
-				query.where = gmu_field +" <> -1";
-			queryTask.execute(query,showResults,onLoadFault);
-			queryTask = null;
+			catch (e) {
+				alert("Error occured while trying to show the GMU drop down: "+e.message+" in javascript/gmu.js showGMUCombo().","Code Error",e);
+			}
 		});
 	}
 	catch (e) {
-		alert(e.message+" in javascript/gmu.js showGMUCombo().","Code Error",e);
+		alert("Error occured while trying to show the GMU drop down: "+e.message+" in javascript/gmu.js showGMUCombo().","Code Error",e);
 	}
 }
 
@@ -47,29 +52,30 @@ function showResults(results) {
 			var gmuArr = [];
 			var gmuData = [];
 			var result = [];
-			for (var i=0; i<results.features.length; i++) {
+			var i;
+			for (i=0; i<results.features.length; i++) {
 				if (gmu_combo == "Goat GMU" || gmu_combo == "Bighorn GMU"){
 					if (results.features[i].attributes["HUNTING"] != "YES") continue;
 				}
 				gmuArr.push(results.features[i].attributes[gmu_field]); 
 			}
 			if (gmu == "Big Game GMU")
-				gmuArr.sort(function(a,b){return a-b}); // Numeric Sort
+				gmuArr.sort(function(a,b){return a-b;}); // Numeric Sort
 			else {
 				var letter = "G";
 				if (gmu == "Bighorn GMU") letter = "S";
 				// Remove the S or G in front of each item. Do a numeric sort and than add it back in.
 				gmuArr.forEach(function(item) {
-					if (item != "OUT")
+					if (item != "OUT" && item.substring(1))
 						result.push(item.substring(1));
 				});
-				result.sort(function(a,b){return a-b}); // Numeric Sort
+				result.sort(function(a,b){return a-b;}); // Numeric Sort
 				gmuArr = [];
 				result.forEach(function(item) {
 					gmuArr.push(letter + item);
 				});
 			}
-			for (var i=0; i<gmuArr.length; i++) {
+			for (i=0; i<gmuArr.length; i++) {
 				gmuData.push({gmuid:gmuArr[i]}); 
 			}
 
