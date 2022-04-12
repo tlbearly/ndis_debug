@@ -30,13 +30,9 @@
     <!-- REST endpoint to a GeometryService. This should be a service published by CPW and not pointing at an ESRI service.  Use to convert points to new projections. -->
     <geometryservice url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
     
-	<!--printservicegeo>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting</printservicegeo-->
-    <!--printservice>https://utility.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printservice-->
-    <printservice>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printservice>
     <printservicegeo>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting</printservicegeo>
-	<!--printservice>https://ndis-2020-dev.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printservice-->
+	<printservice>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/ExportWebMap/GPServer/Export%20Web%20Map</printservice>
     
-	
 	<!-- Find a Place Service **NEW** -->
 	<findplaceservice url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer"/>
 	
