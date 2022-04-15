@@ -1456,10 +1456,19 @@ function searchInit() {
 						},
 						onChange: function(){setSelection();},
 						onKeyUp: function(value){
-							// user pressed shift, ctrl, ESC, pgup, pgdn, end, home,or arrow keys
-							if ([16,17,27,33,34,35,36,37,38,39,40].indexOf(value.keyCode) > -1) return;
-							// user pressed enter key
-							else if ([13].indexOf(value.keyCode) > -1) {setSelection(this.attr('displayedValue')); return;}
+							if(value.key!=undefined){
+								// user pressed shift, ctrl, ESC, pgup, pgdn, end, home,or arrow keys
+								if ([16,17,27,33,34,35,36,37,38,39,40].indexOf(value.keyCode) > -1) return;
+								// user pressed enter key
+								else if ([13].indexOf(value.keyCode) > -1) {setSelection(this.attr('displayedValue')); return;}
+							}
+							// 4-11-22 if using old browser use deprecated .keyCode instead of new .key
+							else {
+								// user pressed shift, ctrl, ESC, pgup, pgdn, end, home,or arrow keys
+								if ([16,17,27,33,34,35,36,37,38,39,40].indexOf(value.keyCode) > -1) return;
+								// user pressed enter key
+								else if ([13].indexOf(value.keyCode) > -1) {setSelection(this.attr('displayedValue')); return;}
+							}
 							updateSearchTextStore(registry.byId("featureType").attr("displayedValue"));
 						}
 					},"searchText").startup();

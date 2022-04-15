@@ -28,44 +28,214 @@ function printInit() {
 	xmlhttp.open("GET",xmlFile,true);
 	xmlhttp.send();
 }
+
+var tries=[];
+function createFeatureLayer(id){
+	// 4-15-22 Handle loading Wildfire Incidents and Perimeter
+	require(["esri/layers/FeatureLayer"], function(FeatureLayer){
+		tries[id]++;
+		var layer = new FeatureLayer(map.getLayer(id).url, {
+			"opacity": Number(map.getLayer(id).opacity),
+			"id":  id,
+			"visible": map.getLayer(id).visible
+		});
+		layer.on("error", handleFeatureLayerError);
+		layer.on("load", handleFeatureLayerLoad);
+	});
+}
+function handleFeatureLayerLoad(event){
+	// 4-15-22
+	event.layer.refresh();
+	previewMap.addLayer(event.layer);
+}
+function handleFeatureLayerError(event){
+	// 4-15-22
+	// Try every 2 seconds for up to 5 times 
+	if (tries[event.target.id] < 5){
+		setTimeout(function(){createFeatureLayer(event.target.id);},2000);
+	} 
+	// Greater than 5 tries, give warning
+	else if (tries[event.target.id] == 5){
+		if (event.target.id.indexOf("Motor Vehicle") > -1 || event.target.id.indexOf("Wildfire") > -1 || event.target.id.indexOf("BLM") > -1)
+			alert("The external map service that provides "+event.target.id+" is experiencing problems.  This issue is out of CPW control. We will continue to try to load it. We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
+		else
+			alert(event.target.id+" service is busy or not responding. We will continue to try to load it.","Data Error");
+		setTimeout(function(){createFeatureLayer(event.target.id);},30000);
+	}
+	// Greater than 5 tries. Keep trying every 30 seconds
+	else {
+//DEBUG
+//console.log("Retrying to load: "+event.target.id);
+//if(event.target.id.indexOf("Hunter Reference")>-1)
+//layer.setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer");
+//if(event.target.id.indexOf("Game Species")>-1)
+//layer.setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map/MapServer");
+//if(event.target.id.indexOf("Motor Vehicle")>-1)
+//layer.setAttribute("url","https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer");
+//console.log("url="+layer.getAttribute("url"));
+		setTimeout(function(){createFeatureLayer(event.target.id);},30000);
+	}
+}
+
 function printShow(){
-	require(["esri/map","esri/SpatialReference","esri/layers/GraphicsLayer","esri/graphic",
+	require(["esri/SpatialReference","esri/layers/GraphicsLayer","esri/graphic",
 	"esri/layers/ArcGISTiledMapServiceLayer","esri/layers/ArcGISDynamicMapServiceLayer","esri/geometry/Point",
 	"esri/layers/VectorTileLayer",
 	"esri/layers/OpenStreetMapLayer",
-	"esri/symbols/SimpleLineSymbol",
-	"esri/symbols/SimpleMarkerSymbol",
-	"dojo/_base/Color",
 	"dojo/dom"
 	],
-	function(Map,SpatialReference,GraphicsLayer,Graphic,ArcGISTiledMapServiceLayer,ArcGISDynamicMapServiceLayer,Point,VectorTileLayer,OpenStreetMapLayer,
-	SimpleLineSymbol,
-	SimpleMarkerSymbol,
-	Color,
-	dom
-	){
+	function(SpatialReference,GraphicsLayer,Graphic,ArcGISTiledMapServiceLayer,ArcGISDynamicMapServiceLayer,Point,VectorTileLayer,OpenStreetMapLayer,dom){
+		// Variables
+		var sr = new SpatialReference({
+			"wkid": wkid
+		});
+		var prev_layer, countLayers=0, processedLayers=0,previewLayers=[],correctOrder=[];
+
+		function createLayer(map_layer){
+			// Create  ArcGISDynamicMapService layers and add to preview map
+			// copy the visibleLayers array by value not address
+console.log("trying to load: "+map_layer.id);
+			tries[map_layer.id]++;
+			var visLayers = [];
+			for (var j=0; j<map_layer.visibleLayers.length; j++)
+				visLayers.push(parseInt(map_layer.visibleLayers[j]));
+			var prev_layer = new ArcGISDynamicMapServiceLayer(map_layer.url, {
+				"opacity": parseFloat(map_layer.opacity),
+				"id":map_layer.id,
+				"visible": map_layer.visible
+			});
+			prev_layer.setVisibleLayers(visLayers);
+			visLayers = null;
+			prev_layer.on("error",handleLayerError);
+			prev_layer.on("load",handleLayerLoad);
+		}
+		function handleLayerError(event){
+console.log("failed to load: "+event.target.id+" tries="+tries[event.target.id]);
+			if (tries[event.target.id] < 5){
+				setTimeout(function(){createLayer(map.getLayer(event.target.id));},2000);
+			}
+			else if (tries[event.target.id] === 5){
+				if (event.target.id.indexOf("Motor Vehicle") > -1 || event.target.id.indexOf("Wildfire") > -1 || event.target.id.indexOf("BLM") > -1)
+					alert("The external map service that provides "+event.target.id+" is experiencing problems.  This issue is out of CPW control. We will continue to try to load it. We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
+				else
+					alert(event.target.id+" service is busy or not responding. We will continue to try to load it.","Data Error");
+				setTimeout(function(){createLayer(map.getLayer(event.target.id));},30000);
+			}
+			else{
+//DEBUG
+if(event.target.id === "Hunter Reference")
+map.getLayer("Hunter Reference").url = "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer";
+				setTimeout(function(){createLayer(map.getLayer(event.target.id));},30000);
+			}
+		}
+
+		function handleLayerLoad(event){
+			// wait for layerInfos to load
+console.log("loaded: "+event.target.id+"!!!!!!!!!!");			
+			var layer = event.layer;
+			var m;
+			
+			processedLayers++;
+			var visLayers = layer.visibleLayers;
+			var layerInfos = layer.layerInfos;
+			// add hidden group ids
+			for (j=0; j<layer.visibleLayers.length; j++) {
+				k=layer.visibleLayers[j];
+				do {
+					// Add hidden group sublayers for all levels
+					if (hideGroupSublayers.indexOf(layerInfos[k].name) > -1 && layerInfos[k].subLayerIds) {
+						for (m=0; m<layerInfos[k].subLayerIds.length; m++){
+							if (visLayers.indexOf(layerInfos[k].subLayerIds[m]) == -1)
+								visLayers.push(layerInfos[k].subLayerIds[m]);
+							// handle GMUs they are not always an offset of 1
+							if (layerInfos[layerInfos[k].subLayerIds[m]+1].name == "Big Game GMU"){
+								var offset=1;
+								if (gmu == "Bighorn GMU") offset = 2;
+								else if (gmu == "Goat GMU") offset = 3;
+								if (visLayers.indexOf(layerInfos[k].subLayerIds[m]+offset) == -1)
+									visLayers.push(layerInfos[k].subLayerIds[m]+offset);
+							}
+							else if (visLayers.indexOf(layerInfos[k].subLayerIds[m]+1) == -1)
+								visLayers.push(layerInfos[k].subLayerIds[m]+1);
+						}
+					}
+					k = layerInfos[k].parentLayerId;
+				}
+				while (k != -1);
+			}
+			
+			// Set visible layers for each layerInfo
+			var num = new Array(0,1,2,3,4,5,6,7,8,9);
+			for (m=0; m<layerInfos.length; m++)
+			{	
+				// If layer is found in the visLayers make it visible.
+				if (visLayers.indexOf(layerInfos[m].id) != -1)
+					layerInfos[m].visible = true;
+				
+				// Else if this is not the top layer and it has no sub-layers set default visibility
+				else if (layerInfos[m].parentLayerId != -1 && !layerInfos[m].subLayerIds)
+				{
+					// if this is a gmu layer make sure it is the one that was turned on in visLayers
+					if (layerInfos[m].name.substr(layerInfos[m].name.length-3,3).indexOf("GMU") > -1){
+						if (layerInfos[m].name == gmu) {
+							if (visLayers.indexOf(m) == -1) {
+								layerInfos[m].visible = true;
+							}
+							if ((num.indexOf(parseInt(layerInfos[layerInfos[m].parentLayerId].name.substr(0,1))) > -1) &&
+								(visLayers.indexOf(layerInfos[m].parentLayerId) == -1)){
+								layerInfos[layerInfos[m].parentLayerId].visible = true;
+							}
+						}
+						else 
+							layerInfos[m].visible = false;
+					}
+					// use the default value for sub menu item layers that are under a menu item that is unchecked
+					else if ((layerInfos[m].defaultVisibility == true) && (visLayers.indexOf(layerInfos[m].parentLayerId) === -1)){
+						// If by default it is visible see if the name of the parent is a number (varies with extent) and make it visible also
+						if (num.indexOf(parseInt(layerInfos[layerInfos[m].parentLayerId].name.substr(0,1))) > -1) {
+							//visLayers.push(layerInfos[m].parentLayerId);
+							layerInfos[layerInfos[m].parentLayerId].visible = true;
+						}
+					}
+				}
+				// Else this is a top level toc menu item and not found in the visible list, make it not visible.
+				else {
+					layerInfos[m].visible = false;
+				}
+				
+				// Remove parent layers from visLayers
+				var pos = visLayers.indexOf(layerInfos[m].id);
+				if (pos > -1 && layerInfos[m].subLayerIds)
+					visLayers.splice(pos,1); // remove 1 item at index pos
+			}								
+			layer.setVisibleLayers(visLayers.sort(function(a,b){return a-b;}), false);
+			layer.refresh();
+			layer.spatialReference=sr;
+			
+			// Add layers in the correct order. tlb 8-14-17
+			previewLayers.push(layer);
+			if (processedLayers==countLayers) {
+				for (i=0; i<correctOrder.length; i++){
+					for (j=0; j<previewLayers.length; j++){
+						if (correctOrder[i] == previewLayers[j].id){
+							previewMap.addLayer(previewLayers[j]);				
+						}
+					}
+				}
+				previewLayers=null;
+				correctOrder=null;
+			}
+		}
+
 		document.getElementById("printMapLink").innerHTML = "";
 		document.getElementById("printLegendLink").innerHTML = "";
 		// previewMap is created in readConfig.js
 		document.getElementById("printTitle").value = "My Custom Map";
 		document.getElementById("printSubTitle").value = dom.byId("title").innerHTML;
 		previewMap.removeAllLayers();
-		var sr = new SpatialReference({
-			"wkid": wkid
-		});
 
-		// add basemap
-		var basemap;
-		// 7-12-19 DEBUG  force USA Topo
-		/*basemap = new ArcGISTiledMapServiceLayer("https://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer",
-			{"id":"basemap","visible": true,"_basemapGalleryLayerType":"basemap"});
-		basemap.spatialReference = map.spatialReference;
-		basemap.refresh();
-		previewMap.addLayer(basemap);
-		basemap = null;
-		*/
-		
 		// add basemaps
+		var basemap;
 		var map_layer,osmLayer;
 		for (i=0;i<map.layerIds.length; i++){
 			map_layer = map.getLayer(map.layerIds[i]);
@@ -75,6 +245,7 @@ function printShow(){
 				previewMap.addLayer(osmLayer);
 				osmLayer = null;
 			}
+			// vector open street maps
 			else if (map_layer.attributionDataUrl && map_layer.attributionDataUrl.indexOf("OpenStreet")>-1){
 				osmLayer = new OpenStreetMapLayer();
 				osmLayer.id = "layer_osm";
@@ -101,70 +272,14 @@ function printShow(){
 			}
 		}
 
-		/*if (previewMap.getLayer("basemap"))
-			previewMap.removeLayer(previewMap.getLayer("basemap"));
-		if (previewMap.getLayer("reference"))
-			previewMap.removeLayer(previewMap.getLayer("reference"));
-		var basemapId=0;
-		var basemap;
-		var basemapRefId=-1;
-		for (i=0;i<map.layerIds.length; i++){
-			if (map.getLayer(map.layerIds[i])._basemapGalleryLayerType && map.getLayer(map.layerIds[i])._basemapGalleryLayerType == "basemap")
-				basemapId = i;
-			else if (map.getLayer(map.layerIds[i])._basemapGalleryLayerType && map.getLayer(map.layerIds[i])._basemapGalleryLayerType == "reference")
-				basemapRefId = i;
-		}
-		if (map.layerIds[basemapId] == "layer_osm"){
-			var osmLayer = new OpenStreetMapLayer();
-			previewMap.addLayer(osmLayer);
-			osmLayer = null;
-		}
-		else{
-			basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapId]).url,{"id":"basemap","visible": true});
-			basemap.spatialReference = map.spatialReference;
-			basemap.refresh();
-			previewMap.addLayer(basemap);
-			basemap = null;
-		}
-		// add basemap reference layer if there is one
-		if (basemapRefId != -1) {
-			basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[basemapRefId]).url,{"id":"reference","visible":true});
-			basemap.spatialReference = map.spatialReference;
-			basemap.refresh();
-			previewMap.addLayer(basemap);
-			basemap=null;
-		}*/
-		//7-1-19  set basemap with basemapGallery. previewBasemaps is created when the users selects a new basemap
-		//if (previewBasemaps) previewBasemaps.select(mapBasemap);
-
-		// 7-1-19 change ids to basemap and reference
-		/*for (i=0;i<previewMap.layerIds.length;i++){
-			var lay;
-			if (previewMap.layerIds[i].indexOf("layer")>-1){
-				lay = previewMap.getLayer(previewMap.layerIds[i]);
-				previewMap.removeLayer(previewMap.getLayer(previewMap.layerIds[i]));
-				if (i==0)	lay.id="basemap";
-				else lay.id="reference";
-				lay.refresh();
-				previewMap.addLayer(lay,i);
-				lay = null;
-			}
-		}*/
-
 		// set layers
-		var prev_layer, countLayers=0, processedLayers=0,previewLayers=[],correctOrder=[];
 		// Count number of visible non-basemap layers, so we can add them in the correct order. tlb 8-14-17
 		for (i=0; i<map.layerIds.length; i++) {
 			map_layer = map.getLayer(map.layerIds[i]);		
 			if (map_layer.id.indexOf("layer") == 0)	continue;
 			else if (map_layer.attributionDataUrl && map_layer.attributionDataUrl.indexOf("OpenStreet")>-1) continue;
-			//else if (map_layer.url.indexOf("World_Street_Map") > -1) continue;
-			//if (map_layer.url.indexOf("World_Street_Map") > -1) continue;
-			// 7-1-19 Remove non-basemap layers
-			//if (previewMap.getLayer(map.layerIds[i]))
-			//	previewMap.removeLayer(previewMap.getLayer(map.layerIds[i]));
 
-			if (map_layer.layerInfos && map_layer.visible){ 	
+			if (map_layer.layerInfos && map_layer.visible){
 				countLayers++;
 				correctOrder.push(map_layer.id);
 			}
@@ -173,34 +288,18 @@ function printShow(){
 			map_layer = map.getLayer(map.layerIds[i]);
 			if (map_layer.attributionDataUrl && map_layer.attributionDataUrl.indexOf("OpenStreet")>-1){
 				continue;
-				/*var osmLayer = new OpenStreetMapLayer();
-				osmLayer.id = "layer_osm";
-				processedLayers++;
-				previewLayers.push(osmLayer);
-				osmLayer = null;*/
 			}
 			else if (map.layerIds[i].indexOf("layer")>-1){
 				continue;
-				/*var basemap;
-				if (map.getLayer(map.layerIds[i]).url.indexOf ("MapServer")>-1)
-					basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[i]).url,{"id":"basemap","visible": true});
-				else {
-					basemap = new VectorTileLayer(map.getLayer(map.layerIds[i]).url,{"id":"basemap","visible": true});
-					basemap.setStyle(map.getLayer(map.layerIds[i]).url);
-				}
-					if (map_layer._basemapGalleryLayerType == "reference")
-					basemap.id="reference";
-				else if (i>0)basemap.id="basemap"+i;
-				basemap.spatialReference = map.spatialReference;
-				basemap._basemapGalleryLayerType = map_layer._basemapGalleryLayerType;
-				basemap.refresh();
-				processedLayers++;
-				previewLayers.push(basemap);
-				basemap = null;*/
 			}
 			else if (map_layer.layerInfos && map_layer.visible){
+				tries[map_layer.id]=0;
+//DEBUB make if fail to load
+if (map_layer.id === "Hunter Reference")
+map_layer.url = map_layer.url+"1";				
+				createLayer(map_layer);
 				// copy the visibleLayers array by value not address
-				var visLayers = [];
+				/*var visLayers = [];
 				for (var j=0; j<map_layer.visibleLayers.length; j++)
 					visLayers.push(parseInt(map_layer.visibleLayers[j]));
 				prev_layer = new ArcGISDynamicMapServiceLayer(map_layer.url, {
@@ -209,14 +308,11 @@ function printShow(){
 					"visible": map_layer.visible
 				});
 				prev_layer.setVisibleLayers(visLayers);
-				visLayers = null;
-				prev_layer.on("load", function(event) {
+				visLayers = null;*/
+				/*prev_layer.on("load", function(event) {
 					// wait for layerInfos to load
 					var layer = event.layer;
 					var m;
-					// Skip basemaps
-					//if (layer.url.indexOf("World_Street_Map") > -1) return;
-					//if (layer.id.indexOf("layer") == 0) return;
 					
 					processedLayers++;
 					var visLayers = layer.visibleLayers;
@@ -308,7 +404,7 @@ function printShow(){
 						previewLayers=null;
 						correctOrder=null;
 					}
-				});
+				});*/
 			}
 		}
 		
@@ -316,24 +412,28 @@ function printShow(){
 		var graphics;
 		var arr;
 		var a;
-		// add draw graphics layers
+		// add draw graphics layers.  4-12-22 add wildfire layers
 		for (i=0; i<map.graphicsLayerIds.length; i++){
 			if ((map.graphicsLayerIds[i].indexOf("drawgraphics")>-1) ||
 				(map.graphicsLayerIds[i].indexOf("drawtextgraphics")>-1)){
 				graphics_layer = new GraphicsLayer();
 				graphics_layer.id = map.graphicsLayerIds[i];
-				graphics_layer.visible=true;
+				graphics_layer.visible=map.getLayer(map.graphicsLayerIds[i]).visible;
 				graphics_layer.spatialReference = previewMap.spatialReference;
 				graphics = map.getLayer(map.graphicsLayerIds[i]).graphics;
 				
 				for (a=0; a<graphics.length; a++){
-					arr = new Graphic(graphics[a].geometry,graphics[a].symbol,graphics[a].attributes,graphics[a].infoTemplate);
-					graphics_layer.add(arr);
-					arr=null;
+					var g = graphics[a].clone(); // 4-12-22
+					graphics_layer.add(g); // 4-12-22
 				}
 				previewMap.addLayer(graphics_layer);
 				graphics_layer = null;
 				graphics=null;
+			}
+			else if (map.graphicsLayerIds[i].indexOf("Wildfire")>-1){
+				// 4-12-22 add wildfire layers. It is a feature layer but is added to graphics layers
+				tries[map.graphicsLayerIds[i]]=0;
+				createFeatureLayer(map.graphicsLayerIds[i]);
 			}
 		}
 		// add hb1298 points
@@ -353,13 +453,6 @@ function printShow(){
 		}
 		
 		previewMap.spatialReference = sr;
-
-//		var pt = new Point(map.extent.xmax+((map.extent.xmin-map.extent.xmax)/2),map.extent.ymin+((map.extent.ymax-map.extent.ymin)/2),sr);
-//debug display center point
-//var symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE,21,new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,0,10]), 1),new Color([255,0,0,0.6]));
-//var testlayer=new GraphicsLayer();
-//testlayer.add(new Graphic(pt,symbol));
-//previewMap.addLayer(testlayer);
 		
 		var pt = new Point(map.extent.xmax+((map.extent.xmin-map.extent.xmax)/2),map.extent.ymin+((map.extent.ymax-map.extent.ymin)/2),sr);
 		//var pt = map.extent.getCenter();
@@ -374,7 +467,7 @@ function printShow(){
 }
 
 function changePrintSize(){
-	require(["esri/geometry/Point","esri/geometry/Extent","esri/SpatialReference","dojo/dom","dijit/registry"],function(Point,Extent,SpatialReference,dom,registry){
+	require(["dojo/dom","dijit/registry"],function(dom,registry){
 		if (!previewMap || !previewMap.extent) {
 			alert("Please wait for page to load.");
 			return;
@@ -505,7 +598,6 @@ function printMap(){
 			if (!printLegendFlag) done=true; // turn off wait icon after printing map; don't wait for legend to print
 			registry.byId("print_button").set("label", "Creating...");
 			document.getElementById("printLoading").style.display="inline-block";
-			var mvum=false;
 			document.getElementById("printMapLink").innerHTML = "";
 			document.getElementById("printLegendLink").innerHTML = "";
 			//pointWithText = 0; // we need to add a layer to the map because of a bug in PrintTask, set this flag so we can remove it.
@@ -515,12 +607,7 @@ function printMap(){
 			var legend;
 			var countLayers=0;
 			for (i=1; i<layer.length; i++) {
-				if (ourMVUM && (layer[i].id == "Motor Vehicle Use Map")){
-					// Do not add the legend. Will use MVUM print template
-					if (layer[i].visible) mvum = true;
-				}
-				//if (layer[i].visible && (layer[i].id != "Motor Vehicle Use Map") &&
-				else if (layer[i].visible &&
+				if (layer[i].visible &&
 					(layer[i].id != "topo") &&
 					(layer[i].id != "streets") &&
 					(layer[i].id != "hybrid"))
@@ -539,8 +626,6 @@ function printMap(){
 						}
 						continue;
 					}
-					//if (layer[i].visibleLayers && (layer[i].url.indexOf("mvum") == -1) {
-					// allow MVUM to generate it's own legend
 					if (layer[i].visibleLayers) {
 						legend = new LegendLayer();
 						legend.layerId = layer[i].id;
@@ -550,7 +635,6 @@ function printMap(){
 						countLayers++;
 					}
 				}
-				//if (ourMVUM && layer[i].visible && (layer[i].id == "Motor Vehicle Use Map")) mvum = true;
 			}
 						
 			var printTask;
@@ -581,17 +665,13 @@ function printMap(){
 					template.format="pdf";
 					// Cannot print only basemap with geopdf does not have georef info Warning Message
 					if (countLayers == 0){
-						alert("Printing of basemaps alone does not work. Please add map layers. From the menu, select 'Map Layers &amp; Legend.'","Warning");
+						alert("Printing of basemaps alone does not work. Please add map layers. From the menu, select 'Map Layers & Legend.'","Warning");
 						registry.byId("print_button").set("label", "Print");
 						document.getElementById("printLoading").style.display="none";
 						document.getElementById("printMapLink").innerHTML = "";
 						document.getElementById("printLegendLink").innerHTML = "";
 						return;
 					}
-				}
-				else if (ourMVUM && mvum) {
-					legendTemplate = "Legend Letter "+selectedValue_orient+ " MVUM";
-					template.format = "pdf";
 				}
 				else {
 					legendTemplate = "Legend Letter "+selectedValue_orient;
@@ -803,10 +883,7 @@ function printMap(){
 				var params2 = new PrintParameters();
 				var template2 = new PrintTemplate();
 				template2.exportOptions = { dpi: dpi };
-				if (ourMVUM && mvum)
-					template2.layout = "Legend Letter "+selectedValue_orient+ " MVUM";
-				else
-					template2.layout = "Legend Letter "+selectedValue_orient;
+				template2.layout = "Legend Letter "+selectedValue_orient;
 				template2.format = "PDF";
 				template2.layoutOptions = {
 					titleText: document.getElementById("printTitle").value,
