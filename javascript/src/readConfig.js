@@ -1659,18 +1659,19 @@ function readConfig() {
 							} catch (e) {
 								alert("Error loading TOC Map Layers & Legend: " + e.message + " in javascript/readConfig.js or toc/src/agsjs/dijit/TOC.js", "Code Error", e);
 							}
-						}
-						if (!calledFlag && allTriedToLoad) {
-							calledFlag = true;
-							try{
-								readSettingsWidget(); // initialize Identify, found in identify.js
-							} catch(e){
-								alert("Error reading SettingsWidget.xml. Reason: " + e.message + " in javascript/readConfig.js", "SettingsWidget Error", e);
-							}
-							try {
-								addGraphicsAndLabels();
-							} catch (e) {
-								alert("Error loading graphics and labels from the URL: " + e.message + " in javascript/readConfig.js", "URL Graphics Error", e);
+						
+							if (!calledFlag) {
+								calledFlag = true;
+								try{
+									readSettingsWidget(); // initialize Identify, found in identify.js
+								} catch(e){
+									alert("Error reading SettingsWidget.xml. Reason: " + e.message + " in javascript/readConfig.js", "SettingsWidget Error", e);
+								}
+								try {
+									addGraphicsAndLabels();
+								} catch (e) {
+									alert("Error loading graphics and labels from the URL: " + e.message + " in javascript/readConfig.js", "URL Graphics Error", e);
+								}
 							}
 						}
 					});

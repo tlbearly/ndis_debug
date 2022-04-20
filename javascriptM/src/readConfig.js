@@ -633,7 +633,7 @@ function createMap() {
 					//disableMapNavigation: true,
 					isPan: false,
 					isClickRecenter: true,
-					//isDoubleClickZoom: false,
+					isDoubleClickZoom: false,
 					//isRubberBandZoom: false,
 					showInfoWindowOnClick: false,
 					lods: customLods
@@ -698,6 +698,7 @@ function createMap() {
 							break;
 						}
 					}
+					
 					if (layerInTOC){
 						// check if all layers have tried to load
 						var allTriedToLoad = true;
@@ -783,15 +784,16 @@ function createMap() {
 						} catch (e) {
 							alert("Error loading TOC Map Layers & Legend: " + e.message + " in javascript/readConfig.js or toc/src/agsjs/dijit/TOC.js", "Code Error", e);
 						}
-					}
-					if (!calledFlag && allTriedToLoad) {
-						calledFlag = true;
-						try {
-							addGraphicsAndLabels();
-							if (level)
-								map.setLevel(level);
-						} catch (e) {
-							alert("Error loading graphics and labels from the URL: " + e.message + " in javascript/readConfig.js", "URL Graphics Error", e);
+					
+						if (!calledFlag) {
+							calledFlag = true;
+							try {
+								addGraphicsAndLabels();
+								if (level)
+									map.setLevel(level);
+							} catch (e) {
+								alert("Error loading graphics and labels from the URL: " + e.message + " in javascript/readConfig.js", "URL Graphics Error", e);
+							}
 						}
 					}
 				});
