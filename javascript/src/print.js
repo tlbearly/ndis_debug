@@ -29,41 +29,51 @@ function printInit() {
 	xmlhttp.send();
 }
 
-var tries=[];
-function createFeatureLayer(id){
-	// 4-15-22 Handle loading Wildfire Incidents and Perimeter
-	require(["esri/layers/FeatureLayer"], function(FeatureLayer){
-		tries[id]++;
-		var layer = new FeatureLayer(map.getLayer(id).url, {
-			"opacity": Number(map.getLayer(id).opacity),
-			"id":  id,
-			"visible": map.getLayer(id).visible
-		});
-		layer.on("error", handleFeatureLayerError);
-		layer.on("load", handleFeatureLayerLoad);
-	});
-}
-function handleFeatureLayerLoad(event){
-	// 4-15-22
-	event.layer.refresh();
-	previewMap.addLayer(event.layer);
-}
-function handleFeatureLayerError(event){
-	// 4-15-22
-	// Try every 2 seconds for up to 5 times 
-	if (tries[event.target.id] < 5){
-		setTimeout(function(){createFeatureLayer(event.target.id);},2000);
-	} 
-	// Greater than 5 tries, give warning
-	else if (tries[event.target.id] == 5){
-		if (event.target.id.indexOf("Motor Vehicle") > -1 || event.target.id.indexOf("Wildfire") > -1 || event.target.id.indexOf("BLM") > -1)
-			alert("The external map service that provides "+event.target.id+" is experiencing problems.  This issue is out of CPW control. We will continue to try to load it. We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
-		else
-			alert(event.target.id+" service is busy or not responding. We will continue to try to load it.","Data Error");
-		setTimeout(function(){createFeatureLayer(event.target.id);},30000);
-	}
-	// Greater than 5 tries. Keep trying every 30 seconds
-	else {
+function printShow(){
+	require(["esri/SpatialReference","esri/layers/GraphicsLayer","esri/graphic",
+	"esri/layers/ArcGISTiledMapServiceLayer","esri/layers/ArcGISDynamicMapServiceLayer","esri/geometry/Point",
+	"esri/layers/VectorTileLayer",
+	"esri/layers/OpenStreetMapLayer",
+	"dojo/dom","dojo/on","dojo/_base/array"
+	],
+	function(SpatialReference,GraphicsLayer,Graphic,ArcGISTiledMapServiceLayer,ArcGISDynamicMapServiceLayer,Point,VectorTileLayer,OpenStreetMapLayer,dom,on,array){
+		// FUNCTIONS
+		function createFeatureLayer(id){
+			// 4-15-22 Handle loading Wildfire Incidents and Perimeter
+			if(dom.byId("printDiv").style.display === "none") return;
+			
+			require(["esri/layers/FeatureLayer"], function(FeatureLayer){
+				tries[id]++;
+				var layer = new FeatureLayer(map.getLayer(id).url, {
+					"opacity": Number(map.getLayer(id).opacity),
+					"id":  id,
+					"visible": map.getLayer(id).visible
+				});
+				prev_layer_events.push(on(layer,"error", handleFeatureLayerError));
+				prev_layer_events.push(on(layer,"load", handleFeatureLayerLoad));
+			});
+		}
+		function handleFeatureLayerLoad(event){
+			// 4-15-22
+			event.layer.refresh();
+			previewMap.addLayer(event.layer);
+		}
+		function handleFeatureLayerError(event){
+			// 4-15-22
+			// Try every 2 seconds for up to 5 times 
+			if (tries[event.target.id] < 5){
+				setTimeout(function(){createFeatureLayer(event.target.id);},500);
+			} 
+			// On the 5th try, give a warning
+			else if (tries[event.target.id] == 5){
+				if (event.target.id.indexOf("Motor Vehicle") > -1 || event.target.id.indexOf("Wildfire") > -1 || event.target.id.indexOf("BLM") > -1)
+					alert("While printing, the external map service that provides "+event.target.id+" is experiencing problems.  This issue is out of CPW control. We will continue trying to load it. We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
+				else
+					alert("While printing, the "+event.target.id+" service is busy or not responding. We will continue trying to load it.","Data Error");
+				setTimeout(function(){createFeatureLayer(event.target.id);},500);
+			}
+			// Greater than 5 tries. Keep trying every 30 seconds
+			else {
 //DEBUG
 //console.log("Retrying to load: "+event.target.id);
 //if(event.target.id.indexOf("Hunter Reference")>-1)
@@ -73,28 +83,17 @@ function handleFeatureLayerError(event){
 //if(event.target.id.indexOf("Motor Vehicle")>-1)
 //layer.setAttribute("url","https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer");
 //console.log("url="+layer.getAttribute("url"));
-		setTimeout(function(){createFeatureLayer(event.target.id);},30000);
-	}
-}
-
-function printShow(){
-	require(["esri/SpatialReference","esri/layers/GraphicsLayer","esri/graphic",
-	"esri/layers/ArcGISTiledMapServiceLayer","esri/layers/ArcGISDynamicMapServiceLayer","esri/geometry/Point",
-	"esri/layers/VectorTileLayer",
-	"esri/layers/OpenStreetMapLayer",
-	"dojo/dom"
-	],
-	function(SpatialReference,GraphicsLayer,Graphic,ArcGISTiledMapServiceLayer,ArcGISDynamicMapServiceLayer,Point,VectorTileLayer,OpenStreetMapLayer,dom){
-		// Variables
-		var sr = new SpatialReference({
-			"wkid": wkid
-		});
-		var prev_layer, countLayers=0, processedLayers=0,previewLayers=[],correctOrder=[];
+				setTimeout(function(){createFeatureLayer(event.target.id);},1000);
+			}
+		}
 
 		function createLayer(map_layer){
 			// Create  ArcGISDynamicMapService layers and add to preview map
 			// copy the visibleLayers array by value not address
-console.log("trying to load: "+map_layer.id);
+
+			// stop loading layers if print dialog is not showing
+			if(dom.byId("printDiv").style.display === "none") return;
+//console.log("trying to load: "+map_layer.id);
 			tries[map_layer.id]++;
 			var visLayers = [];
 			for (var j=0; j<map_layer.visibleLayers.length; j++)
@@ -106,32 +105,44 @@ console.log("trying to load: "+map_layer.id);
 			});
 			prev_layer.setVisibleLayers(visLayers);
 			visLayers = null;
-			prev_layer.on("error",handleLayerError);
-			prev_layer.on("load",handleLayerLoad);
+			prev_layer_events.push(on(prev_layer,"error",handleLayerError));
+			prev_layer_events.push(on(prev_layer,"load",handleLayerLoad));
+			printDialog.on("hide",handleClosePrintDialog);
+		}
+		function handleClosePrintDialog(event){
+			// remove on load and on error listeners
+//console.log("removing listeners="+prev_layer_events.length);
+			array.forEach(prev_layer_events, function(handle){
+				 handle.remove();
+				 });
+			prev_layer_events = [];
 		}
 		function handleLayerError(event){
-console.log("failed to load: "+event.target.id+" tries="+tries[event.target.id]);
+//console.log("failed to load: "+event.target.id+" tries="+tries[event.target.id]);
 			if (tries[event.target.id] < 5){
-				setTimeout(function(){createLayer(map.getLayer(event.target.id));},2000);
+				setTimeout(function(){createLayer(map.getLayer(event.target.id));},500);
 			}
 			else if (tries[event.target.id] === 5){
 				if (event.target.id.indexOf("Motor Vehicle") > -1 || event.target.id.indexOf("Wildfire") > -1 || event.target.id.indexOf("BLM") > -1)
-					alert("The external map service that provides "+event.target.id+" is experiencing problems.  This issue is out of CPW control. We will continue to try to load it. We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
+					alert("While printing, the external map service that provides "+event.target.id+" is experiencing problems.  This issue is out of CPW control. We will continue trying to load it. We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
 				else
-					alert(event.target.id+" service is busy or not responding. We will continue to try to load it.","Data Error");
-				setTimeout(function(){createLayer(map.getLayer(event.target.id));},30000);
+					alert("While printing, the "+event.target.id+" service is busy or not responding. We will continue trying to load it.","Data Error");
+				setTimeout(function(){createLayer(map.getLayer(event.target.id));},500);
 			}
 			else{
 //DEBUG
-if(event.target.id === "Hunter Reference")
-map.getLayer("Hunter Reference").url = "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer";
-				setTimeout(function(){createLayer(map.getLayer(event.target.id));},30000);
+//if(event.target.id === "Hunter Reference")
+//map.getLayer("Hunter Reference").url = "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer";
+//console.log("trying again with: "+map.getLayer(event.target.id).url);
+				setTimeout(function(){createLayer(map.getLayer(event.target.id));},1000);
 			}
 		}
 
 		function handleLayerLoad(event){
 			// wait for layerInfos to load
-console.log("loaded: "+event.target.id+"!!!!!!!!!!");			
+			if(tries[event.target.id] > 5)
+				alert("While printing, the "+event.target.id+" service loaded sucessfully.","Note");
+//console.log("loaded: "+event.target.id+"!!!!!!!!!!");			
 			var layer = event.layer;
 			var m;
 			
@@ -226,6 +237,16 @@ console.log("loaded: "+event.target.id+"!!!!!!!!!!");
 				correctOrder=null;
 			}
 		}
+		// END FUNCTIONS
+
+		// VARIABLES
+		var sr = new SpatialReference({
+			"wkid": wkid
+		});
+		var prev_layer, prev_layer_events=[], countLayers=0, processedLayers=0,previewLayers=[],correctOrder=[];
+		var tries=[];
+		var basemap;
+		var map_layer,osmLayer;
 
 		document.getElementById("printMapLink").innerHTML = "";
 		document.getElementById("printLegendLink").innerHTML = "";
@@ -234,9 +255,10 @@ console.log("loaded: "+event.target.id+"!!!!!!!!!!");
 		document.getElementById("printSubTitle").value = dom.byId("title").innerHTML;
 		previewMap.removeAllLayers();
 
+		//4-18-22 move above because createLayer & createFeatureLayer check if it is open and return if is not open.
+		printDialog.show();
+
 		// add basemaps
-		var basemap;
-		var map_layer,osmLayer;
 		for (i=0;i<map.layerIds.length; i++){
 			map_layer = map.getLayer(map.layerIds[i]);
 			if (map.layerIds[i] == "layer_osm"){
@@ -295,135 +317,27 @@ console.log("loaded: "+event.target.id+"!!!!!!!!!!");
 			else if (map_layer.layerInfos && map_layer.visible){
 				tries[map_layer.id]=0;
 //DEBUB make if fail to load
-if (map_layer.id === "Hunter Reference")
-map_layer.url = map_layer.url+"1";				
+//if (map_layer.id === "Hunter Reference")
+//map_layer.url = map_layer.url+"1";				
 				createLayer(map_layer);
-				// copy the visibleLayers array by value not address
-				/*var visLayers = [];
-				for (var j=0; j<map_layer.visibleLayers.length; j++)
-					visLayers.push(parseInt(map_layer.visibleLayers[j]));
-				prev_layer = new ArcGISDynamicMapServiceLayer(map_layer.url, {
-					"opacity": parseFloat(map_layer.opacity),
-					"id":map_layer.id,
-					"visible": map_layer.visible
-				});
-				prev_layer.setVisibleLayers(visLayers);
-				visLayers = null;*/
-				/*prev_layer.on("load", function(event) {
-					// wait for layerInfos to load
-					var layer = event.layer;
-					var m;
-					
-					processedLayers++;
-					var visLayers = layer.visibleLayers;
-					var layerInfos = layer.layerInfos;
-					// add hidden group ids
-					for (j=0; j<layer.visibleLayers.length; j++) {
-						k=layer.visibleLayers[j];
-						do {
-							// Add hidden group sublayers for all levels
-							if (hideGroupSublayers.indexOf(layerInfos[k].name) > -1 && layerInfos[k].subLayerIds) {
-								for (m=0; m<layerInfos[k].subLayerIds.length; m++){
-									if (visLayers.indexOf(layerInfos[k].subLayerIds[m]) == -1)
-										visLayers.push(layerInfos[k].subLayerIds[m]);
-									// handle GMUs they are not always an offset of 1
-									if (layerInfos[layerInfos[k].subLayerIds[m]+1].name == "Big Game GMU"){
-										var offset=1;
-										if (gmu == "Bighorn GMU") offset = 2;
-										else if (gmu == "Goat GMU") offset = 3;
-										if (visLayers.indexOf(layerInfos[k].subLayerIds[m]+offset) == -1)
-											visLayers.push(layerInfos[k].subLayerIds[m]+offset);
-									}
-									else if (visLayers.indexOf(layerInfos[k].subLayerIds[m]+1) == -1)
-										visLayers.push(layerInfos[k].subLayerIds[m]+1);
-								}
-							}
-							k = layerInfos[k].parentLayerId;
-						}
-						while (k != -1);
-					}
-					
-					// Set visible layers for each layerInfo
-					var num = new Array(0,1,2,3,4,5,6,7,8,9);
-					for (m=0; m<layerInfos.length; m++)
-					{	
-						// If layer is found in the visLayers make it visible.
-						if (visLayers.indexOf(layerInfos[m].id) != -1)
-							layerInfos[m].visible = true;
-						
-						// Else if this is not the top layer and it has no sub-layers set default visibility
-						else if (layerInfos[m].parentLayerId != -1 && !layerInfos[m].subLayerIds)
-						{
-							// if this is a gmu layer make sure it is the one that was turned on in visLayers
-							if (layerInfos[m].name.substr(layerInfos[m].name.length-3,3).indexOf("GMU") > -1){
-								if (layerInfos[m].name == gmu) {
-									if (visLayers.indexOf(m) == -1) {
-										layerInfos[m].visible = true;
-									}
-									if ((num.indexOf(parseInt(layerInfos[layerInfos[m].parentLayerId].name.substr(0,1))) > -1) &&
-										(visLayers.indexOf(layerInfos[m].parentLayerId) == -1)){
-										layerInfos[layerInfos[m].parentLayerId].visible = true;
-									}
-								}
-								else 
-									layerInfos[m].visible = false;
-							}
-							// use the default value for sub menu item layers that are under a menu item that is unchecked
-							else if ((layerInfos[m].defaultVisibility == true) && (visLayers.indexOf(layerInfos[m].parentLayerId) === -1)){
-								// If by default it is visible see if the name of the parent is a number (varies with extent) and make it visible also
-								if (num.indexOf(parseInt(layerInfos[layerInfos[m].parentLayerId].name.substr(0,1))) > -1) {
-									//visLayers.push(layerInfos[m].parentLayerId);
-									layerInfos[layerInfos[m].parentLayerId].visible = true;
-								}
-							}
-						}
-						// Else this is a top level toc menu item and not found in the visible list, make it not visible.
-						else {
-							layerInfos[m].visible = false;
-						}
-						
-						// Remove parent layers from visLayers
-						var pos = visLayers.indexOf(layerInfos[m].id);
-						if (pos > -1 && layerInfos[m].subLayerIds)
-							visLayers.splice(pos,1); // remove 1 item at index pos
-					}								
-					layer.setVisibleLayers(visLayers.sort(function(a,b){return a-b;}), false);
-					layer.refresh();
-					layer.spatialReference=sr;
-					
-					// Add layers in the correct order. tlb 8-14-17
-					previewLayers.push(layer);
-					if (processedLayers==countLayers) {
-						for (i=0; i<correctOrder.length; i++){
-							for (j=0; j<previewLayers.length; j++){
-								if (correctOrder[i] == previewLayers[j].id){
-									previewMap.addLayer(previewLayers[j]);				
-								}
-							}
-						}
-						previewLayers=null;
-						correctOrder=null;
-					}
-				});*/
 			}
 		}
 		
 		var graphics_layer;
 		var graphics;
-		var arr;
-		var a;
-		// add draw graphics layers.  4-12-22 add wildfire layers
+		var a,g;
+		// add draw graphics layers.
 		for (i=0; i<map.graphicsLayerIds.length; i++){
 			if ((map.graphicsLayerIds[i].indexOf("drawgraphics")>-1) ||
 				(map.graphicsLayerIds[i].indexOf("drawtextgraphics")>-1)){
 				graphics_layer = new GraphicsLayer();
 				graphics_layer.id = map.graphicsLayerIds[i];
-				graphics_layer.visible=map.getLayer(map.graphicsLayerIds[i]).visible;
+				graphics_layer.visible=true;
 				graphics_layer.spatialReference = previewMap.spatialReference;
 				graphics = map.getLayer(map.graphicsLayerIds[i]).graphics;
 				
 				for (a=0; a<graphics.length; a++){
-					var g = graphics[a].clone(); // 4-12-22
+					g = graphics[a].clone(); // 4-12-22
 					graphics_layer.add(g); // 4-12-22
 				}
 				previewMap.addLayer(graphics_layer);
@@ -441,11 +355,11 @@ map_layer.url = map_layer.url+"1";
 			graphics_layer = new GraphicsLayer();
 			graphics_layer.visible=true;
 			graphics_layer.spatialReference = previewMap.spatialReference;
+			graphics = map.getLayer(map.graphicsLayerIds[i]).graphics;
 			
 			for (a=0; a<hb1298GraphicsLayer.graphics.length; a++){
-				arr = new Graphic(graphics[a].geometry,graphics[a].symbol,graphics[a].attributes,graphics[a].infoTemplate);
-				graphics_layer.add(arr);
-				arr=null;
+				g = graphics[a].clone(); // 4-12-22
+				graphics_layer.add(g); // 4-12-22
 			}
 			previewMap.addLayer(graphics_layer);
 			graphics_layer = null;
@@ -458,9 +372,8 @@ map_layer.url = map_layer.url+"1";
 		//var pt = map.extent.getCenter();
 		previewMap.centerAndZoom(pt,map.getLevel()).then(function(){
 			changePrintSize();
-			printDialog.show();
+			//4-18-22 move above because createLayer tests if it is open.  printDialog.show();
 		});
-		
 		pt=null;
 		sr=null;
 	});
@@ -590,6 +503,172 @@ function printMap(){
       PrintTask, PrintTemplate, PrintParameters,
       urlUtils, esriConfig, Graphic, Point,
       LegendLayer, GraphicsLayer, dom, registry) {
+		  // FUNCTIONS
+		  function printResult(result){
+			// 1-22-19 tlb  Add Google Analytics stats for georef printing 
+			var i;
+			var format = dom.byId("format");
+			var millis = Date.now() - startTim;
+			var s = previewMap.getScale();
+			var mapscale;
+			if (s < 9028) mapscale = "10k";
+			else if (s < 36112) mapscale = "24k";
+			else if (s < 72224) mapscale = "50k";
+			else if (s < 144448) mapscale = "100k";
+			else if (s < 288896) mapscale = "250k";
+			else if (s < 577791) mapscale = "500k";
+			else if (s < 1155582) mapscale = "1M";
+			else if (s < 2311163) mapscale = "2M";
+			else if (s < 4622325) mapscale = "4M";
+			else if (s < 9244649) mapscale = "9M";
+			var maptype = format.options[format.selectedIndex].value;
+			var category = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML+" "+maptype+" ";//+" "+theDate;
+			if (printLegendFlag && document.getElementById("printLegend").checked) category += "legend ";//+mapscale;
+			var pagesize = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
+			var action = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
+			var value = Math.floor(millis/1000); // seconds to generate. Must be integer for Google Analytics
+			// Add map services used
+			var label="Print "; // function
+			switch(maptype){
+				case "pdf":
+					label += "PDF";
+					break;
+				case "geopdf":
+					label += "geoPDF";
+					break;
+				case "jpg":
+					label += "JPG";
+					break;
+				case "geotiff":
+					label += "geoTIFF";
+					break;
+				case "gif":
+					label += "GIF";
+					break;
+			}
+			var mapservices = "";
+			for (i=0; i<previewMap.layerIds.length; i++){
+				switch ( previewMap.layerIds[i]){
+					case "Motor Vehicle Use Map":
+						mapservices += "M";
+						break;
+					case "Hunter Reference":
+						mapservices += "R";
+						break;
+					case "Game Species":
+						mapservices += "G";
+						break;
+					case "Fishing Info":
+						mapservices += "F";
+						break;
+					case "Reference":
+						mapservices += "R";
+						break;
+				}
+			}
+			category += mapservices;
+			var custom;
+			// Calculate size of file for Google Analytics stats
+			/*if (window.XMLHttpRequest) {
+				var xhr = new XMLHttpRequest();
+				xhr.open("HEAD", result.url, true); // Notice "HEAD" instead of "GET", to get only the header
+				xhr.onreadystatechange = function() {
+						if (this.readyState == this.DONE) {
+								var mb = Math.round(parseInt(xhr.getResponseHeader("Content-Length"))/1048576);
+								console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale+" "+mb+"MB");
+								// In Google Analytics, Admin, Properties, Custom Definitions, Custom Dimensions(text) & Custom Metrics(integer)
+								// Set up: 
+								//		dimension2=Page Size, Hit, Active
+								//		dimension3=Map Services, Hit, Active
+								//		dimension4=Map Scale, Hit, Active
+								//		metric1=Seconds, Hit, Active
+								//		metric2=MB, Hit, Active
+								custom = {
+									'metric1':value,
+									'metric2': mb,
+									'dimension2':pagesize,
+									'dimension3':mapservices,
+									'dimension4':mapscale
+								};
+								if (typeof ga === "function")ga('send', 'event', category, action, label, value, custom);
+						}
+				};
+				xhr.send();
+			}
+			else{*/
+				custom = {
+					'metric1':value,
+					'dimension2':pagesize,
+					'dimension3':mapservices,
+					'dimension4':mapscale,
+					'dimension5':maptype
+				};
+				console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale);
+				if (typeof ga === "function")ga('send', 'event', category, action, label, value, custom);
+			//}
+
+			console.log("printing to "+result.url);
+			if (result.url.indexOf('tif') > -1 || result.url.indexOf('svgz') > -1){
+				document.getElementById("printInst").innerHTML = "Click on the link below to download the image file.";
+				document.getElementById("printMapLink").innerHTML = "<a href='"+result.url+"' target='_blank'>"+template.format.toUpperCase()+" File</a>";
+			}
+			else {
+				document.getElementById("printInst").innerHTML = "Disable pop-up blocker. Printout will open in a new tab.";
+				// 3-21-22 add try catch
+				try{
+					window.open(result.url,"_blank");
+				}catch(e){
+					console.log("Can't open printout in new window. Use link provided.");
+				}
+				document.getElementById("printMapLink").innerHTML = "Opened map in a new tab.<br/>Link to <a href='"+result.url+"' target='_blank'>"+template.format.toUpperCase()+" File</a>";
+			}
+			for (i=0; i<pointWithText; i++) removeDrawItem(); // remove extra text layer added for points with text because of bug in PrintTask
+			// Hide loading icon and change Printing... label back to Print.
+			if (done){
+				registry.byId("print_button").set("label", "Print");
+				document.getElementById("printLoading").style.display="none";
+			}
+			done=true;
+			//printDialog.hide();
+		}
+		function printError(err){
+			registry.byId("print_button").set("label", "Print");
+			document.getElementById("printLoading").style.display="none";
+			alert("Error printing with basemap, "+mapBasemap+". Error Code: "+err,"Code Error",err);
+			document.getElementById("printMapLink").innerHTML = "";
+			document.getElementById("printLegendLink").innerHTML = "";
+			for (var i=0; i<pointWithText; i++) removeDrawItem(); // remove extra text layer added for points with text because of bug in PrintTask
+			printDialog.hide();
+		}
+		function printResult2(result){
+			console.log("printing legend to "+result.url);
+			// 3-21-22 add try catch
+			try{
+				window.open(result.url,"_blank");
+			}catch(e){
+				console.log("Can't open printout in new window. Use link provided.");
+			}
+			if (done){
+				registry.byId("print_button").set("label", "Print");
+				document.getElementById("printLoading").style.display="none";
+				//printDialog.hide();
+			}
+			document.getElementById("printLegendLink").innerHTML = "Opened legend in a new tab.Link to <a href='"+result.url+"' target='_blank'>"+template.format.toUpperCase()+" File</a>";
+			done = true;
+		}
+		function printError2(err){
+			registry.byId("print_button").set("label", "Print");
+			document.getElementById("printLoading").style.display="none";
+			document.getElementById("printLegendLink").innerHTML = "";
+			document.getElementById("printMapLink").innerHTML = "";
+			if (err.details)
+				alert("Error printing the legend: "+err+err.details,"Code Error",err);
+			else
+				alert("Error printing the legend: "+err,"Code Error",err);
+			printDialog.hide();
+		}
+		// END FUNCTIONS
+		
 			var i;
 			var pointWithText = 0; // we need to add a layer to the map because of a bug in PrintTask, set this flag so we can remove it.
 			try{
@@ -724,142 +803,6 @@ function printMap(){
 			params.map = previewMap;
 			params.template = template;
 				
-			function printResult(result){
-				// 1-22-19 tlb  Add Google Analytics stats for georef printing 
-				var i;
-				var format = dom.byId("format");
-				var millis = Date.now() - startTim;
-				var s = previewMap.getScale();
-				var mapscale;
-				if (s < 9028) mapscale = "10k";
-				else if (s < 36112) mapscale = "24k";
-				else if (s < 72224) mapscale = "50k";
-				else if (s < 144448) mapscale = "100k";
-				else if (s < 288896) mapscale = "250k";
-				else if (s < 577791) mapscale = "500k";
-				else if (s < 1155582) mapscale = "1M";
-				else if (s < 2311163) mapscale = "2M";
-				else if (s < 4622325) mapscale = "4M";
-				else if (s < 9244649) mapscale = "9M";
-				var maptype = format.options[format.selectedIndex].value;
-				var category = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML+" "+maptype+" ";//+" "+theDate;
-				if (printLegendFlag && document.getElementById("printLegend").checked) category += "legend ";//+mapscale;
-				var pagesize = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
-				var action = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
-				var value = Math.floor(millis/1000); // seconds to generate. Must be integer for Google Analytics
-				// Add map services used
-				var label="Print "; // function
-				switch(maptype){
-					case "pdf":
-						label += "PDF";
-						break;
-					case "geopdf":
-						label += "geoPDF";
-						break;
-					case "jpg":
-						label += "JPG";
-						break;
-					case "geotiff":
-						label += "geoTIFF";
-						break;
-					case "gif":
-						label += "GIF";
-						break;
-				}
-				var mapservices = "";
-				for (i=0; i<previewMap.layerIds.length; i++){
-					switch ( previewMap.layerIds[i]){
-						case "Motor Vehicle Use Map":
-							mapservices += "M";
-							break;
-						case "Hunter Reference":
-							mapservices += "R";
-							break;
-						case "Game Species":
-							mapservices += "G";
-							break;
-						case "Fishing Info":
-							mapservices += "F";
-							break;
-						case "Reference":
-							mapservices += "R";
-							break;
-					}
-				}
-				category += mapservices;
-				var custom;
-				// Calculate size of file for Google Analytics stats
-				/*if (window.XMLHttpRequest) {
-					var xhr = new XMLHttpRequest();
-					xhr.open("HEAD", result.url, true); // Notice "HEAD" instead of "GET", to get only the header
-					xhr.onreadystatechange = function() {
-							if (this.readyState == this.DONE) {
-									var mb = Math.round(parseInt(xhr.getResponseHeader("Content-Length"))/1048576);
-									console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale+" "+mb+"MB");
-									// In Google Analytics, Admin, Properties, Custom Definitions, Custom Dimensions(text) & Custom Metrics(integer)
-									// Set up: 
-									//		dimension2=Page Size, Hit, Active
-									//		dimension3=Map Services, Hit, Active
-									//		dimension4=Map Scale, Hit, Active
-									//		metric1=Seconds, Hit, Active
-									//		metric2=MB, Hit, Active
-									custom = {
-										'metric1':value,
-										'metric2': mb,
-										'dimension2':pagesize,
-										'dimension3':mapservices,
-										'dimension4':mapscale
-									};
-									if (typeof ga === "function")ga('send', 'event', category, action, label, value, custom);
-							}
-					};
-					xhr.send();
-				}
-				else{*/
-					custom = {
-						'metric1':value,
-						'dimension2':pagesize,
-						'dimension3':mapservices,
-						'dimension4':mapscale,
-						'dimension5':maptype
-					};
-					console.log("Time to create map = " + value + " seconds for "+category+" "+mapscale);
-					if (typeof ga === "function")ga('send', 'event', category, action, label, value, custom);
-				//}
-
-				console.log("printing to "+result.url);
-				if (result.url.indexOf('tif') > -1 || result.url.indexOf('svgz') > -1){
-					document.getElementById("printInst").innerHTML = "Click on the link below to download the image file.";
-					document.getElementById("printMapLink").innerHTML = "<a href='"+result.url+"' target='_blank'>"+template.format.toUpperCase()+" File</a>";
-				}
-				else {
-					document.getElementById("printInst").innerHTML = "Disable pop-up blocker. Printout will open in a new tab.";
-					// 3-21-22 add try catch
-					try{
-						window.open(result.url,"_blank");
-					}catch(e){
-						console.log("Can't open printout in new window. Use link provided.");
-					}
-					document.getElementById("printMapLink").innerHTML = "Opened map in a new tab.<br/>Link to <a href='"+result.url+"' target='_blank'>"+template.format.toUpperCase()+" File</a>";
-				}
-				for (i=0; i<pointWithText; i++) removeDrawItem(); // remove extra text layer added for points with text because of bug in PrintTask
-				// Hide loading icon and change Printing... label back to Print.
-				if (done){
-					registry.byId("print_button").set("label", "Print");
-					document.getElementById("printLoading").style.display="none";
-				}
-				done=true;
-				//printDialog.hide();
-			}
-			function printError(err){
-				registry.byId("print_button").set("label", "Print");
-				document.getElementById("printLoading").style.display="none";
-				alert("Error printing with basemap, "+mapBasemap+". Error Code: "+err,"Code Error",err);
-				document.getElementById("printMapLink").innerHTML = "";
-				document.getElementById("printLegendLink").innerHTML = "";
-				for (var i=0; i<pointWithText; i++) removeDrawItem(); // remove extra text layer added for points with text because of bug in PrintTask
-				printDialog.hide();
-			}
 			//Do not allow printing outside of Colorado
 			if (!fullExtent.contains(previewMap.extent)){
 				alert ("Printing is only allowed for Colorado.","Warning");
@@ -896,34 +839,6 @@ function printMap(){
 				};
 				params2.map = previewMap;
 				params2.template = template2;
-				
-				function printResult2(result){
-					console.log("printing legend to "+result.url);
-					// 3-21-22 add try catch
-					try{
-						window.open(result.url,"_blank");
-					}catch(e){
-						console.log("Can't open printout in new window. Use link provided.");
-					}
-					if (done){
-						registry.byId("print_button").set("label", "Print");
-						document.getElementById("printLoading").style.display="none";
-						//printDialog.hide();
-					}
-					document.getElementById("printLegendLink").innerHTML = "Opened legend in a new tab.Link to <a href='"+result.url+"' target='_blank'>"+template.format.toUpperCase()+" File</a>";
-					done = true;
-				}
-				function printError2(err){
-					registry.byId("print_button").set("label", "Print");
-					document.getElementById("printLoading").style.display="none";
-					document.getElementById("printLegendLink").innerHTML = "";
-					document.getElementById("printMapLink").innerHTML = "";
-					if (err.details)
-						alert("Error printing the legend: "+err+err.details,"Code Error",err);
-					else
-						alert("Error printing the legend: "+err,"Code Error",err);
-					printDialog.hide();
-				}
 				printTask2.execute(params2, printResult2, printError2);
 			}
 		}
