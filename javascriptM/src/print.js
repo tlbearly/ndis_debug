@@ -420,8 +420,8 @@ function printShow(){
 					// 4-
 					tries[map_layer.id]=0;
 //DEBUB make if fail to load
-if (map_layer.id === "Hunter Reference")
-map_layer.url = map_layer.url+"1";				
+//if (map_layer.id === "Hunter Reference")
+//map_layer.url = map_layer.url+"1";				
 					createLayer(map_layer);
 
 

@@ -5,9 +5,9 @@
 // The querylayers specify all the mapservices that will be used
 // <querylayers>
 //	Hunter Resource Report:  (to get the hunter reports you must include the next three tags.)
-//		<pointsofinterest name="Points of Interest" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/0" />
-//    	<contactinfo name="Contact Boundaries" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/1" />
-//	    <gameunits name="Game Boundaries" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/2" />
+//		<pointsofinterest name="Points of Interest" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/0" />
+//    	<contactinfo name="Contact Boundaries" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/1" />
+//	    <gameunits name="Game Boundaries" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2" />
 //	Custom Report:
 //		<layer name="the mapservice name" type="is this mapservice point, line, or poly?" url="mapservice url"/>
 // </querylayers>
@@ -107,7 +107,7 @@
 			where_type=""
 			sortfields="FA_NAME2"
 			key="WATERCODE"
-			database="https://ndis-flex-2.nrel.colostate.edu/fishingatlas/ResourceReportFishingSpeciesDB.aspx"
+			database="https://ndismaps.nrel.colostate.edu/fishingatlas/ResourceReportFishingSpeciesDB.aspx"
 			filename="tblMasterSpecies"
 			one2one_fields=""
 			one2many_fields="AtlasFish"/>
@@ -134,7 +134,7 @@
 		    fields="LOC_ID,WATER,SPECIFIC_AREA,REG_DESC"
 			sortfields="WATER"
 			key="LOC_ID"
-		    database="https://ndis-flex-2.nrel.colostate.edu/fishingatlas/ResourceReportFishingRegsDB.aspx"
+		    database="https://ndismaps.nrel.colostate.edu/fishingatlas/ResourceReportFishingRegsDB.aspx"
 		    filename="LOCATION_NO_OVERLAP"
 		    one2one_fields="WATER,SPECIFIC_AREA"
 		    one2many_fields="REG_DESC" />
@@ -148,7 +148,7 @@
 		    fields="LOC_ID,WATER,SPECIFIC_AREA,REG_DESC"
 			sortfields="WATER"
 			key="LOC_ID"
-		    database="https://ndis-flex-2.nrel.colostate.edu/fishingatlas/ResourceReportFishingRegsDB.aspx"
+		    database="https://ndismaps.nrel.colostate.edu/fishingatlas/ResourceReportFishingRegsDB.aspx"
 		    filename="LOCATION_NO_OVERLAP"
 		    one2one_fields="WATER,SPECIFIC_AREA"
 		    one2many_fields="REG_DESC" />

@@ -74,9 +74,9 @@
     	gameunits:			polygon featurelayer containing various game unit IDs
      -->
     <querylayers>
-    	<pointsofinterest name="Points of Interest" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/0" />
-    	<contactinfo name="Contact Boundaries" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/1" />
-    	<gameunits name="Game Boundaries" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/2" />
+    	<pointsofinterest name="Points of Interest" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/0" />
+    	<contactinfo name="Contact Boundaries" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/1" />
+    	<gameunits name="Game Boundaries" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2" />
     </querylayers>
     
     <reporttitle>Colorado Hunting Atlas Asset Report</reporttitle>

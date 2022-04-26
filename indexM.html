@@ -89,7 +89,7 @@
 		};
 		</script>
 		<!-- Load our javascript. If last parameter is true it will load asyncronously. Else the script is fetched and executed immediately. -->
-		<script src="https://js.arcgis.com/3.33compact"></script>
+		<script src="https://js.arcgis.com/3.40compact"></script>
 		<!-- Load external javascript files here. -->
         <!--script>
 		<script type="text/javascript" src="javascriptM/geo.js?v=3.20"></script>
@@ -117,7 +117,7 @@
 			document.write('<script type="text/javascript" src="'+path+'/findPlace.js?v='+jsVer+'"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/identify.js?v='+jsVer+'"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/print.js?v='+jsVer+'"><\/script>');
-			document.write('<script type="text/javascript" src="'+path+'/readConfig.js?v=d"><\/script>');
+			document.write('<script type="text/javascript" src="'+path+'/readConfig.js?v='+jsVer+'"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/search.js?v='+jsVer+'"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/swipe.js?v='+jsVer+'"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/utilFuncs.js?v='+jsVer+'"><\/script>');
@@ -154,7 +154,6 @@
 			var app;
 			var settings;
 			var mapBasemap="streets";
-			var ourMVUM=false; // When USFS MVUM map services are down use ours.
 			// Calculate the widest width on the mobile device
 			//var maxPhoneSize = window.innerHeight || document.body.clientHeight;
 			//var phoneWidth = window.innerWidth || document.body.clientWidth;
@@ -805,7 +804,7 @@
 		<div data-dojo-type="dojox/mobile/ContentPane" style="margin:5px;text-align:left;">
 			<div id="errorMsg"></div>
 			<div id="errorXbtn" style="float:right;display:none;position:absolute;right:1px;top:3px;">
-				<a href="javascript:closeAlert();"><img src="https://js.arcgis.com/3.33compact/esri/dijit/images/whitex.png" class="btn" /></a>
+				<a href="javascript:closeAlert();"><img src="https://js.arcgis.com/3.40compact/esri/dijit/images/whitex.png" class="btn" /></a>
 			</div>
 		</div>
 	</div>

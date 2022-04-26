@@ -1122,7 +1122,9 @@ function reportInit(){
 				}
 				
 				function queryFaultHandler(error) {
-					console.log("in queryFaultHandler");
+					alert("Error message: "+error.message+" in ResourceReportWidget.xml at resourceReport.js, queryFaultHandler");
+					document.getElementById("reportMsg1").innerHTML = "";
+					document.getElementById("reportMsg2").innerHTML = "";
 				}
 				
 				function grid(title, arr, header) {
@@ -1353,7 +1355,7 @@ function reportInit(){
 						
 						// For debugging
 						img.src = result.url; //fails on ndis-flex-2 because it is not local gets security error
-						if (window.location.hostname.indexOf("ndis-flex-2") > -1){
+						if (window.location.hostname.indexOf("ndis-2020-dev") > -1){
 							img.src = "assets/images/testmap.jpg";
 							alert("The image in the pdf is a placeholder. <a href='"+result.url+"' target='pdf_image'>Here is a link to the true image.</a>","Note for Test Site");
 						}

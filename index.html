@@ -13,14 +13,14 @@
         <title>Colorado Parks and Wildlife Atlas</title>
 
         <!-- *** Keep ArcGIS API version up to date here *** -->
-        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.33/esri/css/esri.css" />
+        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.40/esri/css/esri.css" />
         <!-- Import CSS stylesheet required for ResizeHandle module -->
-        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.33/dojox/layout/resources/ResizeHandle.css">
+        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.40/dojox/layout/resources/ResizeHandle.css">
         <!-- Available themes: claro, tundra, soria, and nihilo.-->
-        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.33/dijit/themes/claro/claro.css">
-        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.33/dijit/themes/tundra/tundra.css" /-->
-        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.33/dijit/themes/soria/soria.css" /-->
-        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.33/dijit/themes/nihilo/nihilo.css" /-->
+        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.40/dijit/themes/claro/claro.css">
+        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.40/dijit/themes/tundra/tundra.css" /-->
+        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.40/dijit/themes/soria/soria.css" /-->
+        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.40/dijit/themes/nihilo/nihilo.css" /-->
 
         <!-- icon in browser tab -->
         <link rel="shortcut icon" href="assets/images/favicon.png" />
@@ -69,10 +69,10 @@
                 bottom: 0px;
             }
         </style>
-        <script type="text/javascript" src="https://js.arcgis.com/3.33"></script>
+        <script type="text/javascript" src="https://js.arcgis.com/3.40"></script>
         <!-- Contains dojo.js and must be loaded after dojoConfig -->
         <!-- Load external javascript files here. -->
-        <!-- pdf library from https://github.com/MrRio/jsPDF  also in js.arcgis.com 3.33, but missing saveAs function -->
+        <!-- pdf library from https://github.com/MrRio/jsPDF  also in js.arcgis.com 3.40, but missing saveAs function -->
         <!-- for saveAs funciton to save to disk -->
         <script type="text/javascript" src="jsPDF/dist/jspdf.debug.js" true></script>
         
@@ -108,11 +108,11 @@
             document.write('<script type="text/javascript" src="' + path + '/disclaimer.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/draw.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/findPlace.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/gmu.js?v=c"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/identify.js?v=q"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/gmu.js?v=' + jsVer + '"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/identify.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/maplink.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/print.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=at"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/resourceReport.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/search.js?v=' + jsVer + '"><\/script>');
             try {
@@ -153,7 +153,6 @@
                 var hideGroupSublayers = "",
                     radioLayers = "";
                 var myFindService;
-                var ourMVUM=false; // When USFS MVUM map services are down use ours.
 
                 // for multiple httprequests. Used in identify.js and resourceReport.js
                 var index;

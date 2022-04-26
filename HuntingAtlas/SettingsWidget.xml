@@ -194,8 +194,10 @@
 				<url>https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0</url>
 				<irwin_to_inciweb>https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/IRWIN_to_Inciweb_View/FeatureServer/0</irwin_to_inciweb>
 				<geometry>point</geometry>
-				<fields>IncidentName,IrwinID</fields>
-				<displaynames>Incident Name,Incident Report</displaynames>
+				<!--fields>IncidentName,IrwinID,PercentContained</fields>
+				<displaynames>Incident Name,Incident Report,Percent Contained</displaynames-->
+				<fields>IncidentName,IrwinID,FireDiscoveryAge,FireOutDateTime,IncidentTypeKind,CalculatedAcres,DailyAcres,DiscoveryAcres,FinalAcres,PercentContained</fields>
+				<displaynames>Incident Name,Incident Report,Discovery Date,Fire Out Date,Type,Calculated Acres,Daily Acres,Discovery Acres,Final Acres,Percent Contained</displaynames>
 			</layer>
 		</folder>
 		<folder label="Contact Info">
