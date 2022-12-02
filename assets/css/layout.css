@@ -11,6 +11,9 @@ body{
 	padding: 0;
 	margin: 0;
 	box-sizing: border-box;
+	overflow-x: hidden !important;/* try to stop scrolling to browser url on android */
+    overflow-y: hidden !important;/* "" */
+	position: relative;/* "" */
 }
 
 #header {
@@ -46,22 +49,11 @@ body{
 	/*transition: margin-left .7s;*/
 }
 #overviewDiv {
-	/*position: absolute;
-	top: 80px;
-	right: 40px;*/
 	width: 300px;
 	height: 200px;
-	/*border: 1px solid black;*/
 	z-index: 1;
 	overflow: hidden;
-	/*opacity: 0;
-	transition: opacity .7s ease-in;*/
-  }
-  /*#overviewBtn{
-	position: fixed;
-    right: 0px;
-    z-index: 1;
-  }*/
+}
 
   /* overview map location rectangle */
   #extentDiv {
@@ -77,6 +69,9 @@ body{
 	border:1px solid lightgray;
 	overflow: auto;
 	padding: 0;
+    background-color: whitesmoke;
+	border: 1px solid slategray;
+    box-shadow: 2px 2px 5px slategrey;
 }
 #subtitle{
 	margin:2px;
@@ -92,6 +87,7 @@ body{
 @media only screen and (min-width: 1200px){
 	#leftPane{
 		width:400px;
+    	position: unset;
 	}
 	#findBtnOpen, #findBtnClose, #menuBtn{
 		display:none;
@@ -122,11 +118,17 @@ body{
 @media only screen and (max-width: 1199px){
 	#leftPane{
 		width:0;
+		top: 0;
+		bottom: 0;
+    	position: absolute;
 	}
 	#titleBox{
 		text-align:center;
 	}
 	#subtitle{
+		display:none;
+	}
+	#toolbar{
 		display:none;
 	}
 	#findDiv{
@@ -149,6 +151,9 @@ body{
 	}
 	.dialog{
 		max-width:90%;
+	}
+	.esri-expand__container--expanded{
+		height:80%;
 	}
 }
 #bmGallery{
