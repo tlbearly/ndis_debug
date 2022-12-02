@@ -13,7 +13,7 @@
     <!--script src="//ajax.googleapis.com/ajax/libs/dojo/1.14.1/dojo/dojo.js"></script--> <!-- gets redefined error!!!-->
     <link rel="shortcut icon" href="assets/images/favicon.png" />
     <link rel="icon" type="image/png" href="assets/images/favicon.png" />
-    <link rel="stylesheet" type="text/css" href="assets/css/layout.css?v=4.1"/>
+    <link rel="stylesheet" type="text/css" href="assets/css/layout.css?v=4.8"/>
     <script type="text/javascript" src="javascript/src/readConfig.js?v=4.0"></script>
     <script type="text/javascript" src="javascript/src/utilFuncs.js?v=4.0"></script>
     <script type="text/javascript" src="javascript/src/xmlUtils.js?v=4.0"></script>
@@ -78,8 +78,6 @@
             title = "CO " + title.substring(title.indexOf(" ")+1);
             document.getElementById("title").innerHTML = title;
           }
-          // hide tools menu. Can be shown again under Settings
-          document.getElementById("toolbar").style.display = "none";
         }
 
         //
@@ -667,6 +665,20 @@
               listItemCreatedFunction: defineActions,
               container: tocPane.containerNode.id
             });
+            layerList.when(() => {
+              // hide toc items
+              var tocItems = document.getElementsByClassName("esri-layer-list__item--has-children");
+              for (var i=0; i<tocItems.length;i++){
+                var item=tocItems[i].children[0].children[1].children[1].innerHTML;
+                // TODO read from config.xml hideGroupSubLayers
+                if (['Emergency','Field Office','Chamber of Commerce or Welcome Center','License Agent','Campgrounds and SWA Facilities','GMU boundary (Hunting Units)'].includes(item) ){
+                  // hide expand icon
+                  tocItems[i].children[0].children[0].style.visibility = "hidden";
+                  // hide the ul of zoom levels
+                  tocItems[i].children[1].style.display = "none";
+                }
+              }
+            });
 
             // Event listener that fires each time an action is triggered
             layerList.on("trigger-action", (event) => {
@@ -736,11 +748,13 @@
             view.ui.add(legendExpand, "top-right");
 
             // Settings
+            var showTools = " checked";
+            if (screen.width < 768) showTools="";
             var settingsPane = new TitlePane({
               title: "<div style='display:inline-flex;flex-direction:row;width:calc(100% - 15px);align-items:center;'><div><img id='settingsIcon' alt='settings icon' src='assets/images/i_layers.png'/></div><div style='flex-grow:3;'> Settings </div><div role='button'><img alt='help button' align='right' class='help_icon' src='assets/images/i_help.png'></div>", 
               open: false,
               content: new ContentPane({
-                  content:"<input id='toolsMenuChkBox' class='largeCheckbox' onclick='javascript:showHideTools()' type='checkbox' checked='true'/><label for='toolsMenuChkBox'>Show tools menu?</label>"
+                  content:"<input id='toolsMenuChkBox' class='largeCheckbox' onclick='javascript:showHideTools()' type='checkbox'"+showTools+"/><label for='toolsMenuChkBox'>Show tools menu?</label>"
               })
             });
             settingsPane.startup();
@@ -753,7 +767,9 @@
     <script>
       window.onload=function(){
         // outline overview widget, if done in css it shows up when loading!
-        document.getElementById("overviewDiv").style.border = "1px solid black";
+        setTimeout(function(){
+          document.getElementById("overviewDiv").style.border = "1px solid black";
+        },500);
       }
       var leftPaneWidth = 404;
       if (window.innerWidth < 404) leftPaneWidth = window.innerWidth;
@@ -802,16 +818,6 @@
           document.getElementById("toolbar").style.display = "none";
         else document.getElementById("toolbar").style.display = "block";
       }
-      /*function toggleOverview(){
-        if (document.getElementById("overviewDiv").style.opacity === "0" || document.getElementById("overviewDiv").style.opacity === ""){
-          document.getElementById("overviewDiv").style.opacity = "1";
-          document.getElementById("overviewBtn").className = "myBtn esri-icon-overview-arrow-top-right";
-        }
-        else {
-          document.getElementById("overviewDiv").style.opacity = "0";
-          document.getElementById("overviewBtn").className = "myBtn esri-icon-overview-arrow-bottom-left";
-        }
-      }*/
 
       function toggleBasemap(event){
         const name = event.target.id;
@@ -1144,11 +1150,10 @@ with it. To shorten it uncheck some boxes below:</span><br/>
       <main id="main">
         <!-- Widget Menu -->
         <aside id="leftPane" alt="menu" style="z-index:2;display:flex;flex-direction:column;">
-          
             <!-- Header -->
             <div id="menuHeader" style="display:flex;flex-direction: row;height:2.5em;background-color: #BCD8F4;">
+              <div style="align-self: center;"><button id="menuBtnClose" class="esri-icon-expand myBtn headerBtn" alt="hide left menu" title="Close Menu" onClick="javascript:toggleMenu()"></button></div>
               <div style="flex-grow:2;align-self: center;"><h2 align="center" style="font-weight:normal;">Menu</h2></div>
-              <div style="align-self: center;"><button id="menuBtnClose" class="headerBtn myClearBtn" alt="hide left menu" title="Close Menu" onClick="javascript:toggleMenu()">X</button></div>
             </div>
             <!-- Widgets -->
             <div style="flex-grow:2;overflow-y:auto;">
