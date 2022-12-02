@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no" />
+    <meta charset="utf-8" />
+    <title>Test ArcGIS API for JavaScript 4.24</title>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.24/esri/themes/light/main.css" async="true"/>
+    <link rel="stylesheet" type="text/css" href="assets/css/claro/claro.css?v=1">
+    
+    <script src="https://js.arcgis.com/4.24/"></script>
+    <!--script src="//ajax.googleapis.com/ajax/libs/dojo/1.14.1/dojo/dojo.js"></script--> <!-- gets redefined error!!!-->
+    <link rel="shortcut icon" href="assets/images/favicon.png" />
+    <link rel="icon" type="image/png" href="assets/images/favicon.png" />
+    <link rel="stylesheet" type="text/css" href="assets/css/layout.css?v=4.1"/>
+    <script type="text/javascript" src="javascript/src/readConfig.js?v=4.0"></script>
+    <script type="text/javascript" src="javascript/src/utilFuncs.js?v=4.0"></script>
+    <script type="text/javascript" src="javascript/src/xmlUtils.js?v=4.0"></script>
+    <script type="text/javascript" src="javascript/src/disclaimer.js?v=4.4"></script>
+
+    <script>
+      var map,view;
+      var app="HuntingAtlas";
+      var ndisVer="4.0";
+      var natgeo,streets,aerial,topo,fsTopo,imagery_topo,topo2;
+      readConfig();
+      require([
+        "esri/config",
+        "esri/core/promiseUtils",
+        "esri/core/reactiveUtils",
+        "esri/Graphic",
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/layers/GroupLayer",
+        "esri/layers/MapImageLayer",
+        "esri/widgets/LayerList",
+        "esri/widgets/Slider",
+        "esri/geometry/Extent",
+        "esri/widgets/ScaleBar",
+        "esri/widgets/Home",
+        "esri/Basemap",
+        "esri/widgets/Expand",
+        "esri/widgets/Legend",
+        "esri/layers/WebTileLayer",
+        "esri/layers/VectorTileLayer",
+        "dojo/dom",
+        "dojo/dom-construct",
+        "dojo/io-query",
+        "dojo/parser",
+        "dijit/form/CheckBox",
+        "dijit/form/RadioButton",
+        "dijit/form/Form",
+        "dijit/layout/BorderContainer",
+        "dijit/layout/ContentPane",
+        "dijit/layout/TabContainer",
+        "dijit/Dialog",
+        "dijit/TitlePane",
+        "dijit/form/Button",
+        "dijit/form/Select",
+        "dojox/layout/ResizeHandle",
+        "dojo/domReady!"
+      ], (esriConfig, promiseUtils, reactiveUtils, Graphic, Map, MapView, GroupLayer, MapImageLayer, LayerList, Slider,Extent, ScaleBar, Home, Basemap, Expand, Legend,
+          WebTileLayer, VectorTileLayer, dom, domConstruct, ioquery, parser, CheckBox, RadioButton, Form, BorderContainer, ContentPane, TabContainer, Dialog, TitlePane, Button, Select, ResizeHandle) => {
+        parser.parse;
+
+        // set up cross domain permissions Prior to AcrGIS 10.1
+        //esriConfig.request.proxyUrl = "/proxy/DotNet/proxy.ashx";
+        //esriConfig.request.alwaysUseProxy = false;
+        
+        //esriConfig.request.timeout = 180000; // increase timeout for printing from 60 seconds (60,000) to 3 minutes (180000)
+                        
+        var wkid = "102100";
+        // adjust title for mobile
+        if (screen.width < 768){
+          var title = document.getElementById("title").innerHTML;
+          if (title.indexOf("Colorado") > -1){
+            title = "CO " + title.substring(title.indexOf(" ")+1);
+            document.getElementById("title").innerHTML = title;
+          }
+          // hide tools menu. Can be shown again under Settings
+          document.getElementById("toolbar").style.display = "none";
+        }
+
+        //
+        // Map Layers read from config.xml
+        //
+        const layer1 = new MapImageLayer({
+            url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer",
+            title: "Hunter Reference",
+            visible: true,
+            opacity: 0.8
+        });
+        const layer2 = new MapImageLayer({
+            url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map/MapServer",
+            title: "Game Species",
+            visible: true,
+            opacity: 0.7
+        });
+        layer1.load()
+          .then(() => {
+              console.log("Hunter Reference loaded");
+          })
+          .catch((error) => {
+              console.error(error);
+          });
+         
+
+        // Create GroupLayer with the two MapImageLayers created above
+        // as children layers.
+
+        /*const demographicGroupLayer = new GroupLayer({
+          title: "US Demographics",
+          visible: true,
+          visibilityMode: "exclusive",
+          layers: [USALayer, censusLayer],
+          opacity: 0.75
+        });*/
+
+        // Create a map and add the group layer to it
+
+        map = new Map({
+          basemap: "streets-vector",
+          layers: [layer2]
+        });
+        
+        map.layers.add(layer1);
+
+        // initial extent
+        ext=[-12350000, 4250000, -11150000, 5250000];
+        initExtent = new Extent({
+            "xmin": parseFloat(ext[0]),
+            "ymin": parseFloat(ext[1]),
+            "xmax": parseFloat(ext[2]),
+            "ymax": parseFloat(ext[3]),
+            "spatialReference": {
+                "wkid": wkid
+            }
+        });
+		
+        // Add the map to a MapView
+        view = new MapView({
+          container: "mapDiv",
+          extent: initExtent,
+          map: map,
+          constraints: {
+            maxScale: 9244649,
+            minScale: 1128
+          }
+        });
+
+
+
+        // Update mouse coordinates
+        view.on('pointer-move', (event)=>{
+          showCoordinates(event);  
+        });
+        // Identify
+        view.on('click', (event)=>{
+          console.log("Identify");
+        });
+
+        // Watch for map scale change
+        // Providing `initial: true` in ReactiveWatchOptions
+        // checks immediately after initialization
+        // Equivalent to watchUtils.init()
+        reactiveUtils.watch(
+          () => view.zoom,
+            () => {
+              showMapScale(parseInt(view.scale));
+            },
+          {
+            initial: true
+        });
+        
+        //-----------------
+        //   Overview Map
+        //-----------------
+        var extentGraphic, dragging=false;
+        // Create another Map, to be used in the overview "view"
+        const ovMap = new Map({
+          basemap: "streets-vector"
+        });
+
+        // Create the MapView for overview map
+        /*const overviewMap = new MapView({
+          container: "overviewDiv",
+          map: ovMap,
+          extent: initExtent,
+          constraints: {
+            rotationEnabled: false
+          }
+        });*/
+
+        const overviewDiv = document.getElementById("overviewDiv");
+        
+        /*const overviewDiv = document.createElement("div");
+        overviewDiv.setAttribute("id", "overviewDiv");
+        var extentDiv = document.createElement("div");
+        extentDiv.setAttribute("id","extentDiv");
+        overviewDiv.appendChild(extentDiv);*/
+
+        const overviewMap = new MapView({
+          container: "overviewDiv",
+          map: ovMap,
+          extent: initExtent,
+          constraints: {
+            rotationEnabled: false
+          }
+        });
+        const ovExpand = new Expand({
+              view: view,
+              content: overviewDiv,
+              id: "overviewBtn",
+              expandTooltip: "Expand Overview Map",
+              expandIconClass: "esri-icon-overview-arrow-bottom-left",
+              collapseIconClass: "esri-collapse__icon esri-expand__icon--expanded esri-icon-collapse",
+              label: "Show Overview"
+            });
+        view.ui.add(ovExpand, "top-right");
+
+
+        // set up initial extent on overview map
+        const extentDebouncer = promiseUtils.debounce(() => {
+          if (view.stationary) {
+            overviewMap.goTo({
+              center: view.center,
+              //extent: view.extent.expand(2)
+              scale:view.scale * 2 *
+                Math.max(
+                  view.width / overviewMap.width,
+                  view.height / overviewMap.height
+                )
+            });
+          }
+        });
+
+        function setupOverviewMap() {
+          // Overview map extent graphic
+          extentGraphic = new Graphic({
+            geometry: null,
+            symbol: {
+              type: "simple-fill",
+              color: [0, 0, 0, 0.5],
+              outline: null
+            }
+          });
+          overviewMap.graphics.add(extentGraphic);
+          
+         // Disable all zoom gestures on the overview map
+          overviewMap.popup.dockEnabled = true;
+          // Removes the zoom action on the popup
+          overviewMap.popup.actions = [];
+          // stops propagation of default behavior when an event fires
+          //function stopEvtPropagation(event) {
+          //  event.stopPropagation();
+          //}
+          // exlude the zoom widget from the default UI
+          // Remove the default widgets
+          overviewMap.ui.components = [];
+          // disable mouse wheel scroll zooming on the view
+          overviewMap.on("mouse-wheel", function(event){
+            if(overviewDiv.style.visibility == "hidden")return;
+            event.stopPropagation();
+          });
+          // disable zooming via double-click on the view
+          overviewMap.on("double-click", function(event){
+            if(overviewDiv.style.visibility == "hidden")return;
+            event.stopPropagation();
+          });
+          // disable zooming out via double-click + Control on the view
+          overviewMap.on("double-click", ["Control"], function(event){
+            if(overviewDiv.style.visibility == "hidden")return;
+            event.stopPropagation();
+          });
+
+          // pan the overview graphic to move main map
+          // disables pinch-zoom and panning on the view
+          var start, update, diffX, diffY;
+          let tempGraphic;
+          let draggingGraphic;
+          overviewMap.on("drag",(event) => {
+            if(overviewDiv.style.visibility == "hidden")return;
+            if (event.action === "start") {
+                // if this is the starting of the drag, do a hitTest
+                overviewMap.hitTest(event).then(resp => {
+                    if (resp.results[0].graphic && resp.results[0].graphic.geometry && resp.results[0].graphic.geometry.type === 'extent'){
+                      event.stopPropagation();
+                      dragging=true;
+                      console.log("start dragging"); 
+                      // if the hitTest returns an extent graphic, set dragginGraphic
+                      draggingGraphic = resp.results[0].graphic;
+                      start =  overviewMap.toMap({x: event.x, y: event.y});
+                    }
+                });
+            }
+            if (event.action === "update") {
+                // on drag update events, only continue if a draggingGraphic is set
+                if (draggingGraphic){
+                    event.stopPropagation();
+                    console.log("update dragging");
+                    // if there is a tempGraphic, remove it
+                    if (tempGraphic) {
+                        overviewMap.graphics.remove(tempGraphic);
+                    } else {
+                        // if there is no tempGraphic, this is the first update event, so remove original graphic
+                        overviewMap.graphics.remove(draggingGraphic);
+                    }
+                    // create new temp graphic and add it
+                    tempGraphic = draggingGraphic.clone();
+                    // Calculate new extent
+                    update = overviewMap.toMap({x: event.x, y: event.y});
+                    diffX = update.x - start.x;
+                    diffY = update.y - start.y;
+                    start = update;
+                    const extent = extentGraphic.geometry;
+                    extent.xmin += diffX;
+                    extent.xmax += diffX; 
+                    extent.ymin += diffY;
+                    extent.ymax += diffY; 
+                    tempGraphic.geometry = extent;
+                    overviewMap.graphics.add(tempGraphic);
+                }
+            }
+            else if (event.action === "end") {
+                // on drag end, continue only if there is a draggingGraphic
+                if (draggingGraphic){
+                  event.stopPropagation();
+                  console.log("end dragging");
+                  // rm temp
+                  if (tempGraphic) overviewMap.graphics.remove(tempGraphic);
+                  // fix double image bug
+                  if (draggingGraphic) overviewMap.graphics.remove(draggingGraphic);
+                  // create new graphic based on original dragging graphic
+                  extentGraphic = draggingGraphic.clone();
+                  if (tempGraphic)
+                    extentGraphic.geometry = tempGraphic.geometry.clone();
+                  else
+                    extentGraphic.geometry = draggingGraphic.geometry.clone();
+                  
+                  // add replacement graphic
+                  overviewMap.graphics.add(extentGraphic);
+                  
+                  // reset vars
+                  draggingGraphic = null;
+                  tempGraphic = null;
+                  
+                  // Adjust main map
+                  view.center = extentGraphic.geometry.extent.center;
+                  dragging=false;
+                }
+            }
+          });
+
+          // disable the view's zoom box to prevent the Shift + drag
+          // and Shift + Control + drag zoom gestures.
+          overviewMap.on("drag", ["Shift"], function(event){
+            console.log("shift-drag");
+            if(overviewDiv.style.visibility == "hidden")return;
+            event.stopPropagation();
+          });
+          overviewMap.on("drag", ["Shift", "Control"], function(event){
+            if(overviewDiv.style.visibility == "hidden")return;
+            event.stopPropagation();
+          });
+
+          // prevents zooming with the + and - keys
+          overviewMap.on("key-down", (event) => {
+            if(overviewDiv.style.visibility == "hidden")return;
+            const prohibitedKeys = ["+", "-", "Shift", "_", "=", "ArrowUp", "ArrowDown", "ArrowRight", "ArrowLeft"];
+            const keyPressed = event.key;
+            if (prohibitedKeys.indexOf(keyPressed) !== -1) {
+              event.stopPropagation();
+            }
+          });
+          
+          reactiveUtils.watch(
+            () => view.extent,
+            (extent) => {
+              // Sync the overview map location
+              // whenever the view is stationary
+              if(dragging) return;
+              extentDebouncer().then(() => {
+                extentGraphic.geometry = extent;
+              });
+              overviewMap.scale = view.scale * 2 * Math.max(
+                  view.width / overviewMap.width,
+                  view.height / overviewMap.height
+                );
+              overviewMap.center = view.center;
+            },
+            {
+              initial: true
+            }
+          );
+        }
+
+
+        // Creates actions in the LayerList.
+        function defineActions(event) {
+            // The event object contains an item property.
+            // is is a ListItem referencing the associated layer
+            // and other properties. You can control the visibility of the
+            // item, its title, and actions using this object.
+
+            const item = event.item;
+            // show legend  
+            /*if (item.layer.type != "group") {
+                // don't show legend twice
+                item.panel = {
+                content: "legend",
+                open: false
+                };
+            }*/
+
+          //if (item.title === "US Demographics") {
+            // An array of objects defining actions to place in the LayerList.
+            // By making this array two-dimensional, you can separate similar
+            // actions into separate groups with a breaking line.
+
+            /*item.actionsSections = [
+              [
+                {
+                  title: "Go to full extent",
+                  className: "esri-icon-zoom-out-fixed",
+                  id: "full-extent"
+                },
+               {
+                  title: "Layer information",
+                  className: "esri-icon-description",
+                  id: "information"
+                }
+              ],
+              [
+                {
+                  title: "Increase opacity",
+                  className: "esri-icon-up",
+                  id: "increase-opacity"
+                },
+                {
+                  title: "Decrease opacity",
+                  className: "esri-icon-down",
+                  id: "decrease-opacity"
+                }
+              ]
+            ];
+            */
+         // }
+
+         //console.log(item.title+" vis: "+item.visible+" vis at scale: "+ item.visibleAtCurrentScale);
+          // Adds a slider for updating a group layer's opacity
+          //|| item.parent == null
+          if((item.children.length == 0 && item.parent) || item.parent === null ){
+            const slider = new Slider({
+              min: 0,
+              max: 1,
+              precision: 2,
+              values: [ item.layer.opacity ],
+              visibleElements: {
+                labels: true,
+                rangeLabels: true
+              }
+              
+            });
+
+            item.panel = {
+              content: slider,
+              className: "esri-icon-sliders-horizontal",
+              title: "Change layer opacity"
+            }
+
+            slider.on("thumb-drag", (event) => {
+              const { value } = event;
+              item.layer.opacity = value;
+            })
+          }
+        }
+
+
+
+        
+        
+        view.when(() => {
+          overviewMap.when(() => {
+            setupOverviewMap();
+          });
+            //
+            // Scale Bar
+            //
+            let scaleBar = new ScaleBar({
+              view: view
+              // mi & km  unit: "dual"
+            });
+            view.ui.add(scaleBar, {
+              position: "bottom-left"
+            });
+            // Home
+            const homeBtn = new Home({
+              view: view
+            });
+
+            // Add the home button to the top left corner of the view
+            view.ui.add(homeBtn, "top-left");
+          
+         //   view.ui.add(document.getElementById("fullExtent"),{
+         //     position:"top-left"
+         //   });
+
+            //
+            // Basemaps Gallery
+            //
+            var layer;
+            var basemap;
+            // Old Streets
+            /*let streetsLayer = new VectorTileLayer({url:"https://www.arcgis.com/sharing/rest/content/items/b266e6d17fc345b498345613930fbd76/resources/styles/root.json"});
+            let streets = new Basemap({
+              baseLayers:[streetsLayer],
+              title:"Streets",
+              id:"streets",
+              thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/f81bc478e12c4f1691d0d7ab6361f5a6/info/thumbnail/street_thumb_b2wm.jpg"
+            });*/
+
+            // Aerial Photo
+            var layers=[];
+            layer = new MapImageLayer({
+              url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+            });
+            layers.push(layer);
+            layer = new VectorTileLayer({
+              url: "https://www.arcgis.com/sharing/rest/content/items/30d6b8271e1849cd9c3042060001f425/resources/styles/root.json"
+            });
+            layers.push(layer);
+            aerial = new Basemap({
+              baseLayers:layers,
+              title:"Aerial Photo",
+              id:"aerial",
+              thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/f81bc478e12c4f1691d0d7ab6361f5a6/info/thumbnail/street_thumb_b2wm.jpg"
+            });
+
+            // World Streets Vector
+            layer = new VectorTileLayer({url:"https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer"});
+            streets = new Basemap({
+              baseLayers:[layer],
+              title:"Streets",
+              id:"streets",
+              thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
+            });
+
+            // USFS Topo 24K
+            var layerQuads = new MapImageLayer({url:"https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_FSTopoQuad_01/MapServer"});
+            layer = new MapImageLayer({url:"https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_FSTopo_01/MapServer"});
+            fsTopo = new Basemap({
+              baseLayers:[layer,layerQuads],
+              title:"FS Topo",
+              id:"FSTopo",
+              thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/f81bc478e12c4f1691d0d7ab6361f5a6/info/thumbnail/street_thumb_b2wm.jpg"
+            });
+
+            // Add USGS Digital Topo back in. ESRI removed it 6-30-19
+            layer = new MapImageLayer({
+              //url: "https://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"  // no topo
+              url: "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+            });
+            natgeo = new Basemap({
+              baseLayers:[layer],
+              title:"USGS Digital Topo",
+              id:"natgeo",
+              thumbnailUrl:"https://usfs.maps.arcgis.com/sharing/rest/content/items/6d9fa6d159ae4a1f80b9e296ed300767/info/thumbnail/thumbnail.jpeg"
+            });
+
+            //*******
+            //TODO dpi have any affect????? MapImageLayer has dpi, Basemap does not
+            //********
+            // USGS Scanned Topo
+            // thumbnail moved no longer esists: //"https://www.arcgis.com/sharing/rest/content/items/931d892ac7a843d7ba29d085e0433465/info/thumbnail/usa_topo.jpg"
+            layer=new MapImageLayer({
+              url:"https://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer",
+              dpi:300
+            });
+            topo = new Basemap({
+              baseLayers:[layer],
+              title:"USGS Scanned Topo",
+              id:"topo",
+              thumbnailUrl:"assets/images/USA_topo.png"
+            });
+
+            // Aerial with Topos
+            layer=new MapImageLayer({url:"https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer",dpi:300});
+            imagery_topo = new Basemap({
+              baseLayers:[layer],
+              title:"Aerial Photo with USGS Contours",
+              id: "imagery_topo",
+              dpi:300,
+              thumbnailUrl:"assets/images/aerial_topo.png"
+            });
+          
+            // ESRI Digital Topo
+            layer=new MapImageLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"});
+            // old thumb thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/30e5fe3149c34df1ba922e6f5bbf808f/info/thumbnail/ago_downloaded.jpg"
+            topo2 = new Basemap({
+              baseLayers:[layer],
+              title:"ESRI Digital Topo",
+              id:"topo2",
+              thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/588f0e0acc514c11bc7c898fed9fc651/info/thumbnail/topo_thumb_b2wm.jpg"
+            });
+
+            class MyBasemapGallery {  
+              constructor(){
+                  this.bmGallery = document.createElement("ul");
+                  this.bmGallery.role = "menu";
+                  this.bmGallery.id = "bmGallery";
+                  var basemapPane = new TitlePane({
+                    open: false,
+                    title: "<div style='display:inline-flex;flex-direction:row;width:calc(100% - 15px);align-items:center;'><div><img id='basemapIcon' alt='choose map basemap layer' src='assets/images/i_layers.png'/></div><div style='flex-grow:3;'> Basemaps </div><div role='button'><img alt='help button' align='right' class='help_icon' src='assets/images/i_help.png'></div>"
+                  });
+                  basemapPane.startup();
+                  document.getElementById("basemapPane").appendChild(basemapPane.domNode);
+                  basemapPane.domNode.querySelector('.dijitTitlePaneContentInner').appendChild(this.bmGallery);
+                }
+                add(id, title, thumbnail, selected){
+                  // id - internal basemap title, used in toggleBasemap()
+                  // title - display title
+                  // thumbnail - thumbnail image
+                  // selected - true or false
+                  const basemap = document.createElement("li");
+                  basemap.id = id;
+                  if (selected) basemap.className="bmSelected";
+                  else basemap.className="bmUnselected";
+                  basemap.ariaSelected="true";
+                  basemap.role="menu-item";
+                  basemap.title=title;
+                  const img = document.createElement("img");
+                  img.src=thumbnail;
+                  img.addEventListener("click",toggleBasemap);
+                  img.id=id;
+                  basemap.appendChild(img);
+                  const label = document.createElement("div");
+                  label.style.textAlign="center";
+                  label.innerHTML=title;
+                  label.id=id;
+                  basemap.appendChild(label);
+                  this.bmGallery.appendChild(basemap);
+                }
+            }
+            const bm = new MyBasemapGallery();
+            bm.add("streets","Streets","assets/images/streets_thumb.jpg",true);
+            bm.add("aerial","Aerial Photo","assets/images/aerial_thumb.jpg",false);
+            bm.add("topo","USGS Scanned Topo","assets/images/USA_topo.png",false);
+            bm.add("natgeo","USGS Digital Topo","assets/images/natgeothumb.jpg",false);
+            bm.add("imagery_topo","Aerial Photo with USGS Contours","assets/images/aerial_topo.png",false);
+            bm.add("topo2","ESRI Digital Topo","assets/images/topo2_thumb.jpg",false);
+
+            //
+            // Map Layers
+            //
+            // Create the LayerList widget with the associated actions
+            // and add it to the top-right corner of the view.
+
+            var tocPane = new TitlePane({
+              title: "<div style='display:inline-flex;flex-direction:row;width:calc(100% - 15px);align-items:center;'><div><img id='tocIcon' alt='map layers icon' src='assets/images/i_layers.png'/></div><div style='flex-grow:3;'> Map Layers </div><div role='button'><img alt='help button' align='right' class='help_icon' src='assets/images/i_help.png'></div>"
+            });
+            tocPane.startup();
+            document.getElementById("tocPane").appendChild(tocPane.domNode);
+            
+            var layerList = new LayerList({
+              view: view,
+              listItemCreatedFunction: defineActions,
+              container: tocPane.containerNode.id
+            });
+
+            // Event listener that fires each time an action is triggered
+            layerList.on("trigger-action", (event) => {
+              // The layer visible in the view at the time of the trigger.
+              const layer = event.item.layer;
+
+              // Capture the action id.
+              const id = event.action.id;
+
+              if (id === "full-extent") {
+                // if the full-extent action is triggered then navigate
+                // to the full extent of the visible layer
+                view.goTo(visibleLayer.fullExtent)
+                .catch((error) => {
+                  if (error.name != "AbortError"){
+                    console.error(error);
+                  }
+                });
+              } else if (id === "information") {
+                // if the information action is triggered, then
+                // open the item details page of the service layer
+                window.open(layer.url);
+              } else if (id === "increase-opacity") {
+                // if the increase-opacity action is triggered, then
+                // increase the opacity of the GroupLayer by 0.25
+
+                if (layer.opacity < 2) {
+                  layer.opacity += 0.25;
+                }
+              } else if (id === "decrease-opacity") {
+                // if the decrease-opacity action is triggered, then
+                // decrease the opacity of the GroupLayer by 0.25
+                if (layer.opacity > 0) {
+                  layer.opacity -= 0.25;
+                }
+              }
+            });
+            
+            //
+            // Legend
+            //
+            /*var legendPane = new TitlePane({
+              title: "<div style='display:inline-flex;flex-direction:row;width:calc(100% - 15px);align-items:center;'><div><img id='tocIcon' alt='legend icon' src='assets/images/Legend32.png'/></div><div style='flex-grow:3;'> Legend </div><div role='button'><img alt='help button' align='right' class='help_icon' src='assets/images/i_help.png'></div>",
+              open: false
+            });
+            legendPane.startup();
+            document.getElementById("legendPane").appendChild(legendPane.domNode);
+            let legend = new Legend({
+              view: view,
+              container: legendPane.containerNode.id
+            });*/
+
+            let legend = new Legend({
+              view: view,
+              container: document.createElement("div")
+            });
+
+            const legendExpand = new Expand({
+              view: view,
+              content: legend,
+              id: "legend",
+              expandTooltip: "Expand Legend",
+              expandIconClass: "esri-icon-legend",
+              collapseIconClass: "esri-collapse__icon esri-expand__icon--expanded esri-icon-collapse",
+              label: "Show Legend",
+            });
+            view.ui.add(legendExpand, "top-right");
+
+            // Settings
+            var settingsPane = new TitlePane({
+              title: "<div style='display:inline-flex;flex-direction:row;width:calc(100% - 15px);align-items:center;'><div><img id='settingsIcon' alt='settings icon' src='assets/images/i_layers.png'/></div><div style='flex-grow:3;'> Settings </div><div role='button'><img alt='help button' align='right' class='help_icon' src='assets/images/i_help.png'></div>", 
+              open: false,
+              content: new ContentPane({
+                  content:"<input id='toolsMenuChkBox' class='largeCheckbox' onclick='javascript:showHideTools()' type='checkbox' checked='true'/><label for='toolsMenuChkBox'>Show tools menu?</label>"
+              })
+            });
+            settingsPane.startup();
+            document.getElementById("settingsPane").appendChild(settingsPane.domNode);
+
+            document.getElementById("loadingImg").style.display = "none";
+        });  // view when
+      }); // AMD
+    </script>
+    <script>
+      window.onload=function(){
+        // outline overview widget, if done in css it shows up when loading!
+        document.getElementById("overviewDiv").style.border = "1px solid black";
+      }
+      var leftPaneWidth = 404;
+      if (window.innerWidth < 404) leftPaneWidth = window.innerWidth;
+      function toggleMenu(){
+        // open menu
+        if(document.getElementById("leftPane").offsetWidth == 2){
+          document.getElementById("menuBtn").style.display = "none";
+          document.getElementById("leftPane").style.width = leftPaneWidth-4+"px";
+        }
+        // close menu
+        else {
+          document.getElementById("menuBtn").style.display = "inline-block";
+          document.getElementById("leftPane").style.width = "0";
+        }
+      }
+      function hide(id){
+        document.getElementById(id).style.display = "none";
+      }
+      function show(id){
+        document.getElementById(id).style.display = "flex";
+      }
+      function toggleSearch(){
+        // show / hid the search box on mobile
+        var f = document.getElementById("findDiv");
+        // Hide
+        if (f.style.marginRight === "0px"){
+          f.style.marginRight = "-150vw";
+          document.getElementById("findBtnClose").style.display = "none";
+          document.getElementById("findBtnOpen").style.display = "inline-block";
+          document.getElementById("titleBox").style.display = "block";
+          setTimeout(function(){
+            f.style.display = "none";
+          },700);
+        }
+        // Show
+        else {
+          f.style.display = "flex";
+          f.style.marginRight = "0px";
+          document.getElementById("findBtnClose").style.display = "inline-block";
+          document.getElementById("findBtnOpen").style.display = "none";
+          document.getElementById("titleBox").style.display = "none";
+        }
+      }
+      function showHideTools(){
+        if (document.getElementById("toolbar").style.display === "block" || document.getElementById("toolbar").style.display === "")
+          document.getElementById("toolbar").style.display = "none";
+        else document.getElementById("toolbar").style.display = "block";
+      }
+      /*function toggleOverview(){
+        if (document.getElementById("overviewDiv").style.opacity === "0" || document.getElementById("overviewDiv").style.opacity === ""){
+          document.getElementById("overviewDiv").style.opacity = "1";
+          document.getElementById("overviewBtn").className = "myBtn esri-icon-overview-arrow-top-right";
+        }
+        else {
+          document.getElementById("overviewDiv").style.opacity = "0";
+          document.getElementById("overviewBtn").className = "myBtn esri-icon-overview-arrow-bottom-left";
+        }
+      }*/
+
+      function toggleBasemap(event){
+        const name = event.target.id;
+        document.getElementsByClassName("bmSelected")[0].className = "bmUnselected";
+        document.getElementById(name).className = "bmSelected";
+        map.basemap = window[name]; // get variable
+      }
+      function toggleCoordsDialog(){
+        if (document.getElementById("xyCoordsDialog").style.bottom === "-500px" || document.getElementById("xyCoordsDialog").style.bottom === ""){
+          document.getElementById("xyCoordsDialog").style.bottom = document.getElementById("footer").scrollHeight+"px";
+        }
+        else {
+          document.getElementById("xyCoordsDialog").style.bottom = "-500px";
+        }
+      }
+    </script>
+  </head>
+
+  <body class="claro">
+      <div style="top:80px; position:absolute;"><noscript>JavaScript must be enabled to run this site.  Here are the<a href="https://www.enable-javascript.com/" target="_blank">
+        instructions for how to enable JavaScript in your web browser</a></noscript>
+      </div>
+
+      <!-- Header Section-->
+      <header id="header">
+          <div style="display:flex;flex-direction:row;">
+              <!-- Menu to show left panel -->
+              <div>
+                <button id="menuBtn" class="headerBtn myBtn" alt="show/hide left menu" title="Menu" onClick="javascript:toggleMenu()"><img src="assets/images/icons8-menu-50.png" style="padding-top: .2em;"></button>
+              </div>
+              <!-- Logo & Tittle -->
+              <div id="titleBox" style="margin:1px;flex-grow:3;">
+                <a id="logourl" style="display:inline-block;margin: 0 10px;" class="logo" target="_blank" href="https://cpw.state.co.us">
+                  <img id="logo" title="Link to Colorado Parks and Wildlife home page" alt="Link to Colorado Parks and Wildlife home page" style="vertical-align: middle;" src="assets/images/cpwlogo_48x48.png" style="width:48px;height:48px;" />
+                </a>
+                <span style="display:inline-block;vertical-align: middle;">
+                <h1 id="title">Colorado Hunting Atlas</h1>
+                <h2 id="subtitle">Colorado Parks and Wildlife</h2>
+              </div>
+              
+              <!-- Find a Place -->
+              <div style="min-width:40px;height:50px;">
+                <button id="findBtnOpen" class="headerBtn myBtn" alt="show search box" title="Open Search Box" onClick="javascript:toggleSearch()"><img src="assets/images/icons8-search-50.png"/></button>
+                <button id="findBtnClose" class="headerBtn myBtn" alt="hide search box" title="Close Search Box" onClick="javascript:toggleSearch()">X</button>
+                <div id="findDiv">
+                  <div id="findBtnSpan" style="width:0">
+                    <button title="Zoom to search location on the map"><img src="assets/images/i_find.png" onclick="gotoLocation()" style="width:20px;height:20px;"></button>
+                  </div>
+                  <div style="flex:1">
+                    <input id="findCombo" alt="Enter text to search for a place on the map" type="combo" placeholder="Search for a place in Colorado..." />
+                  </div>
+                  <div id="findBtnHelp"role="button" class="findBtnHelp" style="width:0" onClick="require(['dojo/window'], function(win){var vs = win.getBox();searchHelpDialog.show();var w=vs.w-460;searchHelpDialog._setStyleAttr('left:'+w+'px !important;');searchHelpDialog._setStyleAttr('top:55px !important;');});">
+                    <img alt="search help button" class="help_icon" title="Search Help" src="assets/images/i_help.png"/>
+                  </div>
+                  <!-- removeSearchItem is in javascript/utilFuncs.js -->
+                  <div>
+                    <button id="findClear" class="findBtnClear" title="Remove last highlight/push pin from map" alt="Remove last highlight/push pin from map" onClick="removeSearchItem()">Clear</button>
+                  </div>
+                </div>
+              </div>
+
+          </div>
+          <!-- Button Bar Toolbar -->
+          <div id="toolbar" data-dojo-type="dijit/layout/ContentPane" style="height:25px;margin:0 10px;">
+            <span id="links"></span>
+            <!-- showMapExtent() and showMapLink() are in javascript/mapLink.js -->
+            <span id="showExtentBtn" class="link" style="position:relative;float:right;display:none;"><a href="javascript:showMapExtent()"><img id="extentIcon" alt="show current map extent" src="assets/images/i_extent.png"/> Display Extent</a></span>
+            <span id="mapLinkBtn" class="link" style="position:relative;float:right;display:block;"><a href="javascript:setMapLink();"><img id="linkIcon" alt="button to get the link to the current map" src="assets/images/i_link.png"/> Map Link</a></span>
+            <span id="printBtn" class="link" style="position:relative;float:right;display:block;"><a href="javascript:printShow();"><img id="printIcon" alt="button to print the current map" src="assets/images/i_print.png"/> Print</a></span>
+            <!-- Code for gmuCombo is in Identify.js and gmu.js -->
+            <span id="gmuDiv" style="position:relative;float:right;display:none;"><label for="gmuCombo">Goto GMU: </label><span id="gmuCombo"></span></span>
+          </div>
+        
+      </header>
+    
+      <!-- Dialog Popups -->
+      <div id="popupDialogs" style="position: relative;z-index: 3;height: 0;">
+        <!-- Disclaimer -->
+        <div id="disclaimer" class="dialog" alt="Disclaimer">
+          <h3 class="dialogTitle">Disclaimer</h3>
+          <div class="dialogContent">
+            <div id="disclaimerContent"></div>
+            <input id="showDisclaimer" class="largeCheckbox" type="checkbox" onClick="setCookie('noDisclaimer',this.checked)" /> Do not show again. (This is stored in a cookie in your browser history.)<br/><br/>
+            <p style="text-align: center;">
+              <button class="dialogButton" onClick="hide('disclaimer');if (document.getElementById('showDisclaimer').checked){setCookie('noDisclaimer',1);}">Agree</button>
+              <button class="dialogButton" onClick="loadPage('https://cpw.state.co.us/')">Disagree</button>
+            </p>
+          </div>
+        </div>
+
+        <!-- XY Coordinate Format Dialog -->
+        <div id="xyCoordsDialog" class="dialog" style="display:block;">
+          <h3 class="dialogTitle">Change Display Format</h3>
+          <select id="xycoords_combo" size="4" onChange="toggleCoordsDialog();setCookie('xycoords',document.getElementById('xycoords_combo').value);" style="width:100%;">
+            <option value="mercator">WGS84 Web Mercator</option>
+            <option value="geo">Decimal Degrees</option>
+            <option value="dms" selected>Degrees, Minutes, Seconds</option>
+            <option value="dm">Degrees, Decimal Minutes</option>
+          </select>
+        </div>
+
+        <!-- Print Troubleshooting -->
+        <div id="printTroubleshootingDiv" data-dojo-type="dijit/Dialog" data-dojo-id="printTroubleDialog" title="Print Help" style="width: 500px; display:none;">
+            <span id="printVideo"></span>
+            <h2>Having Trouble Saving with Chrome?</h2>
+            If you are using Chrome for your browser it has a built in pdf reader which fails to save the file the first time you try to download. The second time it works. But if you have Adobe Reader or Foxit Reader installed it will work. You can make this the
+            default pdf reader by doing the following:
+            <ol>
+                <li>In the address bar, type <i>about:plugins</i></li>
+                <li>The Plug-ins Tab will open</li>
+                <li>Click disable Chrome PDF Viewer.</li>
+                <li>Click Enable Adobe Reader or Foxit Reader.</li>
+                <li>Check Always allowed</li>
+            </ol>
+            <h2>Disable Your Pop-up Blocker</h2>
+            Print will open PDF file(s) in a new tab. If you have pop-ups disabled you will not see your printout.
+            <h2>Requires a PDF Reader</h2>
+            Since the printout is a PDF file, you must have a PDF Reader installed in your browser. Download either <a href="https://get.adobe.com/reader/" target="_blank">Adobe Reader</a> or <a href="https://www.foxitsoftware.com/Secure_PDF_Reader/"
+                target="_blank">Foxit Reader</a>.
+        </div>
+        <!-- Print Dialog -->
+        <div id="printDiv" data-dojo-type="dijit/Dialog" data-dojo-id="printDialog" title="Map shows what will print. Click scalebar to zoom. Click-drag to pan map." style="background:white;display:none;position:absolute;top:70px;overflow:auto;">
+          <span title="Print Help" onClick="printTroubleDialog.show();"><img alt='help button' class="help_icon" style="top:-33px;right:20px;width:15px;height:15px;" src="assets/images/i_help.png"></span>
+          <table>
+            <tr>
+              <td style="width:230px;vertical-align:top">
+                <form>
+                  <label for="printTitle" style="width:30px">Title:</label> <input id="printTitle" value="Colorado Parks and Wildlife Custom Map" type="text" size="21" /><br/><br/>
+                  <label for="printSubTitle" style="width:30px">Subtitle:</label> <input id="printSubTitle" type="text" size="18" /><br/><br/>
+                  <label for="size">Paper size:</label>
+                    <select id="size" onChange="changePrintSize()">
+                      <option value="Letter ">8.5 x 11</option> 
+                      <!--option value="Legal ">8.5 x 14</option--> 
+                      <option value="Tabloid ">11 x 17</option>     
+                      <!--option value="ANSI C ">17 x 22</option-->
+                      <!--option value="ANSI D ">22 x 34</option-->
+                    </select><br/><br/>
+                    <label for="orient">Orientation:</label> <select id="orient" onChange="changePrintSize()">
+                      <option value="Landscape">Landscape</option> 
+                      <option value="Portrait">Portrait</option>     
+                    </select><br/><br/>
+                      <label for="format">Format:</label> <select id="format" onchange="grayOutLegend(this)">
+                      <option value="pdf">PDF</option> 
+                      <option value="geopdf">Geo PDF</option> 
+                      <!--option value="png24">PNG24</option> 
+                      <option value="PNG8">PNG8</option--> 
+                      <option value="jpg">JPG</option> 
+                      <option value="gif">GIF</option> 
+                      <option value="geotiff">GEOTIFF</option> 
+                      <!--option value="svg">SVG</option--> 
+                    </select><br/><br/>
+                    <!--label for="dpi">Dots per inch:</label> <select id="dpi">
+                      <option value="300 ">300</option> 
+                      <option value="96 ">96</option>     
+                    </select><br/><br/-->
+                    <!--label for="scalebar">Scalebar units:</label> <select id="scalebar">
+                      <option value="Miles">Miles</option> 
+                      <option value="Kilometers">Kilometers</option>     
+                      <option value="Feet">Feet</option>
+                      <option value="Meters">Meters</option>
+                    </select><br/><br/-->
+                    <div id="printLegendCB" style="display:inline-block">
+                        <label for="printLegend">Include legend:</label> <input id="printLegend" type="checkbox"/><br/><br/>
+                    </div>
+                    <div align="center">
+                        <button id="print_button" data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="printMap()">Print</button> <img id="printLoading" style="vertical-align:bottom; display:none" src="assets/images/loading.gif"
+                        /><br/>
+                        <span id="printInst">Disable pop-up blocker. Printout will open in a new tab.</span><br/>
+                        <span id="printMapLink" style="font-weight:bold;font-style:italic;"></span><br/>
+                        <span id="printLegendLink" style="font-weight:bold;font-style:italic;"></span><br/>
+                    </div>
+                    <!--div align="center" id="print_button"></div-->
+                    <br/><br/>
+                    <!-- Force selected format to pdf on startup. selected="selected" did not work in FireFox -->
+                    <script>
+                        document.getElementById("format").selectedIndex = 0
+                    </script>
+                    <p align="center">Requires a PDF reader. Get:<br/><a href="https://get.adobe.com/reader/" target="_blank">Adobe Reader</a>&nbsp;&nbsp;or&nbsp;&nbsp;<a href="https://www.foxitsoftware.com/Secure_PDF_Reader/" target="_blank">Foxit Reader</a></p>
+                </form>
+              </td>
+              <td>
+                  <div id="printPreviewMap" class="map" data-dojo-type="dijit/layout/ContentPane" data-dojo-props='region:"center"' dir="ltr" style="margin-bottom:8px;border:1px solid black;position:relative;"></div>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Map Link Dialog -->
+        <div data-dojo-type="dijit/Dialog" data-dojo-id="mapLinkDialog" title="Link to Current Map" style="display:none;position:absolute;top:70px;width:450px;">
+            <span>Can be used to copy and paste into an email message.</span><br/>
+            <form>
+                <textarea id="mapLinkTxt" onFocus="this.select()" onClick="this.select()" style="width:430px;height:100px;"></textarea><br/>
+                <div>
+                    Map Link length: <input id="mapLinkLen" type="text" style="width:40px;border:0;" value="0" /><br/>
+                    <span id="mapLinkWarning" style="color: red">Warning: Map Link length exceeds the limit of 2048 characters. Some browsers may have trouble
+with it. To shorten it uncheck some boxes below:</span><br/>
+                    <input id="extMLckb" type="checkbox" onChange="mlCheckbox(this,'extent')" /> include extent, length: <input id="extMapLinkLen" type="text" style="width:30px;border:0;" value="0" />
+                    <span id="polyMLtxt" style="position:absolute;left:200px;"><input id="polyMLckb" type="checkbox" onChange="mlCheckbox(this,'poly')"/> include polygons, length: <input id="polyMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span><br/>
+                    <span id="ptMLtxt"><input id="ptMLckb" type="checkbox" onChange="mlCheckbox(this,'point')"/> include points, length: <input id="ptMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span>
+                    <span id="txtMLtxt" style="position:absolute;left:200px;"><input id="txtMLckb" type="checkbox" onChange="mlCheckbox(this,'text')"/> include text labels, length: <input id="txtMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span><br/>
+                    <span id="lineMLtxt"><input id="lineMLckb" type="checkbox" onChange="mlCheckbox(this,'line')"/> include lines, length: <input id="lineMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span>
+                    <span id="layMLtxt" style="position:absolute;left:200px;"><input id="layMLckb" type="checkbox" onChange="mlCheckbox(this,'layer')"/> include map layers, length: <input id="layMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span><br/>
+                    <span id="rectMLtxt"><input id="rectMLckb" type="checkbox" onChange="mlCheckbox(this,'rect')"/> include rectangles, length: <input id="rectMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span>
+                </div>
+            </form>
+        </div>
+    
+        <!-- Error Message -->
+        <div data-dojo-type="dijit/Dialog" data-dojo-id="errorDialog" style="width:350px;max-height:400px;margin:10px;display:none;overflow:scroll;" title="Error Message" onCancel="require(['dojo/dom'],function(dom){dom.byId('errMsg').innerHTML='';});">
+            <div id="errMsg" class="dijitDialogPaneContentArea"></div>
+            <div align="center"><button onClick="errorDialog.hide();dojo.byId('errMsg').innerHTML='';" data-dojo-type="dijit/form/Button" role="presentation" type="button">Close</button></div>
+        </div>
+
+        <!-- Help Popups -->
+        <div id="searchHelpDialog" data-dojo-type="dijit/Dialog" data-dojo-id="searchHelpDialog" style="width:450px;display:none;" title="Search Help">
+            <div class="dijitDialogPaneContentArea">Enter any of the following in the search box:
+                <ul>
+                    <li>A Place Name (for example: Denver)</li>
+                    <li>GMU ## (for Game Management Unit)</li>
+                    <li>GMU (for list of Game Management Units)</li>
+                    <li>STL (for list of State Trust Lands)</li>
+                    <li>SWA (for list of State Wildlife Areas)</li>
+                    <li>SFU (for list of State Fishing Units)</li>
+                    <li>WWA (for list of Watch-able Wildlife Areas)</li>
+                    <li>Wilderness (for list of Wilderness Areas)</li>
+                    <li>National Forest (for list of forests)</li>
+                    <li>National Grassland (for list of grasslands)</li>
+                    <li>County (for a list of counties)</li>
+                    <li>A Point in the following format: <select id="help_xy_proj" data-dojo-type="dijit/form/Select" onChange="require(['dijit/registry'],function(registry){if (registry.byId('pointUnits'))registry.byId('pointUnits').set('value',registry.byId('help_xy_proj').value);registry.byId('settings_xy_proj').set('value',registry.byId('help_xy_proj').value);settings.XYProjection=registry.byId('help_xy_proj').value;setCookie('prj', registry.byId('help_xy_proj').value);});">
+          <option value="dd">Lat/Long decimal degrees as 40.1722,103.8336</option>
+          <option value="dms">Lat/Long degrees, minutes, seconds as 40:10:20,103:50:1</option>
+          <option value="dm">Lat/Long degrees, decimal minutes as 40:10.333,103:60.0167</option>
+          <option value="32612">WGS84 UTM Zone 12N</option>
+          <option value="32613">WGS84 UTM Zone 13N</option>
+          <option value="26912">NAD83 UTM Zone 12N</option>
+          <option value="26913">NAD83 UTM Zone 13N</option>
+          <option value="26712">NAD27 UTM Zone 12N</option>
+          <option value="26713">NAD27 UTM Zone 13N</option>
+        </select></li>
+                </ul>
+                <p>To remove the last search location from the map: click on the "Clear" button.<br/> To clear the search box text: click in the search box.<br/>ESC will hide the drop down list of suggestions.</p>
+            </div>
+        </div>
+
+        <div data-dojo-type="dijit/Dialog" data-dojo-id="tocHelpDialog" style="width:350px;display:none;" title="Map Layers &amp; Legend Help">
+            <div class="dijitDialogPaneContentArea">
+                <a id="tocHelp" target="help">Click here to view help video.</a><br/><br/> Set what maps are visible. Click on the right arrow icon to open a group of maps or to show it's legend. Click on the down arrow icon to close this group. Place
+                a check mark in the box beside the maps you would like to make visible. Note that if the group's checkbox is unchecked then no layers in this group will be visible. If the map name is greyed out, then it is not visible at this map
+                scale. To see a greyed out map zoom in or out on the main map. To view the legend check the Show Legend checkbox.<br/><br/>
+                <a id="mapDescFile" target="descriptions">Click here for map descriptions.</a>
+            </div>
+        </div>
+
+        <div data-dojo-type="dijit/Dialog" data-dojo-id="reportHelpDialog" style="width:350px;display:none;" title="Resource Report Help">
+            <div class="dijitDialogPaneContentArea">
+                <a id="reportHelp" target="help">Click here to view help video.</a><br/><br/> Generate a PDF report of planning resources at a specific point. Click the Select location button, then click on the map. The report will contain addresses,
+                phone numbers, &amp; web addresses for field offices, welcome centers, campgrounds, and more.
+                <br/><br/>
+            </div>
+        </div>
+
+        <div data-dojo-type="dijit/Dialog" data-dojo-id="featureSearchHelpDialog" style="width:350px;display:none;" title="Feature Search Help">
+            <div class="dijitDialogPaneContentArea">
+                <a id="searchHelp" target="help">Click here to view help video.</a><br/><br/>
+                <b>Text Search Tab</b><br/>Select feature type and enter search text. As you type matches will be suggested. You may show all features (limited to 1000) by typing *. A table will be displayed with results, and the selected features
+                will be highlighted on the map. To remove the highlighted features from the map, press the Remove button.
+                <br/><br/>
+                <b>Graphical Search Tab</b><br/>Select the feature type to display. You may define an area on the map, in which to search for features, by using either: point, line, rectangle, or polygon.
+                <ul>
+                    <li>For points: click a point on the map.</li>
+                    <li>For lines &amp; polygons: click on the map, move the mouse, click again, double click to end.</li>
+                    <li>For rectangles: click &amp; drag a box.</li>
+                </ul>
+                A table will be displayed with results, and the selected features will be highlighted on the map. To remove the highlighted features from the map, press the trash can button.
+                <br/><br/>
+            </div>
+        </div>
+        <div data-dojo-type="dijit/Dialog" data-dojo-id="featureSearchGridHelpDialog" style="width:350px;display:none;" title="Feature Search Results Table Help">
+            <div class="dijitDialogPaneContentArea">
+                Click on a row to zoom to the feature. Click on header to sort. If there is a link in the table, clicking on it will open it in a new browser tab. Mousing over table row or the feature on the map will highlight it and display it's name.
+                <br/><br/>
+            </div>
+        </div>
+
+        <div data-dojo-type="dijit/Dialog" data-dojo-id="addressHelpDialog" style="width:350px;display:none;" title="Address Help">
+            <div class="dijitDialogPaneContentArea">
+                <a id="addressHelp" target="help">Click here to view help video.</a><br/><br/> Enter the address and press Find. The map will zoom to the location. Press the Remove button to remove the last address image from the map. Press the Reset
+                button to reset the Street, City, and Zip address form.
+                <br/><br/>
+            </div>
+        </div>
+
+        <div data-dojo-type="dijit/Dialog" data-dojo-id="drawHelpDialog" style="width:350px;display:none;" title="Draw, Label, &amp; Measure Help">
+            <div class="dijitDialogPaneContentArea">
+                <a id="drawHelp" target="help">Click here to view help video.</a><br/><br/> This tool adds shapes or text to the map and can display point coordinates, distance, and area. Select the Draw tab to add: points, lines, rectangles, and
+                polygons. Select the Label tab to add text.<br/><br/>
+                <strong>On the Draw tab</strong> select the desired graphic button: points, lines, freehand lines, rectangles, or polygons. NOTE: because the map resets to Identify (i.e. show info at the map click), you will need to reselect the graphic
+                button each time you want to add a new graphic. Choose the style (color, size) for the graphic.<br/><u>For points:</u> set how you would like to enter the point: either by map click, type in the point, or type in multiple points. Set
+                the XY units to display/enter the point(s). Check the Label XY checkbox if you would like the XY point to be labeled on the map. Finally, click the location on the map to place the point.<br/>
+                <u>For lines & polygons:</u> check the Label measurements checkbox if you would like to display the length/area of the graphic below the graphic on the map.
+                <br/><u>To draw a line or polygon:</u> click on the map at the start of the line/polygon, move the mouse, click again, double click to end.<br/>
+                <u>To draw freehand lines or rectangles:</u> click and drag the mouse on the map.<br/>
+                <u>To erase a graphic from the map:</u> click on the trash can button. The last graphic added to the map will be removed.<br/><br/>
+                <strong>On the Label tab</strong>, click on the A button. NOTE: because the map resets to Identify (i.e. show info at the map click), you will need to reselect the A button each time you want to add a new label. Enter the text, select
+                the font style, and click on the map at the location to insert the label. To erase a label from the map click on the trash can button. The last label added to the map will be removed.
+                <br/><br/>
+            </div>
+        </div>
+
+        <div data-dojo-type="dijit/Dialog" data-dojo-id="bookmarkHelpDialog" style="width:350px;display:none;" title="Bookmark Help">
+            <div class="dijitDialogPaneContentArea">
+                <a id="bookmarkHelp" target="help">Click here to view help video.</a><br/><br/> This tool allows you to save or bookmark maps you have created. Note: If you would like to email a map to a friend use "Map Link" located above the map.
+                "Map Link" may also be used to bookmark a map. Simply click "Map Link", load the displayed URL in your browser (copy and paste), and then use the browser bookmark to save the map.<br/><br/>The two tabs on the Bookmark tool allow you
+                to access bookmarks you have created and to store new bookmarks. These are stored in your browser's cookies so if you switch browsers (say from IE to Firefox) they will not show up in the other browser. Clicking on the red X will delete
+                a bookmark. Stored bookmarks will preserve: the map extent, any graphics or text added with the Way Points, Draw, &amp; Measure tool, the currently selected map layers, and base map layer.
+                <br/><br/>
+            </div>
+        </div>
+
+        <div data-dojo-type="dijit/Dialog" data-dojo-id="settingsHelpDialog" style="width:350px;display:none;" title="Settings Help">
+            <div class="dijitDialogPaneContentArea">
+                <a id="settingsHelp" target="help">Click here to view help video.</a><br/><br/> This tool allows you to change the default settings. If you delete your browser cookies these settings will be lost. "Set Coordinate Format" allows you
+                to choose the default format that points will be entered and displayed in. This will change the default option for entering points in Draw, Label, & Measure, and for entering points in the "Search for a Colorado Place" search box.
+                It will also change the default format for how points are displayed in the identify pop-up (which displays information at a map click).
+                <br/><br/>
+            </div>
+        </div>
+      </div>
+
+      <main id="main">
+        <!-- Widget Menu -->
+        <aside id="leftPane" alt="menu" style="z-index:2;display:flex;flex-direction:column;">
+          
+            <!-- Header -->
+            <div id="menuHeader" style="display:flex;flex-direction: row;height:2.5em;background-color: #BCD8F4;">
+              <div style="flex-grow:2;align-self: center;"><h2 align="center" style="font-weight:normal;">Menu</h2></div>
+              <div style="align-self: center;"><button id="menuBtnClose" class="headerBtn myClearBtn" alt="hide left menu" title="Close Menu" onClick="javascript:toggleMenu()">X</button></div>
+            </div>
+            <!-- Widgets -->
+            <div style="flex-grow:2;overflow-y:auto;">
+              <!-- TOC WIDGET -->
+              <div id="tocPane" style="overflow:auto;"></div>
+              <div id="tocDiv" style="overflow:auto;"></div>
+              <!-- LEGEND -->
+              <div id="legendPane" style="overflow:auto;"></div>
+              <!-- BASEMAPS -->
+              <div id="basemapPane" class="pane_container"></div>
+              <!-- SETTINGS -->
+              <div id="settingsPane" class="pane_container"></div>
+            </div>
+          
+        </aside>
+
+        <!-- Overview -->
+        <!--button id="overviewBtn" class="myBtn esri-icon-overview-arrow-bottom-left" style="right:3px;width:32px;height:32px;align-items:center;justify-content:center;display:flex;" onclick="toggleOverview()"></button-->
+        <div id="overviewDiv"><div id="extentDiv"></div></div>
+        
+        <!-- Map -->
+        <map id="mapDiv" alt="interactive map of Colorado">
+          <!-- Full Extent Button -->
+          <!--button id="fullExtent" class="myBtn" style="width:32px;height:32px;align-items:center;justify-content:center;display:flex;">
+            <img alt="full extent button" onclick="javascript:view.scale=9244649" title="Full Extent" style="height:20px;" src="assets/images/i_zoomfull.png">
+          </button-->
+
+          
+
+            <!-- Loading National Forest Grassland Message -->
+            <!--div id="waitmessage" style="display:none; position:absolute; right:20%; top:55%; padding: 30px; z-index:100; border: 5px double grey; background-color: #fff">Loading forest, wilderness, or grassland boundary... If a popup appears click CONTINUE to give the script more time finish.
+            <p style="text-align: center;"><img alt="loading icon" src="assets/images/loading.gif"/><button data-dojo-type="dijit/form/Button" onclick="require(['dojo/dom'],function(dom){dom.byId('waitmessage').style.display='none';});" style="position:absolute; right: 30px;">OK</button></p></div-->
+            <!-- Map Loading image -->
+          <img id="loadingImg" alt="loading icon" src="assets/images/loading.gif" style="display:block;position:absolute; right:50%; top:50%; z-index:100;" />
+        </map>
+      </main>
+      
+      <footer id="footer">
+          <div id="mapscale" style="z-index: 3;color:#000;">Map Scale 1: 
+            <select id="mapscaleList" onchange="setMapScale(this)" style="color: black">
+              <option style="text-align:right" value="9244649">9M</option>
+              <option style="text-align:right" value="4622324">4M</option>
+              <option style="text-align:right" value="2311162">2M</option>
+              <option style="text-align:right" value="1155581">1M</option>
+              <option style="text-align:right" value="577791">500k</option>
+              <option style="text-align:right" value="288895">250k</option>
+              <option style="text-align:right" value="144448">100k</option>
+              <option style="text-align:right" value="72224">50k</option>
+              <option style="text-align:right" value="36112">24k</option>
+              <option style="text-align:right" value="9028">10k</option>
+              <option style="text-align:right" value="2257">2k</option>
+              <option style="text-align:right" value="1128">1k</option>
+          </select></div>
+          
+          <!-- Display mouse coordinates -->
+          <div id="xycoords" style="flex-grow:3;text-align:center;justify-content:center;white-space:nowrap;cursor:pointer;color:#000;padding:0 1px;height:100%;">
+            <button onclick="toggleCoordsDialog()" class="myBtn">35° 47' 57" N, 101° 48' 00" W</button>
+          </div>
+          <div id="owner" style="position: relative; display: block; text-align:center;font-size:x-small;"><a href="https://cpw.state.co.us" style="color: black; text-decoration: none;" title="Colorado Parks and Wildlife home page" target="_blank">© Colorado Parks and Wildlife</a></div>
+      </footer>
+  
+  </body>
+</html>

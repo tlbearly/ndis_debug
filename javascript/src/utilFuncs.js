@@ -12,28 +12,30 @@
 		parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousands_sep);
 
 		return parts.join(dec_point);
-	}
+	};
 	
 	//************
 	// Map Scale
 	//************
-	function showMapScale(obj) {
-		if (obj.lod.level == 10) document.getElementById("mapscaleList").selectedIndex = 9;
-		else if (obj.lod.level == 11) document.getElementById("mapscaleList").selectedIndex = 10;
-		else if (obj.lod.level == 12) document.getElementById("mapscaleList").selectedIndex = 10;
-		else if (obj.lod.level == 13) document.getElementById("mapscaleList").selectedIndex = 11;
-		else document.getElementById("mapscaleList").selectedIndex = obj.lod.level;
-
-		// removed 4/19/17 added custom lods
-		// adjust last three map scales indexes since we skipped some in index.html
-		/*if (obj.lod.level == 15) document.getElementById("mapscaleList").selectedIndex = 9;
-		else if (obj.lod.level == 16) document.getElementById("mapscaleList").selectedIndex = 9;
-		else if (obj.lod.level == 17) document.getElementById("mapscaleList").selectedIndex = 10;
-		else if (obj.lod.level == 18) document.getElementById("mapscaleList").selectedIndex = 10;
-		else if (obj.lod.level == 19) document.getElementById("mapscaleList").selectedIndex = 11;*/
+	function showMapScale(scale) {
+		const list = document.getElementById("mapscaleList");
+		var done = false;
+		for (var i=0; i<list.length-2;i++){
+			if (list[i+1].value < scale) {
+				list.selectedIndex = i;
+				done = true;
+				break;
+			} 
+		}
+		if(!done) list.selectedIndex = list.length-1;
+		//if (level == 10) document.getElementById("mapscaleList").selectedIndex = 9;
+		//else if (level == 11) document.getElementById("mapscaleList").selectedIndex = 10;
+		//else if (level == 12) document.getElementById("mapscaleList").selectedIndex = 10;
+		//else if (level == 13) document.getElementById("mapscaleList").selectedIndex = 11;
+		//else document.getElementById("mapscaleList").selectedIndex = level;
 	}
 	function setMapScale(list) {
-		map.setScale(list[list.selectedIndex].value);
+		view.scale = list[list.selectedIndex].value;
 	}
 
 
@@ -41,27 +43,27 @@
 	// Coordinates 
 	//**************
 	function showCoordinates(evt) {
-		require(["dojo/dom"],function(dom){	
+		require(["dojo/dom","esri/geometry/support/webMercatorUtils"],function(dom,webMercatorUtils){
 			//get mapPoint from event
-			var mp, xy;
+			var mp,xy;
+			const pt = view.toMap({x: evt.x, y: evt.y});
 			//The map is in web mercator - modify the map point to display the results in geographic
 			if (dom.byId("xycoords_combo")[dom.byId("xycoords_combo").selectedIndex].value == "geo"){
-				mp = esri.geometry.webMercatorToGeographic(evt.mapPoint);
-				dom.byId("xycoords").innerHTML = "Latitude: "+mp.y.toFixed(5) + " N &nbsp;&nbsp;&nbsp;Longitude: " + mp.x.toFixed(5) + " W &nbsp;&nbsp;&nbsp;Decimal Degrees";
+				mp = webMercatorUtils.webMercatorToGeographic(pt);
+				dom.byId("xycoords").children[0].innerHTML = mp.y.toFixed(5) + " N, " + mp.x.toFixed(5) + " W";// &nbsp;&nbsp;&nbsp;Decimal Degrees";
 			}
 			else if (dom.byId("xycoords_combo")[dom.byId("xycoords_combo").selectedIndex].value == "dms"){
-				xy = mappoint_to_dms(evt.mapPoint,true);
-				dom.byId("xycoords").innerHTML = "Latitude: "+xy[0] + " N &nbsp;&nbsp;&nbsp;Longitude: " + xy[1] + " W &nbsp;&nbsp;&nbsp;Degrees, Minutes, Seconds";
+				xy = mappoint_to_dms(pt,true);
+				dom.byId("xycoords").children[0].innerHTML = xy[0] + " N, " + xy[1] + " W"; //&nbsp;&nbsp;&nbsp;Degrees, Minutes, Seconds";
 				xy = null;
 			}
 			else if (dom.byId("xycoords_combo")[dom.byId("xycoords_combo").selectedIndex].value == "dm"){
-				xy = mappoint_to_dm(evt.mapPoint,true);
-				dom.byId("xycoords").innerHTML = "Latitude: "+xy[0] + " N &nbsp;&nbsp;&nbsp;Longitude: " + xy[1] + " W &nbsp;&nbsp;&nbsp;Degrees, Decimal Minutes";
+				xy = mappoint_to_dm(pt,true);
+				dom.byId("xycoords").children[0].innerHTML = xy[0] + " N, " + xy[1] + " W";// &nbsp;&nbsp;&nbsp;Degrees, Decimal Minutes";
 				xy = null;
 			}
 			else{
-				mp = evt.mapPoint;
-				dom.byId("xycoords").innerHTML = mp.x.toFixed(0) + ", " + mp.y.toFixed(0) + " Web Mercator";
+				dom.byId("xycoords").children[0].innerHTML = pt.x.toFixed(0) + ", " + pt.y.toFixed(0); // + " Web Mercator";
 			}
 		 });
 	}
@@ -70,17 +72,19 @@
 		// Convert a map point to degrees, minutes, seconds. 
 		// Return an array of latitude = arr[0] = 40° 30' 2.12345", longitude = arr[1]= 103° 25' 33.1122"
 		// if leadingZero is true add 0 to left of min and sec
-		var ddPoint = esri.geometry.webMercatorToGeographic(point); // convert to lat long decimal degrees
-		var pointArr = dd_to_dms(ddPoint, leadingZero);
-		return pointArr;
+		var ddPoint;
+		require(["esri/geometry/support/webMercatorUtils"],function(webMercatorUtils){
+			ddPoint = webMercatorUtils.webMercatorToGeographic(point); // convert to lat long decimal degrees
+		});
+		return dd_to_dms(ddPoint, leadingZero);
 	}
 	
 	function dd_to_dms(ddPoint, leadingZero) {
 		// Convert a decimal degree point to degrees, minutes, seconds. 
 		// Return an array of latitude = arr[0] = 40° 30' 2.12345", longitude = arr[1]= 103° 25' 33.1122"
 		// if leadingZero is true add 0 to left of min and sec
-		var lonAbs = Math.abs(Math.round(ddPoint.x * 1000000.));
-		var latAbs = Math.abs(Math.round(ddPoint.y * 1000000.));
+		var lonAbs = Math.abs(Math.round(ddPoint.x * 1000000.0));
+		var latAbs = Math.abs(Math.round(ddPoint.y * 1000000.0));
 		var degY = Math.floor(latAbs / 1000000) + '° ';
 		var minY = Math.floor(  ((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60)  + '\' ';
 		var secY = Math.floor( Math.floor(((((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60) - Math.floor(((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60)) * 100000) *60/100000 ) + '"'; // latitude
@@ -93,18 +97,19 @@
 		if (leadingZero && minX.length == 3) minX = "0" + minX; // add leading zero so it does not shake
 		if (leadingZero && secX.length == 2) secX = "0" + secX; // add leading zero so it does not shake
 		var x = degX + minX + secX;
-		var pointArr=[];
-		pointArr.push(y);
-		pointArr.push(x);
-		return pointArr;
+		return [y,x];
 	}
 
 	function mappoint_to_dm(point, leadingZero) {
 		// Convert a map point to degrees, decimal minutes.
 		// Return an array of latitude = arr[0] = 40° 30.12345', longitude = arr[1]= 103° 25.24567'
 		// if leadingZero is true add 0 to left of min and sec
-		ddPoint = esri.geometry.webMercatorToGeographic(point);
-		var pointArr = dd_to_dm(ddPoint, leadingZero);
+		var ddPoint;
+		require(["esri/geometry/support/webMercatorUtils"],function(webMercatorUtils){
+			ddPoint = webMercatorUtils.webMercatorToGeographic(point);
+		});
+		let pointArr = [];
+		pointArr = dd_to_dm(ddPoint, leadingZero);
 		return pointArr;
 	}
 	
@@ -112,8 +117,8 @@
 		// Convert a decimal degree point to degrees, decimal minutes.
 		// Return an array of latitude = arr[0] = 40° 30.12345', longitude = arr[1]= 103° 25.24567'
 		// if leadingZero is true add 0 to left of min and sec
-		var lonAbs = Math.abs(Math.round(ddPoint.x * 1000000.));
-		var latAbs = Math.abs(Math.round(ddPoint.y * 1000000.));
+		var lonAbs = Math.abs(Math.round(ddPoint.x * 1000000.0));
+		var latAbs = Math.abs(Math.round(ddPoint.y * 1000000.0));
 		var degY = Math.floor(latAbs / 1000000) + '° ';
 		//var minY = Math.floor(  ((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60)  + '\' '; // truncate minutes
 		var minY = (((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60).toFixed(5)  + '\' '; // decimal minutes
@@ -124,10 +129,7 @@
 		var minX = (((lonAbs/1000000) - Math.floor(lonAbs/1000000)) * 60).toFixed(5)  + '\' '; // decimal minutes
 		if (leadingZero && minX.indexOf(".") == 1) minX = "0" + minX; // add leading zero so it does not shake
 		var x = degX + minX;
-		var pointArr=[];
-		pointArr.push(y);
-		pointArr.push(x);
-		return pointArr;
+		return [y,x];
 	}
 
 	function dms_or_dm_to_dd(str) {
@@ -139,7 +141,6 @@
 		// array[2] is label in deg, min, sec as: 40° 30' 20.44" N, 104° 20' 5" W 
 		// or in degrees, decimal minutes as: 40° 30.1' N, 104° 20.01' W
 		var pos,pos2,pointX,pointY;
-		var arr = new Array();
 		pointY = str.substring(0,str.indexOf(","));
 		pointX = str.substring(str.indexOf(",")+1,str.length);
 		pos = pointX.indexOf(":");
@@ -161,7 +162,7 @@
 		var minX;
 
 		// if Seconds. Check if dms or degrees decimal minutes
-		pos2 = pointX.substring(pos+1).indexOf(":")
+		pos2 = pointX.substring(pos+1).indexOf(":");
 		if (pos2 > -1) {
 			minX = Number(pointX.substr(pos+1, pos2));
 			secX = Number(pointX.substring(pos+pos2+2));
@@ -184,7 +185,7 @@
 		var minY;
 
 		// if Seconds. Check if dms or degrees decimal minutes
-		pos2 = pointY.substring(pos+1).indexOf(":")
+		pos2 = pointY.substring(pos+1).indexOf(":");
 		if (pos2 > -1) {
 			minY = Number(pointY.substr(pos+1, pos2));
 			secY = Number(pointY.substring(pos+pos2+2));
@@ -207,8 +208,7 @@
 			alert("This point is not in Colorado. Latitude of 35 - 42. Longitude of 100 - 110.","Warning");
 			return null;
 		}
-		arr.push(pointY,pointX,label);
-		return arr;
+		return [pointY,pointX,label];
 	}
 	
 	
@@ -231,11 +231,12 @@
 	//*************************************************************
 	// Show/Hide Menu button toggle to show or hide the left pane
 	//*************************************************************
-	function toggleLeftPane() {
+	/*function toggleLeftPane() {
 		require(["dojo/dom","dijit/registry"], function(dom,registry){
 			var menu = dom.byId('leftPane');
 			var menuBtn = dom.byId("menuBtn");
 			var mapWin = dom.byId('mapDiv');
+			var resizeTimer, ovResizeTimer;;
 			// Show Menu
 			if (menu.style.display == 'none')
 			{
@@ -246,12 +247,11 @@
 				menuBtn.title = "Close Menu";
 				registry.byId('mainWindow').resize();
 				//clear any existing resize timer
-				var resizeTimer;
+				resizeTimer;
 				clearTimeout(resizeTimer);
 				//create new resize timer with delay of 500 milliseconds
 				resizeTimer = setTimeout(function () {
 					registry.byId("ovMap").resize();
-					var ovResizeTimer;
 					clearTimeout(ovResizeTimer);
 					ovResizeTimer = setTimeout(function(){
 						registry.byId("ovMap").hide();
@@ -269,7 +269,6 @@
 				menuBtn.title = "Open Menu";
 				registry.byId('mainWindow').resize();
 				//clear any existing resize timer
-				var resizeTimer;
 				clearTimeout(resizeTimer);
 				//create new resize timer with delay of 500 milliseconds
 				resizeTimer = setTimeout(function () {
@@ -283,7 +282,7 @@
 				}, 500);
 			}
 		});
-	  }
+	  }*/
 	  
 	// Find a Place clear graphics
 	function removeSearchItem(){
@@ -454,7 +453,7 @@
 			if (a[item] && a[item].substr(0,4) == "GMU ")
 				return parseInt(a[item].substring(4)) - parseInt(b[item].substring(4));
 			return (a[item] < b[item]) ? -1 : (a[item] > b[item]) ? 1: 0;
-		}
+		};
 	}
 	function sortMultipleArryOfObj() {
 	// Sort an array of objects by multiple fields
@@ -479,7 +478,7 @@
 				i++;
 			}
 			return result;
-		}
+		};
 	}
 	Array.prototype.moveUp = function(value, by) {
 		// Rearrange items in an array. Move up so many positions (by).
@@ -518,12 +517,12 @@
 	// detect mobile
 	function detectmob() { 
 	//  || navigator.userAgent.match(/iPad/i)
-	 if( navigator.userAgent.match(/Android/i)
-	 || navigator.userAgent.match(/webOS/i)
-	 || navigator.userAgent.match(/iPhone/i)
-	 || navigator.userAgent.match(/iPod/i)
-	 || navigator.userAgent.match(/BlackBerry/i)
-	 || navigator.userAgent.match(/Windows Phone/i)
+	 if( navigator.userAgent.match(/Android/i) ||
+	 	navigator.userAgent.match(/webOS/i) ||
+	 	navigator.userAgent.match(/iPhone/i) ||
+	 	navigator.userAgent.match(/iPod/i) ||
+	 	navigator.userAgent.match(/BlackBerry/i) ||
+	 	navigator.userAgent.match(/Windows Phone/i)
 	 ){
 		return true;
 	  }

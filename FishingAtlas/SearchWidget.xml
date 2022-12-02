@@ -205,7 +205,7 @@
 		</layer>
 		<layer>
 			<name>Campground</name>
-			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/48</url>
+			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/13</url>
 			<expression>UPPER(Name) LIKE UPPER('%[value]%')</expression>
 			<graphicalexpression></graphicalexpression>
 			<searchfield>Name</searchfield>
@@ -221,7 +221,7 @@
 		</layer>
 		<layer>
 			<name>USGS topo map quadrangle</name>
-			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/6</url>
+			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/6</url>
 			<expression>UPPER(QUADNAME) LIKE UPPER('%[value]%')</expression>
 			<graphicalexpression></graphicalexpression>
 			<searchfield>QUADNAME</searchfield>
@@ -237,7 +237,7 @@
 		</layer>
 		<layer>
 			<name>Emergency</name>
-			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/26</url>
+			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/11</url>
 			<expression>UPPER(Name) LIKE UPPER('%[value]%')</expression>
 			<graphicalexpression></graphicalexpression>
 			<searchfield>Name</searchfield>
@@ -251,7 +251,7 @@
 		</layer>
 		<layer>
   			<name>Township Range</name> 
- 			 <url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/95</url> 
+ 			 <url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/14</url> 
  			 <expression>TWP = [value1] AND TDIR = '[value2]' AND RNG = [value3] AND RDIR = '[value4]' AND SECTION = [value5]</expression> 
   			<graphicalexpression /> 
   			<searchfield>TWP</searchfield> 

@@ -13,11 +13,15 @@
         <title>Colorado Parks and Wildlife Atlas</title>
 
         <!-- *** Keep ArcGIS API version up to date here *** -->
-        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.40/esri/css/esri.css" />
+        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/4.24/esri/css/esri.css" /-->
+        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/4.24/esri/themes/light/main.css" async="true"/>
+         <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/4.24/esri/css/main.css" /-->
+         <script src="//ajax.googleapis.com/ajax/libs/dojo/1.14.1/dojo/dojo.js"></script>
         <!-- Import CSS stylesheet required for ResizeHandle module -->
-        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.40/dojox/layout/resources/ResizeHandle.css">
+        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/4.24/dojox/layout/resources/ResizeHandle.css">
         <!-- Available themes: claro, tundra, soria, and nihilo.-->
-        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.40/dijit/themes/claro/claro.css">
+        <link rel="stylesheet" type="text/css" href="assets/css/claro/claro.css?v=1">
+        <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/4.24/dijit/themes/claro/claro.css"-->
         <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.40/dijit/themes/tundra/tundra.css" /-->
         <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.40/dijit/themes/soria/soria.css" /-->
         <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/3.40/dijit/themes/nihilo/nihilo.css" /-->
@@ -69,7 +73,7 @@
                 bottom: 0px;
             }
         </style>
-        <script type="text/javascript" src="https://js.arcgis.com/3.40"></script>
+        <script type="text/javascript" src="https://js.arcgis.com/4.24"></script>
         <!-- Contains dojo.js and must be loaded after dojoConfig -->
         <!-- Load external javascript files here. -->
         <!-- pdf library from https://github.com/MrRio/jsPDF  also in js.arcgis.com 3.40, but missing saveAs function -->
@@ -98,27 +102,43 @@
 
         <script type="text/javascript">
             /* For DEBUGGING */
-            var jsVer = Date.now();
+            var jsVer = "a";//Date.now();
             var path = "javascript/src";
             document.write('<link rel="stylesheet" href="assets/css/layout.css?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/errorBox.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/xmlUtils.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/utilFuncs.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/bookmark.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/disclaimer.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/draw.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/findPlace.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/gmu.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/identify.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/maplink.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/print.js?v=' + jsVer + '"><\/script>');
+    //v4        document.write('<script type="text/javascript" src="' + path + '/xmlUtils.js?v=' + jsVer + '"><\/script>');
+    //v4        document.write('<script type="text/javascript" src="' + path + '/utilFuncs.js?v=' + jsVer + '"><\/script>');
+    //v4        document.write('<script type="text/javascript" src="' + path + '/bookmark.js?v=' + jsVer + '"><\/script>');
+    //v4        document.write('<script type="text/javascript" src="' + path + '/disclaimer.js?v=' + jsVer + '"><\/script>');
+    //v4        document.write('<script type="text/javascript" src="' + path + '/draw.js?v=' + jsVer + '"><\/script>');
+    //v4        document.write('<script type="text/javascript" src="' + path + '/findPlace.js?v=' + jsVer + '"><\/script>');
+    //v4        document.write('<script type="text/javascript" src="' + path + '/gmu.js?v=' + jsVer + '"><\/script>');
+    //v4        document.write('<script type="text/javascript" src="' + path + '/identify.js?v=' + jsVer + '"><\/script>');
+    //v4        document.write('<script type="text/javascript" src="' + path + '/maplink.js?v=' + jsVer + '"><\/script>');
+    //v4        document.write('<script type="text/javascript" src="' + path + '/print.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/resourceReport.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/search.js?v=' + jsVer + '"><\/script>');
+    //v4        document.write('<script type="text/javascript" src="' + path + '/resourceReport.js?v=' + jsVer + '"><\/script>');
+    //v4        document.write('<script type="text/javascript" src="' + path + '/search.js?v=' + jsVer + '"><\/script>');
             try {
+                // detect mobile
+				function detectmob() { 
+					// Add this below for ipad to use mobile version:  || navigator.userAgent.match(/iPad/i)
+					if( navigator.userAgent.match(/Android/i)
+						|| navigator.userAgent.match(/webOS/i)
+						|| navigator.userAgent.match(/iPhone/i)
+						|| navigator.userAgent.match(/iPod/i)
+						|| navigator.userAgent.match(/BlackBerry/i)
+						|| navigator.userAgent.match(/Windows Phone/i)
+					){
+						return true;
+					}
+					else {
+						return false;
+					}
+				}
                 // load mobile version if necessary
-                //if (detectmob())
-                //	location.href = "indexM.html"+document.location.search;
+                if (detectmob())
+                	location.href = "indexM.html"+document.location.search;
                 // Global Variables
                 var ndisVer = Date.now(); // for xml files
                 var queryObj = {};
@@ -185,7 +205,7 @@
                 require([
                         "dojo/parser",
                         "esri/config",
-                        "esri/urlUtils",
+                        "esri/core/urlUtils",
                         "dojo/dom",
                         "dojo/io-query",
                         "dijit/form/CheckBox",
@@ -226,13 +246,13 @@
                         // create a map and add layers
                         loading = dom.byId("loadingImg"); //loading image. id
                         // set up cross domain permissions
-                        esriConfig.defaults.io.proxyUrl = "/proxy/DotNet/proxy.ashx";
-                        esriConfig.defaults.io.alwaysUseProxy = false;
+                        esriConfig.request.proxyUrl = "/proxy/DotNet/proxy.ashx";
+                        esriConfig.request.alwaysUseProxy = false;
                         //urlUtils.addProxyRule({
                         //    urlPrefix: "https://services.arcgisonline.com",
                         //    proxyUrl: "/proxy/DotNet/proxy.ashx"
                         //});
-                        esri.config.defaults.io.timeout = 180000; // increase timeout for printing from 60 seconds (60,000) to 3 minutes (180000)
+                        esriConfig.request.timeout = 180000; // increase timeout for printing from 60 seconds (60,000) to 3 minutes (180000)
                         // report warning if old browser
                         if (oldversion())
                             alert(" ", "Warning");

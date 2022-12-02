@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no" />
+    <meta charset="utf-8" />
+    <title>Test ArcGIS API for JavaScript 4.24</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+      }
+    </style>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.24/esri/themes/light/main.css" async="true"/>
+    <script src="https://js.arcgis.com/4.24/"></script>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/layers/GroupLayer",
+        "esri/layers/MapImageLayer",
+        "esri/widgets/LayerList",
+        "esri/widgets/Slider",
+        "esri/geometry/Extent",
+        "esri/widgets/BasemapToggle",
+        "esri/widgets/BasemapGallery",
+        "esri/Basemap",
+        "esri/widgets/Expand",
+        "esri/widgets/Legend",
+        "esri/layers/WebTileLayer",
+        "esri/layers/VectorTileLayer"
+      ], (Map, MapView, GroupLayer, MapImageLayer, LayerList, Slider,Extent, BasemapToggle, BasemapGallery, Basemap, Expand, Legend, WebTileLayer, VectorTileLayer) => {
+        var wkid = "102100";
+
+        //
+        // Map Layers read from config.xml
+        //
+        const layer1 = new MapImageLayer({
+            url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer",
+            title: "Hunter Reference",
+            visible: true,
+            opacity: 0.8
+        })
+        const layer2 = new MapImageLayer({
+            url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map/MapServer",
+            title: "Game Species",
+            visible: true,
+            opacity: 0.7
+        })
+         
+
+        // Create GroupLayer with the two MapImageLayers created above
+        // as children layers.
+
+        /*const demographicGroupLayer = new GroupLayer({
+          title: "US Demographics",
+          visible: true,
+          visibilityMode: "exclusive",
+          layers: [USALayer, censusLayer],
+          opacity: 0.75
+        });*/
+
+        // Create a map and add the group layer to it
+
+        const map = new Map({
+          basemap: "streets-vector",
+          layers: [layer1,layer2]
+        });
+
+        // initial extent
+        ext=[-12350000, 4250000, -11150000, 5250000];
+        initExtent = new Extent({
+            "xmin": parseFloat(ext[0]),
+            "ymin": parseFloat(ext[1]),
+            "xmax": parseFloat(ext[2]),
+            "ymax": parseFloat(ext[3]),
+            "spatialReference": {
+                "wkid": wkid
+            }
+        });
+		
+        // Add the map to a MapView
+        const view = new MapView({
+          container: "viewDiv",
+          extent: initExtent,
+          map: map
+        });
+
+
+        
+        // Creates actions in the LayerList.
+        function defineActions(event) {
+            // The event object contains an item property.
+            // is is a ListItem referencing the associated layer
+            // and other properties. You can control the visibility of the
+            // item, its title, and actions using this object.
+
+            const item = event.item;
+            // show legend  
+            if (item.layer.type != "group") {
+                // don't show legend twice
+                item.panel = {
+                content: "legend",
+                open: false
+                };
+            }
+
+          //if (item.title === "US Demographics") {
+            // An array of objects defining actions to place in the LayerList.
+            // By making this array two-dimensional, you can separate similar
+            // actions into separate groups with a breaking line.
+
+            /*item.actionsSections = [
+              [
+                {
+                  title: "Go to full extent",
+                  className: "esri-icon-zoom-out-fixed",
+                  id: "full-extent"
+                },
+               {
+                  title: "Layer information",
+                  className: "esri-icon-description",
+                  id: "information"
+                }
+              ],
+              [
+                {
+                  title: "Increase opacity",
+                  className: "esri-icon-up",
+                  id: "increase-opacity"
+                },
+                {
+                  title: "Decrease opacity",
+                  className: "esri-icon-down",
+                  id: "decrease-opacity"
+                }
+              ]
+            ];
+            */
+         // }
+
+         //console.log(item.title+" vis: "+item.visible+" vis at scale: "+ item.visibleAtCurrentScale);
+          // Adds a slider for updating a group layer's opacity
+          //|| item.parent == null
+          if((item.children.length == 0 && item.parent) ){
+            const slider = new Slider({
+              min: 0,
+              max: 1,
+              precision: 2,
+              values: [ item.layer.opacity ],
+              visibleElements: {
+                labels: true,
+                rangeLabels: true
+              }
+              
+            });
+
+            item.panel = {
+              content: slider,
+              className: "esri-icon-sliders-horizontal",
+              title: "Change layer opacity"
+            }
+
+            slider.on("thumb-drag", (event) => {
+              const { value } = event;
+              item.layer.opacity = value;
+            })
+          }
+        }
+
+        view.when(() => {
+          //
+        // Basemaps Gallery
+        //
+        
+          //var basemaps = [];
+					var layer;
+					var basemap;
+					// Streets
+					let streetsLayer = new VectorTileLayer({url:"https://www.arcgis.com/sharing/rest/content/items/b266e6d17fc345b498345613930fbd76/resources/styles/root.json"});
+					let streets = new Basemap({
+						baseLayers:[streetsLayer],
+						title:"Streets",
+						id:"streets",
+						thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/f81bc478e12c4f1691d0d7ab6361f5a6/info/thumbnail/street_thumb_b2wm.jpg"
+					});
+					//basemaps.push(basemap);
+					
+          // Add USGS Digital Topo back in. ESRI removed it 6-30-19
+					const natgeoLayer = new MapImageLayer({
+						//url: "https://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"  // no topo
+						url: "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+					});
+					var natgeo = new Basemap({
+						baseLayers:[natgeoLayer],
+						title:"USGS Digital Topo",
+						id:"natgeo",
+						thumbnailUrl:"https://usfs.maps.arcgis.com/sharing/rest/content/items/6d9fa6d159ae4a1f80b9e296ed300767/info/thumbnail/thumbnail.jpeg"
+					});
+
+          // USGS Scanned Topo
+					// thumbnail moved no longer esists: //"https://www.arcgis.com/sharing/rest/content/items/931d892ac7a843d7ba29d085e0433465/info/thumbnail/usa_topo.jpg"
+					layer=new MapImageLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer"});
+					let topo = new Basemap({
+						layers:[layer],
+						title:"USGS Scanned Topo",
+						id:"topo",
+						thumbnailUrl:"assets/images/USA_topo.png"
+					});
+					//basemaps.push(basemap);
+
+          
+          //let streets = Basemap.fromId("streets-vector");
+          /*let basemapTopo = Basemap.fromId("topo-vector");
+          let basemapSource = new LocalBasemapsSource({
+            basemaps: [basemapTopo]
+          });*/
+
+       
+       
+       
+        // esriConfig.apiKey = "YOUR_API_KEY";
+        
+        // Base map Toggle
+        /*const basemapToggle = new BasemapToggle({
+          view: view,
+          nextBasemap: "arcgis-imagery"
+        });
+
+        view.ui.add(basemapToggle,"bottom-right");*/
+
+        // Create a WebTileLayer with a third-party cached service
+        /*const mapBaseLayer = new WebTileLayer({
+          urlTemplate: "https://stamen-tiles-{subDomain}.a.ssl.fastly.net/terrain/{level}/{col}/{row}.png",
+          subDomains: ["a", "b", "c", "d"],
+          copyright:
+            'Map tiles by <a href="http://stamen.com/">Stamen Design</a>, ' +
+            'under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. ' +
+            'Data by <a href="http://openstreetmap.org/">OpenStreetMap</a>, ' +
+            'under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.'
+        });
+        // Create a Basemap with the WebTileLayer. The thumbnailUrl will be used for
+        // the image in the BasemapToggle widget.
+        const stamen = new Basemap({
+          baseLayers: [mapBaseLayer],
+          title: "Terrain",
+          id: "terrain",
+          thumbnailUrl: "https://stamen-tiles.a.ssl.fastly.net/terrain/10/177/409.png"
+        });*/
+
+
+        /*const basemaps = new Basemap({
+          query: {
+            title: '"World Basemaps for Developers" AND owner:esri'
+          }
+        });*/
+        
+       const bgExpand = new Expand({
+          view,
+          content: new BasemapGallery({ 
+            source: 
+              [Basemap.fromId("streets-vector"), Basemap.fromId("hybrid"), topo, natgeo, Basemap.fromId("osm"), Basemap.fromId("topo-vector")],
+            label: "Basemaps",
+          }),
+          expandIconClass: "esri-icon-basemap"
+        });
+        view.ui.add(bgExpand, "top-right");
+
+
+        /*const basemapGallery = new BasemapGallery({
+            view: view,
+            source: {
+              query: {
+                title: '"World Basemaps for Developers" AND owner:esri'
+              }
+            }
+          });*/
+        //view.ui.add(basemapGallery, "top-right"); // Add to the view
+
+          
+          
+          //
+          // Legend
+          //
+          let legend = new Legend({
+            view: view
+          });
+
+          const legendExpand = new Expand({
+            view,
+            content: legend,
+            expandIconClass: "esri-icon-legend"
+          });
+          view.ui.add(legendExpand, "top-right");
+
+
+          //
+          // Layer list TOC
+          //
+          // Create the LayerList widget with the associated actions
+          // and add it to the top-right corner of the view.
+
+          const layerList = new LayerList({
+            view: view,
+            // executes for each ListItem in the LayerList
+            listItemCreatedFunction: defineActions
+          });
+
+          const tocExpand = new Expand({
+            view,
+            content:layerList,
+            expandIconClass: "esri-icon-layer-list"
+            //label: "Map Layers"
+          });
+          
+          
+          // Event listener that fires each time an action is triggered
+
+          layerList.on("trigger-action", (event) => {
+            // The layer visible in the view at the time of the trigger.
+            const layer = event.item.layer;//USALayer.visible ? USALayer : censusLayer;
+
+            // Capture the action id.
+            const id = event.action.id;
+
+            if (id === "full-extent") {
+              // if the full-extent action is triggered then navigate
+              // to the full extent of the visible layer
+              view.goTo(visibleLayer.fullExtent)
+              .catch((error) => {
+                if (error.name != "AbortError"){
+                  console.error(error);
+                }
+              });
+            } else if (id === "information") {
+              // if the information action is triggered, then
+              // open the item details page of the service layer
+              window.open(layer.url);
+            } else if (id === "increase-opacity") {
+              // if the increase-opacity action is triggered, then
+              // increase the opacity of the GroupLayer by 0.25
+
+              if (layer.opacity < 1) {
+                layer.opacity += 0.25;
+              }
+            } else if (id === "decrease-opacity") {
+              // if the decrease-opacity action is triggered, then
+              // decrease the opacity of the GroupLayer by 0.25
+
+              if (layer.opacity > 0) {
+                layer.opacity -= 0.25;
+              }
+            }
+          });
+
+          // Add widget to the top right corner of the view
+          view.ui.add(tocExpand, "top-right");
+          //view.ui.add(layerList, "top-right");
+        });
+      }); // AMD
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+</html>
