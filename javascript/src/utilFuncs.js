@@ -216,14 +216,10 @@
 	// Show/Hide loading image
 	//**************************
 	function showLoading() {
-		esri.show(loading);
-		map.disableMapNavigation();
-		map.hideZoomSlider();
+		document.getElementById("loadingImg").style.display = "block"; 
 	}
 	function hideLoading() {
-		esri.hide(loading);
-		map.enableMapNavigation();
-		map.showZoomSlider();        
+		document.getElementById("loadingImg").style.display = "none";   
 	}
 	// end show loading image functions
 

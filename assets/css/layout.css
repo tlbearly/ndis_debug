@@ -156,6 +156,11 @@ body{
 		height:80%;
 	}
 }
+/* initial widget state */
+.pane_container{
+	display:none;
+	position:relative;/*for help button to show up*/
+}
 #bmGallery{
 	list-style: none;text-align: center;display:flex;padding-left:0;flex-flow: wrap;justify-content: center;
 }
@@ -246,6 +251,7 @@ body{
     flex-direction: column;
 	z-index: 4;
 	padding-bottom:10px;
+	position:relative;/*for X button*/
 }
 .dialogTitle{
 	margin: 0;
@@ -573,6 +579,12 @@ label {
 }
 .help_icon:hover {
 	opacity:1;
+}
+.help_icon_dialog{
+	position:absolute;
+	right:10px;
+	top:-40px;
+	z-index: 1;
 }
 
 /* Style all dojo.form.button(s)*/
