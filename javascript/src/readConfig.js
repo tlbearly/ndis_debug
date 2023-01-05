@@ -847,7 +847,7 @@ function readConfig() {
 							open: preload,
 							content: document.getElementById("bookmarkContent")
 						});
-						drawPane.startup();
+						bookmarkPane.startup();
 						document.getElementById("bookmarkDiv").appendChild(bookmarkPane.domNode);
 						document.getElementById("bookmarkHelpBtn").addEventListener("click",function(){show("bookmarkHelpDialog");});
 						if (video == null)
