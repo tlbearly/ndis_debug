@@ -30,7 +30,8 @@ function lookupAddress() {
 	require(["dojo/dom"], function(dom){
 		// Google Analytics count how many times Address is clicked on
 		if (typeof ga === "function"){
-			ga('send', 'event', "address", "click", "Address", "1");
+			//ga('send', 'event', "address", "click", "Address", "1");
+			if (typeof gtag === "function")gtag('event','click',{'widget_name': 'Address','app_name': app});
 		}
 
 		var addr = dom.byId("streetTxt").value;
@@ -594,7 +595,7 @@ function readConfig() {
 							openedHB1298 = true;
 							loadjscssfile("javascript/hb1298.js", "js");
 						}
-					} else if (label.indexOf("Resource Report") > 0) {
+					} else if (label.indexOf("Report") > 0) {
 						if (video == null)
 							alert("Warning: Missing help video in " + app + "/config.xml file for widget " + label + ".", "Data Error");
 							dom.byId("reportHelp").href = video;
@@ -687,7 +688,7 @@ function readConfig() {
 				// Hide widgets
 				if (widgetStr.indexOf("Map Layers & Legend") == -1)
 					dom.byId("tocPane").style.display = "none";
-				else if (widgetStr.indexOf("Resource Report") == -1)
+				else if (dom.byId("reportDiv") && widgetStr.indexOf("Report") == -1)
 					dom.byId("reportDiv").style.display = "none";
 				else if (widgetStr.indexOf("Feature Search") == -1)
 					dom.byId("searchDiv").style.display = "none";
@@ -722,7 +723,8 @@ function readConfig() {
 					document.getElementById("licenseLink").addEventListener("click",function(){
 						// open CPW buy license page and count how many times it is clicked on
 						// Google Analytics count how many times Buy License is clicked on
-						ga('send', 'event', 'buy_license', 'click', 'Buy License', '1');
+						//ga('send', 'event', 'buy_license', 'click', 'Buy License', '1');
+						if (typeof gtag === "function")gtag('event','click',{'widget_name': 'Buy License','app_name': app});
 						window.open(licenseURL, "_new");
 					});
 				}

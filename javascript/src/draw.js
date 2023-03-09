@@ -643,10 +643,14 @@ function activateDrawTool(event){
 	}
 	// Google Analytics count how many times Draw, Measure, Label is clicked on
 	if (typeof ga === "function"){
-		if (event.currentTarget.id == "label")
-			ga('send', 'event', "label-wayPt", "click", "Label | Way Point", "1");
-		else
-			ga('send', 'event', "draw-measure", "click", "Draw | Measure", "1");
+		if (event.currentTarget.id == "label"){
+			//ga('send', 'event', "label-wayPt", "click", "Label | Way Point", "1");
+			if (typeof gtag === "function")gtag('event','click',{'widget_name': 'Label | Way Point','app_name': app});
+		}
+		else{
+			//ga('send', 'event', "draw-measure", "click", "Draw | Measure", "1");
+			if (typeof gtag === "function")gtag('event','click',{'widget_name': 'Draw | Measure','app_name': app});
+		}
 	}
 	drawing = true; // flag to turn off identify in identify.js, doIdentify()
 	map.disableMapNavigation();

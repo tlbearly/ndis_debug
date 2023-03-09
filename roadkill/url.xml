@@ -1,0 +1,187 @@
+<?xml version="1.0" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////
+//
+// URL parameters && Find a Place
+//
+// changes 1/21/14 added Find a Place settings
+//
+// Find a Place will highlight the boundary of counties, GMUs, public lands (STL,
+// SWA, SFU, WWA), forests, grasslands, and wilderness using this file.
+//
+// To have the application zoomin to an area in a given mapservice on startup
+// defined here, set up the following tags:
+//	<keyword>  The key word to identify which mapservice and field to use.
+//	<url> the url of the mapservice to use to get the boundary zoom to.
+//	<expression> The where query.
+//  <mapscale>  For a point you can set how far to zoom in. 
+//		11 = 1:250k
+//		12 = 1:100k
+//		13 = 1:50k
+//		14 = 1:24k default
+//		15 = 1:18k
+//		16 = 1:10k
+//		17 = 1:4.5k
+//		18 = 1:2k
+//		19 = 1:1k
+// An example url would look like this:
+//		 .../index.asp?keyword=county&value=larimer
+//		 or
+//		 .../index.aspx?keyword=poi&value=Gunnison%20Country%20Chamber
+// The url is not case sensitive.
+// For this url example, this file would contain:
+// <configuration>
+// required for Find a Place
+//		<layer>
+//			<keyword>county</keyword>
+//			<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_FindAPlaceTool_Data/MapServer/1</url>
+//			<expression>UPPER(COUNTYNAME)=UPPER('[value]')</expression>
+//			<field>COUNTYNAME</field>
+//			<mapscale></mapscale>
+//		</layer>
+//  	<layer>
+//			<keyword>gmu</keyword>
+//			<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_FindAPlaceTool_Data/MapServer/4</url>
+//			<expression>GMUID=[value]</expression>
+//			<field>GMUID</field>
+//			<mapscale></mapscale>
+//		</layer>
+//		<layer>
+//			<keyword>public</keyword>
+//			<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/96</url>
+//			<expression>UPPER(PropName)=UPPER('[value]')</expression>
+//			<mapscale></mapscale>
+//			<field>PropName</field>
+//		</layer>
+//		<layer>
+//			<keyword>forest</keyword>
+//			<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/99</url>
+//			<expression>UPPER(MapName)=UPPER('[value]')</expression>
+//			<field>MapName</field>
+//		</layer>
+//		<layer>
+//			<keyword>grassland</keyword>
+//			<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/99</url>
+//			<expression>UPPER(MapName)=UPPER('[value]')</expression>
+//			<field>MapName</field>
+//		</layer>
+//		<layer>
+//			<keyword>wilderness</keyword>
+//			<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/97</url>
+//			<expression>UPPER(NAME)=UPPER('[value]')</expression>
+//			<field>NAME</field>
+//		</layer>
+// other layers for url parameters
+//		<layer>
+//			<keyword>poi</keyword>
+//			<url>http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/0</url>
+//			<expression>UPPER(Name)=UPPER('[value]')</expression>
+//			<mapscale>18</mapscale>
+//		</layer>
+// </configuration>
+//
+// NOTE:  If the field is a number it does not need the single quotes or the UPPER function,
+// which converts text to uppercase.
+////////////////////////////////////////////////////////////////////////////////
+-->
+<configuration>
+	<layer>
+		<keyword>county</keyword>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/1</url>
+		<expression>UPPER(COUNTYNAME)=UPPER('[value]')</expression>
+		<mapscale></mapscale>
+		<field>COUNTYNAME</field>
+	</layer>
+	<layer>
+		<keyword>gmu</keyword>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/4</url>
+		<expression>GMUID=[value]</expression>
+		<mapscale></mapscale>
+		<field>GMUID</field>
+	</layer>
+	<!-- public layer is used to highlight boundaries for STL, SWA, SFU, WWA -->
+	<layer>
+		<keyword>public</keyword>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/3</url>
+		<expression>UPPER(PropName)=UPPER('[value]')</expression>
+		<mapscale></mapscale>
+		<field>PropName</field>
+	</layer>
+	<layer>
+		<keyword>poi</keyword>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/0</url>
+		<expression>UPPER(Name)=UPPER('[value]')</expression>
+		<mapscale>18</mapscale>
+	</layer>
+	<layer>
+		<keyword>buildingID</keyword>
+		<url>http://dnrcpwftcgisw16/ArcGIS/rest/services/Engineering/Buildings/MapServer/0</url>
+		<expression>buildingID = [value]</expression>
+		<mapscale>18</mapscale>
+	</layer>
+		<layer>
+		<keyword>buildingid</keyword>
+		<url>http://dnrcpwftcgisw16/ArcGIS/rest/services/Engineering/Buildings/MapServer/0</url>
+		<expression>buildingID = [value]</expression>
+		<mapscale>18</mapscale>
+	</layer>
+	<layer>
+		<keyword>improvementID</keyword>
+		<url>http://dnrcpwftcgisw16/ArcGIS/rest/services/Engineering/Buildings_Data/MapServer/3</url>
+		<expression>improvementID = [value]</expression>
+		<mapscale>18</mapscale>
+	</layer>
+	<layer>
+		<keyword>improvementid</keyword>
+		<url>http://dnrcpwftcgisw16/ArcGIS/rest/services/Engineering/Buildings_Data/MapServer/3</url>
+		<expression>improvementID = [value]</expression>
+		<mapscale>18</mapscale>
+	</layer>
+	<layer>
+		<keyword>wellID</keyword>
+		<url>http://dnrcpwftcgisw16/ArcGIS/rest/services/Engineering/Buildings/MapServer/1</url>
+		<expression>wellID = [value]</expression>
+		<mapscale>16</mapscale>
+	</layer>
+	<layer>
+		<keyword>wellid</keyword>
+		<url>http://dnrcpwftcgisw16/ArcGIS/rest/services/Engineering/Buildings/MapServer/1</url>
+		<expression>wellID = [value]</expression>
+		<mapscale>16</mapscale>
+	</layer>
+	<layer>
+		<keyword>transID</keyword>
+		<url>http://dnrcpwftcgisw16/ArcGIS/rest/services/RealEstate/PropertyInventory_Map/MapServer/8</url>
+		<expression>TransID = [value]</expression>
+	</layer>
+	<layer>
+		<keyword>TransID</keyword>
+		<url>http://dnrcpwftcgisw16/ArcGIS/rest/services/RealEstate/PropertyInventory_Map/MapServer/8</url>
+		<expression>TransID = [value]</expression>
+	</layer>
+	<layer>
+		<keyword>transid</keyword>
+		<url>http://dnrcpwftcgisw16/ArcGIS/rest/services/RealEstate/PropertyInventory_Map/MapServer/8</url>
+		<expression>TransID = [value]</expression>
+	</layer>
+	<!-- forest boundary one polygon -->
+	<layer>
+		<keyword>forest</keyword>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/5</url>
+		<expression>UPPER(MapName)=UPPER('[value]')</expression>
+		<field>MapName</field>
+	</layer>
+	<!-- grassland boundary one polygon -->
+	<layer>
+		<keyword>grassland</keyword>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/5</url>
+		<expression>UPPER(MapName)=UPPER('[value]')</expression>
+		<field>MapName</field>
+	</layer>
+	<layer>
+		<keyword>wilderness</keyword>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/4</url>
+		<expression>UPPER(NAME)=UPPER('[value]')</expression>
+		<field>NAME</field>
+	</layer>
+</configuration>

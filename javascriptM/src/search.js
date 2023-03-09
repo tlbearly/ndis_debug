@@ -449,7 +449,7 @@ function searchInit() {
 									document.getElementById("searchLoadingImg").style.display="none";
 								}
 								catch(e){
-									alert("Feature Search query error: "+e.message+" in search.js/updateSearchTextStore query response. field="+searchObj[attr].searchfield,"Code Error",e);
+									alert("Feature Search query error: "+e.message+" in search.js/updateSearchTextStore query response. field="+searchObj[attr].searchfield,"Data Error",e);
 									document.getElementById("searchLoadingImg").style.display="none";
 								}	
 							},function (err){
@@ -460,7 +460,7 @@ function searchInit() {
 						}
 						catch(e){
 							document.getElementById("searchLoadingImg").style.display="none";				
-							alert("Feature Search error: "+e.message+" in search.js/updateSearchTextStore.","Code Error",e);
+							alert("Feature Search error: "+e.message+" in search.js/updateSearchTextStore.","Data Error",e);
 						}
 					}
 					
@@ -528,8 +528,9 @@ function searchInit() {
 					function setSelection(event) {
 						// user made a selection in the "search for:" drop down. Display a table of multiple matches or zoom to a single match.
 						try {
-							// Google Analytics count how many times Buy License is clicked on
-							if (typeof ga === "function")ga('send', 'event', "feature_search", "click", "Feature Search", "1");
+							// Google Analytics count how many times Feature Search is clicked on
+							//if (typeof ga === "function")ga('send', 'event', "feature_search", "click", "Feature Search", "1");
+							if (typeof gtag === "function")gtag('event','click',{'widget_name': 'Feature Search','app_name': app});
 
 							// Prevent form submission from loading a new page
 							if (event){

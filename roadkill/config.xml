@@ -1,0 +1,109 @@
+<?xml version="1.0" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2010 ESRI
+//
+// All rights reserved under the copyright laws of the United States.
+// You may freely redistribute and use this software, with or
+// without modification, provided you include the original copyright
+// and use restrictions.  See use restrictions in the file:
+// <install location>/License.txt
+//
+// Read more about ArcGIS API for JavaScript https://developers.arcgis.com/javascript/index.html
+////////////////////////////////////////////////////////////////////////////////
+-->
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/config.xsd">
+    <title>CPW and CDOT Roadkill Data</title>
+    <subtitle>CPW GIS Group Fastmap</subtitle>
+    <app>roadkill</app>
+    <!-- logo in header bar-->
+    <logo>assets/images/cpwlogo_48x48.png</logo>
+    <logourl>http://cpw.state.co.us</logourl>
+	<httpproxy>/proxy/DotNet/proxy.ashx</httpproxy>
+    
+    <style>
+		<font name="Helvetica" size="11"/>    	
+    </style>
+    
+    <!-- REST endpoint to a GeometryService. This should be a service published by CPW and not pointing at an ESRI service.  Use to convert points to new projections. -->
+    <geometryservice url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+    <printservicegeo>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting</printservicegeo>
+    <printservice>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/ExportWebMap/GPServer/Export%20Web%20Map</printservice>
+	<!--printservice>http://dnrcpwftcgisw16/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printservice-->
+	
+	<!-- Find a Place Service **NEW** -->
+	<findplaceservice url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/GNIS_Loc/GeocodeServer"/>
+	
+	<!-- Address Service **NEW** -->
+	<addressservice url="http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"/>
+	
+    <!-- Key to allow Bing Map background layers to work.  Do not change. -->
+	<!--bing key="Ak1eor2ZBWpGcsTkRL8PjLwDpPda-_tK9v-PS-5IbeiOpKm0Eq6n4Xdf26hFbAN6"/-->
+
+    <!-- wkid is required.  This is the spatial reference number.-->
+    <map wkid="102100"
+    	 initialextent="-12350000 4250000 -11150000 5250000">
+         <!-- operationallayers:  Note: Displays in reverse order. -->
+         <!-- Set open=true if you want this mapservice layer expanded at the start. -->
+         <!-- Set opensublayer=comma delimited list of layer names under the mapservice checkbox to expand at the start. open must be true. -->
+         <!--     example: open="true" opensublayer="Places of Interest,Township Range Sections" --> 
+        <operationallayers>
+			<!-- <layer label="Motor Vehicle Use Map" open="false" type="dynamic" visible="false" alpha="0.85"
+            	url="http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/mvum/MapServer"/> -->
+			<!-- <layer label="Motor Vehicle Use Map" open="true" type="dynamic" visible="false" alpha="1"
+                    url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/> -->
+
+            <layer label="Reference" open="true" type="dynamic" opensublayer="" visible="true" alpha="0.9"
+            		url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/"/>		
+        </operationallayers>
+		
+		<hideGroupSublayers>none</hideGroupSublayers>
+		<!-- <radiolayers>CPW Trails (by Use)</radiolayers> -->
+    </map>	 
+    
+    <widgetcontainer>
+         <!-- preload can be set to "open" or "minimized" -->
+		 <!-- video is a link to a help video. This link will be in the help modal window -->
+         <!-- Reports: -->
+         <widget label="Map Layers &amp; Legend"
+         	preload="open"
+			height="420"
+            video="http://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+         <!-- Widget label must contain the word "Report"-->
+         <widget label="Roadkill Location Report"
+            preload="open"
+			video="http://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+         <widget label="Feature Search"
+            preload="minimized"
+			video="http://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+         <!-- <widget label="Address"
+            preload="minimized"
+			video="http://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/> -->
+         <widget label="Draw, Label, &amp; Measure"
+            preload="minimized"
+            video="http://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+         <widget label="Bookmark"
+            preload="minimized"
+            video="http://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+          <widget label="Settings"
+            preload="minimized"
+            video="http://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+    </widgetcontainer>
+
+    <links>
+    <!--Note the icons and labels must all be different.  This is how it looks up the url. -->
+		<!-- <link label="Old Atlas"
+    		url="http://ndismaps.nrel.colostate.edu/flex/huntingatlas"
+    		icon="assets/images/i_zoomprevious.png"/>
+    	<link label="Big Game Brochure"
+    		url="http://cpw.state.co.us/aboutus/Pages/RegulationsBrochures.aspx"
+    		icon="assets/images/i_documentadd.png"/>
+		<link label="Buy License!"
+    		url="http://cpw.state.co.us/BuyApply/pages/hunting.aspx"
+    		icon="assets/images/i_buylicense.png"/> -->
+    	<link label="Print Maps"
+    		url="http://dnrcpwftcgisw16/gisunitintranet/PrintMaps.aspx"
+    		icon="assets/images/i_documentadd.png"/>
+    </links>     
+</configuration>

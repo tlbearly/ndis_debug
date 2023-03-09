@@ -1,0 +1,210 @@
+﻿<?xml version="1.0" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////
+//
+// Settings
+//
+// Copyright © 2008 ESRI
+//
+// All rights reserved under the copyright laws of the United States.
+// You may freely redistribute and use this software, with or
+// without modification, provided you include the original copyright
+// and use restrictions.  See use restrictions in the file:
+// <install location>/FlexViewer/License.txt
+//
+// This file is read by ConfigManager.as on startup to set the default
+// values for the layers to identify. If the user has changed the settings
+// it will read from their shared object (super cookie) to set the selected
+// values.
+//
+// TAGS:
+// xy_projection = the default projection number (such as 26913) for
+//     entering & displaying xy points.  If the user has saved their settings
+//     to a super cookie this will not be used.
+//
+// use_map_link - add Map Link label & icon after the Print label on the main button bar.
+//			This will display the url to the current map.  It will include currently
+//			selected layers, basemap, graphics, and extent.
+//
+// use_get_extent - add display extent label & icon after the print label on the main button bar.
+//		    This will display the current extent in a popup.
+//
+// use_gmus - add a combo box to zoom to a GMU to the main button bar.
+//
+// gmu_url = if use_gmus is true, this will contain the url to the Big Game GMU mapservice layer.
+// 
+// gmu_field = if use_gmus is true, this will contain the field name for Big Game GMUs.
+//
+// sheep_gmu_url = if use_gmus is true, this will contain the url to the Bighorn Sheep GMU mapservice layer.
+// 
+// sheep_gmu_field = if use_gmus is true, this will contain the field name for Bighorn Sheep GMUs.
+//
+// goat_gmu_url = if use_gmus is true, this will contain the url to the Mountain Goat GMU mapservice layer.
+// 
+// goat_gmu_field = if use_gmus is true, this will contain the field name for Mountain Goat GMUs.
+//
+// driving_directions = true/false, true if it should give a link to get driving 
+//		directions at the map click.
+// elevation = true/false, set to true to show elevation in the footer
+//
+// tree = The tree tag defines what layers are available to the user to identify
+// 		under the Settings Widget.  Layers with state set to checked will display
+// 		in the identify popup on startup unless the user has saved the settings
+// 		to a super cookie, then the user's settings will be used instead.
+//	
+//		folder = folder labels will populate the ID quick pick drop down. The folder holds all that will be displayed
+//			when this folder is selected from the quick pick drop down.
+//			folder parameters:
+//			label = the display header
+//
+//		layer = a layer in a mapserviced
+//			layer parameters:
+//			label = The name of the layer in the mapservice.  Case sensitive!
+//
+//			layer tags:
+//			id = the layer id number in the mapservice
+//			url = the url.  For example: http://ndis-data2.nrel.colostate.edu/ArcGIS/rest/services/BigGame/MapServer
+//			geometry = point, line, or polygon.  Used to set identify tolerance.
+//			fields = Comma delimited list of field names from the mapservice.  Include hypertext fields.  Case sensitve!
+//				Hypertext links will be determined by field values starting with "http://" (not case sensitive).
+//			displaynames = Comma delimited list of display names for the above fields.  Include hypertext link display text.
+//
+//		Identify popup will be formatted as follows:
+//			If only one field is listed in fields tag:
+//				display name in bold:  field value 
+//				display name as a hyperlink if field value begins with http:// (case does not matter)  
+//			If more than one field is listed in fields tag:
+//				layer tag label in bold:
+//					display name:  field value
+//					display name:  field value
+//					display name as hypertext if field value begins with http:// (case does not matter)  
+//
+// NOTE: In the layer tags the label is the case sensitive layer name.  Must match the layer name in the mapservice.
+// 		 The field names are case sensitive also.
+////////////////////////////////////////////////////////////////////////////////
+-->
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/SettingsWidget.xsd">
+	<xy_projection>26913</xy_projection>
+	<use_map_link>true</use_map_link>
+	<use_get_extent>false</use_get_extent>
+	<use_gmus>true</use_gmus>
+	<gmu_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2</gmu_url>
+	<gmu_field>GMUID</gmu_field>
+	<sheep_gmu_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/15</sheep_gmu_url>
+	<sheep_gmu_field>BSGMU</sheep_gmu_field>
+	<goat_gmu_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/16</goat_gmu_url>
+	<goat_gmu_field>MGGMU</goat_gmu_field>
+		
+	<driving_directions>true</driving_directions>
+	<elevation>true</elevation>
+	
+	<tree>
+		<!-- Common Features:  These layers will always be on.  Do not change the label name. -->
+
+		<folder label="Roadkill Data">
+
+			<layer state="checked" isBranch="false" label="Domestic">
+		     	<id>1</id>
+	    	  	<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/</url>
+           		<geometry>point</geometry>
+		      	<fields>Species,Timestamp,Sex,Age,Comments,ReportedBy</fields>
+		      	<displaynames>Species,Timestamp,Sex,Age,Comments,Reported By</displaynames>
+	   		</layer>
+			<layer state="checked" isBranch="false" label="Bird">
+		     	<id>2</id>
+	    	  	<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/</url>
+           		<geometry>point</geometry>
+		      	<fields>Species,Timestamp,Sex,Age,Comments,ReportedBy</fields>
+		      	<displaynames>Species,Timestamp,Sex,Age,Comments,Reported By</displaynames>
+	   		</layer>
+			<layer state="checked" isBranch="false" label="Amphibian/Reptile">
+		     	<id>3</id>
+	    	  	<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/</url>
+           		<geometry>point</geometry>
+		      	<fields>Species,Timestamp,Sex,Age,Comments,ReportedBy</fields>
+		      	<displaynames>Species,Timestamp,Sex,Age,Comments,Reported By</displaynames>
+	   		</layer>
+			<layer state="checked" isBranch="false" label="Small Mammal">
+		     	<id>4</id>
+	    	  	<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/</url>
+           		<geometry>point</geometry>
+		      	<fields>Species,Timestamp,Sex,Age,Comments,ReportedBy</fields>
+		      	<displaynames>Species,Timestamp,Sex,Age,Comments,Reported By</displaynames>
+	   		</layer>
+			<layer state="checked" isBranch="false" label="Large Mammal">
+		     	<id>5</id>
+	    	  	<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/</url>
+           		<geometry>point</geometry>
+		      	<fields>Species,Timestamp,Sex,Age,Comments,ReportedBy</fields>
+		      	<displaynames>Species,Timestamp,Sex,Age,Comments,Reported By</displaynames>
+	   		</layer>
+			<layer state="checked" isBranch="false" label="Unknown Species">
+		     	<id>6</id>
+	    	  	<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/</url>
+           		<geometry>point</geometry>
+		      	<fields>Species,Timestamp,Sex,Age,Comments,ReportedBy</fields>
+		      	<displaynames>Species,Timestamp,Sex,Age,Comments,Reported By</displaynames>
+	   		</layer>
+			<!--layer state="checked" isBranch="false" label="Office Location">
+		     	<id>0</id>
+	    	  	<url>http://dnrcpwftcgisw16/arcgis/rest/services/CSR/CPW_CSR_Data/MapServer/</url>
+           		<geometry>point</geometry>
+		      	<fields>Office Code,Office Name,Phone,Manager Name,Office Type,Animal Checks,Front Desk Services,Street Address,Mailing Address</fields>
+		      	<displaynames>Office Code,Office Name,Phone,Manager Name,Office Type,Animal Checks,Front Desk Services,Street Address,Mailing Address</displaynames>
+	   		</layer-->
+			<!--<layer state="checked" isBranch="false" label="Property (public access only)">
+		     	<id>5</id>
+	    	  	<url>http://dnrcpwftcgisw16/arcgis/rest/services/CSR/CPW_CSR_Data/MapServer/</url>
+           		<geometry>poly</geometry>
+		      	<fields>PropName,PropType,PropertyTech,Acres</fields>
+		      	<displaynames>Property Name,Property Type,Property Tech,Acres</displaynames>
+	   		</layer> -->
+		</folder> 
+		
+		<folder label="Prioritization and Crossings">
+			<layer state="unchecked" isBranch="false" label="Wildlife Prioritization Results">
+	    		<id>11</id>
+	    		<url>http://gisweb/arcgis/rest/services/Roadkill/CPW_Roadkill_Base_Map/MapServer/</url>
+	        	<geometry>line</geometry>
+		      	<fields>RegionPerc_All</fields>
+	    	  	<displaynames>Prioritization Score</displaynames>
+	   		</layer>
+			<layer state="unchecked" isBranch="false" label="Wildlife Crossing">
+	    		<id>7</id>
+	    		<url>http://gisweb/arcgis/rest/services/Roadkill/CPW_Roadkill_Base_Map/MapServer/</url>
+	        	<geometry>point</geometry>
+		      	<fields>RoadName,MP_RefPt,Name_Landm,County,Str_Type,Dimensions,Fencing</fields>
+	    	  	<displaynames>Road Name,Mile Marker,Name,County,Type,Dimensions,Fencing</displaynames>
+	   		</layer>
+	   	</folder> 
+		
+		<folder label="Contact Info">
+			<layer state="checked" isBranch="false" label="Contact Info">
+	    		<id>1</id>
+	    		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
+	        	<geometry>polygon</geometry>
+		      	<fields>COUNTYNAME,CDOW_Area,CDOW_AWM,CDOW_FOName,CDOW_FOAddress,CDOW_FOCity,CDOW_FOPhone,CDOW_District,CDOW_DWM</fields>
+	    	  	<displaynames>County,CDOW Area,Area Manager,Office Name,Address,City,Phone,CDOW District,District Manager</displaynames>
+	   		</layer>
+			<layer state="checked" isBranch="false" label="Area Staff">
+	    		<id>3</id>
+	    		<url>http://dnrcpwftcgisw16/arcgis/rest/services/CSR/CPW_CSR_Data/MapServer/</url>
+	        	<geometry>polygon</geometry>
+		      	<fields>Terrestrial Biologist,Terrestrial Biologist Phone,Wildlife Conservation Biologist,Aquatic Biologist,Aquatic Biologist Phone,Aquatic Conservation Biologist,Aquatic Conservation Biologist Phone,Aquatic Senior Biologist,Aquatic Senior Biologist Phone,Terrestrial Senior Biologist,Terrestrial Senior Biologist Phone,Energy Liaison,Energy Liaison Phone,LandUseSpecialist,LandUseSpecialistPhone</fields>
+	    	  	<displaynames>Terrestrial Bio.,Terrestrial Bio. Phone,Wildlife Con. Bio.,Aquatic Bio.,Aquatic Bio. Phone,Aquatic Cons. Bio.,Aquatic Cons. Bio. Phone,Aquatic Senior Bio.,Aquatic Senior Bio. Phone,Terrestrial Senior Bio.,Terrestrial Senior Bio. Phone,Energy Liaison,Energy Liaison Phone,Land Use Specialist,Land Use Specialist Phone</displaynames>
+	   		</layer>
+
+			</folder>
+			
+			<!-- <folder label="Trails">
+			<layer state="unchecked" isBranch="false" label="Designated Trails">
+	    		<id>18</id>
+	    		<url>http://dnrcpwftcgisw16/arcgis/rest/services/CSR/CPW_CSR_Data/MapServer/</url>
+	        	<geometry>line</geometry>
+		      	<fields>name,type,hiking,bike,horse,atv</fields>
+	    	  	<displaynames>Name,Type,Hiking,Biking,Equestrian,ATV</displaynames>
+	   		</layer>
+	   	</folder> --> 
+
+	</tree>
+</configuration>

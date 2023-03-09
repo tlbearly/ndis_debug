@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-// Hunter Resource Report XML
+// Resource Report XML
 //
 // Generate a PDF Report of Hunter Resources and or Custom Reports
 //
@@ -82,45 +82,78 @@
 // <disclaimer>map disclaimer here</disclaimer>
 -->
 
-<configuration xmlns:xsi="//www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/ResourceReportWidget.xsd">    
-	<!-- buffer section
-		Buffer is used as input to query points of interest
-		default:  	the default value to be selected in the buffer radius pulldown. It must be included in "list" attribute
-		list:		comma separated list of integers as buffer radius distances
-		units:		units of measure. See //help.arcgis.com/en/webapi/flex/apiref/com/esri/ags/tasks/GeometryService.html#constantSummary
-	 	unitslabel:	the label displayed on the UI
-	 -->
-    <buffer default="25" list="5,10,25,50,100" units="9093" unitslabel="mile" />
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/ResourceReportWidget.xsd">
+    <reporttitle>Colorado Roadkill Report</reporttitle>
     
-    <!-- querylayers section
-    	These layers are used to generate report data
-    	pointsofinterest:	point featurelayer containing asset information
-    		name:	display name used in error reporting
-    		url:	REST endpoint to layer index in map service
-    	contactinfo:		polygon featurelayer containing contact information in boundary features
-    	gameunits:			polygon featurelayer containing various game unit IDs
-     -->
+    <selectby>polygon</selectby>
+    <!--selectby>point</selectby>
+    <buffer default="5" list="5,10,25" units="9093" unitslabel="mile" /-->
+
     <hunter_resource_report>
-    	<pointsofinterest name="Points of Interest" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/0" />
-    	<contactinfo name="Contact Boundaries" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/1" />
-    	<gameunits name="Game Boundaries" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2" />
+		<!-- These 3 layers are for the Hunter Resource Report, can use 1, 2, or all 3 -->
+		<!-- <pointsofinterest name="Points of Interest" url="http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/0" /> -->
+        <!-- <contactinfo name="Contact Boundaries" url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/1" /> -->
+        <!-- <gameunits name="Game Boundaries" url="http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2" /> -->
     </hunter_resource_report>
-    
-    <reporttitle>Colorado Hunting Atlas Asset Report</reporttitle>
+
+    <!-- Custom Reports -->
+    <custom_reports>
+        <report id="Big Game GMU Boundaries"
+            url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2"
+            type="list"
+            title="Location and Contact Info"
+            subtitle="Game Management Units"
+            displayfields="GMU County(s),GMU"
+            fields="COUNTY,GMUID" />
+        <report id="Contact Info" 
+            url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/1"
+            type="list"
+            title=""
+            subtitle="Contact Info"
+            displayfields="County,CPW Area,CPW District,Field Office Phone"
+            fields="COUNTYNAME,CDOW_Area,CDOW_District,CDOW_FOPhone" />
+        <report id="Amphibian/Reptile"
+            url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/3"
+            type="table"
+            title="Road Kill"
+            subtitle="Amphibian/Reptile"
+            displayfields="Year,Month,Species,Sex,Age"
+            fields="rkYear,strMonth,Species,Sex,Age"
+            sortfields="rkYear,Species,strMonth,Sex"/>
+        <report id="Small Mammal"
+            url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/4"
+            type="table"
+            title=""
+            subtitle="Small Mammals"
+            displayfields="Year,Month,Species,Sex,Age"
+            fields="rkYear,strMonth,Species,Sex,Age"
+            sortfields="rkYear,Species,strMonth,Sex"
+            sortorder="ascending"/>
+        <report id="Large Mammal"
+            url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/5"
+            type="table"
+            title=""
+            subtitle="Large Mammals"
+            displayfields="Year,Month,Species,Sex,Age"
+            fields="rkYear,strMonth,Species,Sex,Age"
+            sortfields="rkYear,Species,strMonth,Sex"
+            sortorder="ascending"/>
+    </custom_reports>
 
 	<!-- The base map to use in the report map -->
-	<!-- Available basemaps:  streets, satellite, hybrid, topo, gray, osm, and national_geographic-->
+	<!-- Available basemaps:  streets, satellite, hybrid, topo, gray, and national_geographic-->
 	<basemapurl>streets</basemapurl>
 
     <!-- 
-    	REST endpoint to a map service that will be displayed in the report print window and included in the printed report
+    	NOT USED REST endpoint to a map service that will be displayed in the report print window and included in the printed report
      -->    
-    <!--reportserviceurl>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Print/MapServer</reportserviceurl-->
+    <!--reportserviceurl>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer</reportserviceurl-->
 	
-	<!-- GPService for printing -->
+	<!-- NOT USED GPService for printing -->
     <!--printserviceurl>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printserviceurl-->
 
-	<title>Colorado Hunting Atlas</title>
-	<subtitle>Asset Report</subtitle>
-	<disclaimer>This map was generated by the Colorado Hunting Atlas (https://ndismaps.nrel.colostate.edu/huntingatlas). Information depicted is for reference purposes only and is compiled from the best available sources. Reasonable efforts have been made to ensure accuracy. The Colorado Parks and Wildlife is not responsible for damages that may arise from the use of this map. Mapped property boundaries may or may not reflect actual legal holdings. It is the hunter's responsibility to know where private property exists. Colorado law does NOT require landowners to fence or mark property boundaries. For more detailed or missing information, please contact the Colorado Parks and Wildlife at (303)297-1192 (M-F 8am-5pm MST).</disclaimer>
+    <!-- the map title, subtitle, and disclaimer -->
+	<title>Colorado RoadKill</title>
+	<subtitle>Roadkill Report</subtitle>
+	<disclaimer>This map was generated by the Colorado Hunting Atlas (http://ndismaps.nrel.colostate.edu/huntingatlas). Information depicted is for reference purposes only and is compiled from the best available sources. Reasonable efforts have been made to ensure accuracy. The Colorado Parks and Wildlife is not responsible for damages that may arise from the use of this map. Mapped property boundaries may or may not reflect actual legal holdings. It is the hunter's responsibility to know where private property exists. Colorado law does NOT require landowners to fence or mark property boundaries. For more detailed or missing information, please contact the Colorado Parks and Wildlife at (303)297-1192 (M-F 8am-5pm MST).</disclaimer>
 </configuration>

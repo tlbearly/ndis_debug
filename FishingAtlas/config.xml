@@ -81,6 +81,7 @@
 		<widget label="Feature Search"
             preload="open"
             video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+        <!-- Widget label must contain the word "Report"-->
 		<widget label="Fishing Resource Report"
             preload="minimized"
             video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>

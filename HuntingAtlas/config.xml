@@ -83,6 +83,7 @@
          	preload="open"
 			height="420"
             video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+         <!-- Widget label must contain the word "Report"-->
          <widget label="Hunter Resource Report"
             preload="minimized"
 			video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>

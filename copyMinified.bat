@@ -10,6 +10,7 @@ copy javascript\src\readConfig.min.js ..\javascript\readConfig.js
 copy javascript\src\resourceReport.min.js ..\javascript\resourceReport.js
 copy javascript\src\search.min.js ..\javascript\search.js
 copy javascript\src\draw.min.js ..\javascript\draw.js
+copy javascript\src\utilFuncs.min.js ..\javascript\utilFuncs.js
 
 copy javascriptM\src\errorBox.min.js ..\javascriptM\errorBox.js
 copy javascriptM\src\print.min.js ..\javascriptM\print.js

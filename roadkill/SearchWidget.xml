@@ -1,4 +1,4 @@
-<?xml version="1.0" ?>
+﻿<?xml version="1.0" ?>
 <!--
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -47,7 +47,7 @@
 // linkfield: A field name in the mapservice layer that contains a hypertext link.  Must also be included
 //		in the fields list. If the field contains a link with html code and extra text, include the field name here, but leave the linktext tag blank.
 //		example of blank linkfield: item1,,item3  or item1,item2,
-// linktext: The label for the hyper text link. If the field contains a link with html code and extra text, leave the linktext blank
+// linktext: The label for the hyper text link. If the field contains a link with html code and extra text, leave the linktext blank.
 //
 // **** The next tags in layer tag are optional *******
 // searchvalues:  Optional.  Fill the drop down list in the "Search For:" text box with these values.  This can be
@@ -69,20 +69,19 @@
 // **** If the next tags are used all must be filled in *****
 // database:  The name of a .net file to call a database to lookup the user selected value from the "Search For:" text box.
 //		Edit this file and modify database filename, SQL, and table name. 
-//		For example:	<database>https://ndismaps.nrel.colostate.edu/debug/fishing/SearchFishingSpeciesTextDB.aspx</database>
+//		For example:	<database>http://ndismaps.nrel.colostate.edu/debug/fishing/SearchFishingSpeciesTextDB.aspx</database>
 // filename:  The name of the table used in the above database call.
-//		For example:	<filename>tblMasterSpecies</filename>
+//		For example:	<filename>tblMasterSpecies_GrpBy_WaterID_Species</filename>
 // database_field: The field that links the database to the mapservice.  Used to build the expression to query mapservice from url tag above.
 //		Will build a where expression like:  WATERCODE='13209' OR WATERCODE='14681' ...
 //		For example:    <database_field>WATERCODE</database_field>
 // database_field_type: string or number, type of the above field in the mapservice from url tag above. Used to add or not add quotes in the where expression.
 //		For example:	<database_field_type>string</database_field_type>
-// **** Next fields are optional ****
 // graphical_database:  The name of a .net file to call a database to lookup the values selected from the graphical selection area.
 //		Edit this file and modify database filename, SQL, and table name. 
-//		For example:	<database>https://ndismaps.nrel.colostate.edu/debug/fishing/SearchFishingSpeciesGraphicalDB.aspx</database>
+//		For example:	<database>http://ndismaps.nrel.colostate.edu/debug/fishing/SearchFishingSpeciesGraphicalDB.aspx</database>
 // graphical_filename:  The name of the table used in the above database call.
-//		For example:	<graphical_filename>tblMasterSpecies</graphical_filename>
+//		For example:	<graphical_filename>tblMasterSpecies_GrpBy_WaterID_Species</graphical_filename>
 // graphical_db_fields: Comma delimited list or fields from the database to display on a graphical search
 // graphical_db_displayfields: Comma delimited list of header names in the display table for each of the above fields.
 // graphical_db_sort: Comma delimited list of yes or no depending on whether the above graphical_db_fields should be sorted in alphabetical order.
@@ -97,87 +96,63 @@
 //     user clicks the ? button.
 ////////////////////////////////////////////////////////////////////////////////
 -->
-<configuration xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/SearchWidget.xsd">
+<configuration>
 	<layers>
 		<layer>
-			<name>Fish species</name>
-			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/2</url>
-			<expression>UPPER(FA_NAME2) LIKE UPPER('%[value]%')</expression>
+			<name>Property</name>
+			<url>http://dnrcpwftcgisw16/ArcGIS/rest/services/RealEstate/PropertyInventory_Map/MapServer/4</url>
+			<expression>UPPER(PropName) LIKE UPPER('%[value]%')</expression>
 			<graphicalexpression></graphicalexpression>
-			<searchfield>FA_NAME2</searchfield>
-			<textsearchlabel>Select a species:</textsearchlabel>
+			<searchfield>PropName</searchfield>
+			<textsearchlabel>Search For:</textsearchlabel>
 			<graphicalsearchlabel>Select one of the graphical search tools:</graphicalsearchlabel>
-			<fields>FA_NAME2,COUNTYNAME</fields>
-			<displayfields>Water Body,County</displayfields>
-			<sortfield>Water Body,County</sortfield>
-			<numericsort>false,false</numericsort>
-			<titlefield>FA_NAME2</titlefield>
+			<fields>PropName,PropType</fields>
+			<displayfields>Property,Type</displayfields>
+			<sortfield>Property</sortfield>
+			<numericsort>false</numericsort>
+			<titlefield>PropName</titlefield>
 			<linkfield></linkfield>
 			<linktext></linktext>
-			
-			<!--searchvalues>Arctic Char,Bass: Largemouth, Bass: White,Black Bullhead,Black Crappie,Blue Catfish,Bluegill,Brook Trout,Brown Trout,Channel Catfish,Chinook Salmon,Common Carp,Crappie (s.u.),Cutbow,Cutthroat (Native) Trout,Drum,Flathead Catfish,Golden Trout,Grayling (Arctic,Green Sunfish,Kokanee Salmon,Lake Trout,Largemouth Bass,Mountain Whitefish,Northern Pike,Pumpkinseed,Rainbow Trout,Redear,Sacramento Perch,Sauger,Saugeye,Smallmouth Bass,Snake River Cutthroat,Splake,Spotted Bass,Striped Bass,Tiger Muskie,Tiger Trout,Trout (s.u.),Walleye,White Bass,White Crappie,Wiper,Yellow Perch</searchvalues-->
-			
-			<lookupsearchvalues>SearchGetDropDownListDB.aspx</lookupsearchvalues>
-			<lookupfilename>LUT_AtlasFishList</lookupfilename>
-			<lookupfield>AtlasFish</lookupfield>
-			
-			<database>https://ndis-2020-dev.nrel.colostate.edu/debug/fishingatlas/SearchFishingSpeciesTextDB.aspx</database>
-			<filename>tblMasterSpecies</filename>
-		    <database_field>WATERCODE</database_field>
-		    <database_field_type>string</database_field_type>
-			
-			<graphical_database>https://ndis-2020-dev.nrel.colostate.edu/debug/fishingatlas/SearchFishingSpeciesGraphicalDB.aspx</graphical_database>
-		    <graphical_filename>tblMasterSpecies</graphical_filename>
-		    <graphical_db_fields>AtlasFish</graphical_db_fields>
-		    <graphical_db_displayfields>Fish Species</graphical_db_displayfields>
-		    <graphical_db_sort>yes</graphical_db_sort>
 		</layer>
-
 		<layer>
-			<name>Known fishing spots</name>
-			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/0</url>
-			<expression>UPPER(FA_NAME2) LIKE UPPER('%[value]%')</expression>
+			<name>DWM</name>
+			<url>http://dnrcpwftcgisw16/arcgis/rest/services/CSR/CPW_CSR_Data/MapServer/4</url>
+			<expression>UPPER(DWM) LIKE UPPER('%[value]%')</expression>
 			<graphicalexpression></graphicalexpression>
-			<searchfield>FA_NAME2</searchfield>
-			<textsearchlabel>Search for:</textsearchlabel>
+			<searchfield>DWM</searchfield>
+			<textsearchlabel>Search For:</textsearchlabel>
 			<graphicalsearchlabel>Select one of the graphical search tools:</graphicalsearchlabel>
-			<fields>FA_NAME2,BOATING,FISH_PRESSURE,STOCKED,ACCESS_EASE,SURVEY_URL,DRIVING_URL,Illegal_Stocking,ELEV_FT_TXT,COUNTYNAME</fields>
-			<displayfields>Water Body,Boating,Fishing Pressure,Stocked,Ease of Access,Detailed fisheries info,Driving directions,Non-native Species Info,Elevation(ft),County</displayfields>
-			<sortfield>Water Body,County</sortfield>
-			<numericsort>false,false</numericsort>
-			<titlefield>FA_NAME2</titlefield>
-			<linkfield>DRIVING_URL,SURVEY_URL,Illegal_Stocking</linkfield>
-			<!-- linktext contains names to replace the url string with -->
-			<!-- if the field contains a link with html code and extra text, leave the linktext blank for this field but still include a comma-->
-			<linktext>Get directions,Show report,</linktext>
+			<fields>DWM,DISTRICTID,AREAID</fields>
+			<displayfields>DWM,DISTRICTID,AREAID</displayfields>
+			<sortfield>AREAID,DISTRICTID</sortfield>
+			<numericsort>ture,true</numericsort>
+			<titlefield>DWM</titlefield>
+			<linkfield></linkfield>
+			<linktext></linktext>
 		</layer>
-
 		<layer>
-			<name>Fishing Pressure</name>
-			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/0</url>
-			<expression>UPPER(FISH_PRESSURE) LIKE UPPER('%[value]%')</expression>
+			<name>District Number</name>
+			<url>http://dnrcpwftcgisw16/arcgis/rest/services/CSR/CPW_CSR_Data/MapServer/4</url>
+			<expression>UPPER(DISTRICTID) LIKE UPPER('%[value]%')</expression>
 			<graphicalexpression></graphicalexpression>
-			<searchfield>FISH_PRESSURE</searchfield>
-			<textsearchlabel>Search for: (Low, Medium, High)</textsearchlabel>
+			<searchfield>DISTRICTID</searchfield>
+			<textsearchlabel>Search For:</textsearchlabel>
 			<graphicalsearchlabel>Select one of the graphical search tools:</graphicalsearchlabel>
-			<fields>FA_NAME2,BOATING,FISH_PRESSURE,STOCKED,ACCESS_EASE,SURVEY_URL,DRIVING_URL,Illegal_Stocking,ELEV_FT_TXT,COUNTYNAME</fields>
-			<displayfields>Water Body,Boating,Fishing Pressure,Stocked,Ease of Access,Detailed fisheries info,Driving directions,Non-native Species Info,Elevation(ft),County</displayfields>
-			<sortfield>Water Body,County</sortfield>
-			<numericsort>false,false</numericsort>
-			<titlefield>FA_NAME2</titlefield>
-			<linkfield>DRIVING_URL,SURVEY_URL,Illegal_Stocking</linkfield>
-			<!-- linktext contains names to replace the url string with -->
-			<!-- if the field contains a link with html code and extra text, leave the linktext blank for this field but still include a comma-->
-			<linktext>Get directions,Show report,</linktext>
+			<fields>DISTRICTID,DWM,AREAID</fields>
+			<displayfields>DISTRICTID,DWM,AREAID</displayfields>
+			<sortfield>AREAID,DISTRICTID</sortfield>
+			<numericsort>ture,true</numericsort>
+			<titlefield>DISTRICTID</titlefield>
+			<linkfield></linkfield>
+			<linktext></linktext>
 		</layer>
-		
 		<layer>
-			<name>All lakes</name>
-			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/11</url>
+			<name>All Lakes</name>
+			<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/11</url>
 			<expression>UPPER(Search_Name) LIKE UPPER('%[value]%')</expression>
 			<graphicalexpression></graphicalexpression>
 			<searchfield>Search_Name</searchfield>
-			<textsearchlabel>Search for:</textsearchlabel>
+			<textsearchlabel>Search For:</textsearchlabel>
 			<graphicalsearchlabel>Select one of the graphical search tools:</graphicalsearchlabel>
 			<fields>Search_Name,COUNTYNAME</fields>
 			<displayfields>Water Body,County</displayfields>
@@ -188,12 +163,12 @@
 			<linktext></linktext>
 		</layer>
 		<layer>
-			<name>All streams</name>
-			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/10</url>
+			<name>All Streams</name>
+			<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/10</url>
 			<expression>UPPER(Search_Nam) LIKE UPPER('%[value]%')</expression>
 			<graphicalexpression></graphicalexpression>
 			<searchfield>Search_Nam</searchfield>
-			<textsearchlabel>Search for:</textsearchlabel>
+			<textsearchlabel>Search For:</textsearchlabel>
 			<graphicalsearchlabel>Select one of the graphical search tools:</graphicalsearchlabel>
 			<fields>Search_Nam,COUNTYNAME</fields>
 			<displayfields>Water Body,County</displayfields>
@@ -203,55 +178,10 @@
 			<linkfield></linkfield>
 			<linktext></linktext>
 		</layer>
-		<layer>
-			<name>Campground</name>
-			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/48</url>
-			<expression>UPPER(Name) LIKE UPPER('%[value]%')</expression>
-			<graphicalexpression></graphicalexpression>
-			<searchfield>Name</searchfield>
-			<textsearchlabel>Search for:</textsearchlabel>
-			<graphicalsearchlabel>Select one of the graphical search tools:</graphicalsearchlabel>
-			<fields>Name,Manager,CGPropertyName,CGReservable,URL1</fields>
-			<displayfields>Name,Manager,Property Name,Reservable,More Information</displayfields>
-			<sortfield>Name</sortfield>
-			<numericsort>false</numericsort>
-			<titlefield>Name</titlefield>
-			<linkfield>URL1</linkfield>
-			<linktext>More Information</linktext>
-		</layer>
-		<layer>
-			<name>USGS topo map quadrangle</name>
-			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/6</url>
-			<expression>UPPER(QUADNAME) LIKE UPPER('%[value]%')</expression>
-			<graphicalexpression></graphicalexpression>
-			<searchfield>QUADNAME</searchfield>
-			<textsearchlabel>Search for:</textsearchlabel>
-			<graphicalsearchlabel>Select one of the graphical search tools:</graphicalsearchlabel>
-			<fields>QUADNAME</fields>
-			<displayfields>USGS Topo Map Name</displayfields>
-			<sortfield>USGS Topo Map Name</sortfield>
-			<numericsort>false</numericsort>
-			<titlefield>QUADNAME</titlefield>
-			<linkfield></linkfield>
-			<linktext></linktext>
-		</layer>
-		<layer>
-			<name>Emergency</name>
-			<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/26</url>
-			<expression>UPPER(Name) LIKE UPPER('%[value]%')</expression>
-			<graphicalexpression></graphicalexpression>
-			<searchfield>Name</searchfield>
-			<textsearchlabel>Search For:</textsearchlabel>
-			<graphicalsearchlabel>Select one of the graphical search tools:</graphicalsearchlabel>
-			<fields>Name,Address,City,Phone,URL1</fields>
-			<displayfields>Name,Address,City,Phone,More Info</displayfields>
-			<titlefield>Name</titlefield>
-			<linkfield>URL1</linkfield>
-			<linktext>More Info</linktext>
-		</layer>
+
 		<layer>
   			<name>Township Range</name> 
- 			 <url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_HunterBase_MapFix_UNC/MapServer/95</url> 
+ 			 <url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/14</url> 
  			 <expression>TWP = [value1] AND TDIR = '[value2]' AND RNG = [value3] AND RDIR = '[value4]' AND SECTION = [value5]</expression> 
   			<graphicalexpression /> 
   			<searchfield>TWP</searchfield> 
@@ -259,8 +189,6 @@
  			<graphicalsearchlabel>Select one of the graphical search tools:</graphicalsearchlabel> 
 			<fields>TWP,TDIR,RNG,RDIR,SECTION</fields> 
 			<displayfields>Township,Township Dir,Range,Range Dir,Section</displayfields> 
-			<sortfield>Township,Township Dir,Range,Section</sortfield>
-			<numericsort>true,false,true,true</numericsort>
 			<titlefield>SECTION</titlefield> 
 			<linkfield /> 
 			<linktext /> 
@@ -268,5 +196,5 @@
 	</layers>
 	<zoomscale>72224</zoomscale>
 	<selectedtab>0</selectedtab>
-	<helpvideo>https://www.youtube.com/watch?v=T0JPlQwaRhg</helpvideo>
+	<helpvideo>http://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html</helpvideo>
 </configuration>

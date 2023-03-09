@@ -12,7 +12,7 @@
 		parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousands_sep);
 
 		return parts.join(dec_point);
-	}
+	};
 	
 	//************
 	// Map Scale
@@ -79,8 +79,8 @@
 		// Convert a decimal degree point to degrees, minutes, seconds. 
 		// Return an array of latitude = arr[0] = 40° 30' 2.12345", longitude = arr[1]= 103° 25' 33.1122"
 		// if leadingZero is true add 0 to left of min and sec
-		var lonAbs = Math.abs(Math.round(ddPoint.x * 1000000.));
-		var latAbs = Math.abs(Math.round(ddPoint.y * 1000000.));
+		var lonAbs = Math.abs(Math.round(ddPoint.x * 1000000.0));
+		var latAbs = Math.abs(Math.round(ddPoint.y * 1000000.0));
 		var degY = Math.floor(latAbs / 1000000) + '° ';
 		var minY = Math.floor(  ((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60)  + '\' ';
 		var secY = Math.floor( Math.floor(((((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60) - Math.floor(((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60)) * 100000) *60/100000 ) + '"'; // latitude
@@ -112,8 +112,8 @@
 		// Convert a decimal degree point to degrees, decimal minutes.
 		// Return an array of latitude = arr[0] = 40° 30.12345', longitude = arr[1]= 103° 25.24567'
 		// if leadingZero is true add 0 to left of min and sec
-		var lonAbs = Math.abs(Math.round(ddPoint.x * 1000000.));
-		var latAbs = Math.abs(Math.round(ddPoint.y * 1000000.));
+		var lonAbs = Math.abs(Math.round(ddPoint.x * 1000000.0));
+		var latAbs = Math.abs(Math.round(ddPoint.y * 1000000.0));
 		var degY = Math.floor(latAbs / 1000000) + '° ';
 		//var minY = Math.floor(  ((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60)  + '\' '; // truncate minutes
 		var minY = (((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60).toFixed(5)  + '\' '; // decimal minutes
@@ -139,7 +139,7 @@
 		// array[2] is label in deg, min, sec as: 40° 30' 20.44" N, 104° 20' 5" W 
 		// or in degrees, decimal minutes as: 40° 30.1' N, 104° 20.01' W
 		var pos,pos2,pointX,pointY;
-		var arr = new Array();
+		var arr = [];
 		pointY = str.substring(0,str.indexOf(","));
 		pointX = str.substring(str.indexOf(",")+1,str.length);
 		pos = pointX.indexOf(":");
@@ -161,7 +161,7 @@
 		var minX;
 
 		// if Seconds. Check if dms or degrees decimal minutes
-		pos2 = pointX.substring(pos+1).indexOf(":")
+		pos2 = pointX.substring(pos+1).indexOf(":");
 		if (pos2 > -1) {
 			minX = Number(pointX.substr(pos+1, pos2));
 			secX = Number(pointX.substring(pos+pos2+2));
@@ -184,7 +184,7 @@
 		var minY;
 
 		// if Seconds. Check if dms or degrees decimal minutes
-		pos2 = pointY.substring(pos+1).indexOf(":")
+		pos2 = pointY.substring(pos+1).indexOf(":");
 		if (pos2 > -1) {
 			minY = Number(pointY.substr(pos+1, pos2));
 			secY = Number(pointY.substring(pos+pos2+2));
@@ -236,6 +236,7 @@
 			var menu = dom.byId('leftPane');
 			var menuBtn = dom.byId("menuBtn");
 			var mapWin = dom.byId('mapDiv');
+			var resizeTimer;
 			// Show Menu
 			if (menu.style.display == 'none')
 			{
@@ -246,7 +247,7 @@
 				menuBtn.title = "Close Menu";
 				registry.byId('mainWindow').resize();
 				//clear any existing resize timer
-				var resizeTimer;
+				
 				clearTimeout(resizeTimer);
 				//create new resize timer with delay of 500 milliseconds
 				resizeTimer = setTimeout(function () {
@@ -269,7 +270,6 @@
 				menuBtn.title = "Open Menu";
 				registry.byId('mainWindow').resize();
 				//clear any existing resize timer
-				var resizeTimer;
 				clearTimeout(resizeTimer);
 				//create new resize timer with delay of 500 milliseconds
 				resizeTimer = setTimeout(function () {
@@ -443,21 +443,54 @@
 	//************************
 	//     Array Functions
 	//************************
+	var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+	var mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Nov","Dec"];
 	function sortArrayOfObj(item) {
-	// Sort an array of objects by field
+	// Sort an array of objects by field, ascending
 	// Example: 
 	// arr = [{city: 'Fort Collins', county: 'Larimer'},
 	//        {city: 'Boulder', county: 'Boulder'}]
 	// To sort by city use: arr.sort(sortArrOfOj('city'));
 		return function (a,b) {
-			// if GMU### sort numerically
-			if (a[item] && a[item].substr(0,4) == "GMU ")
+			// if GMU### sort numerically 1-9-23 add toString, failed when was a number
+			if (a[item] && a[item].toString().substr(0,4) == "GMU ")
 				return parseInt(a[item].substring(4)) - parseInt(b[item].substring(4));
-			return (a[item] < b[item]) ? -1 : (a[item] > b[item]) ? 1: 0;
-		}
+			else if (!isNaN(a[item]))
+				return a[item] - b[item];
+			// Sort by full month name
+			else if (months.indexOf(a[item])>-1 && months.indexOf(b[item]>-1))
+				return (months.indexOf(a[item]) < months.indexOf(b[item])) ? -1 : (months.indexOf(a[item]) > months.indexOf(b[item])) ? 1: 0;
+			// Sort by abbreviated month name
+			else if (mo.indexOf(a[item])>-1 && mo.indexOf(b[item]>-1))
+				return (mo.indexOf(a[item]) < mo.indexOf(b[item])) ? -1 : (mo.indexOf(a[item]) > mo.indexOf(b[item])) ? 1: 0;
+			else
+				return (a[item] < b[item]) ? -1 : (a[item] > b[item]) ? 1: 0;
+		};
+	}
+	function descendingSortArrayOfObj(item) {
+		// Sort an array of objects by field, descending
+		// Example: 
+		// arr = [{city: 'Fort Collins', county: 'Larimer'},
+		//        {city: 'Boulder', county: 'Boulder'}]
+		// To sort by city use: arr.sort(sortArrOfOj('city'));
+		return function (a,b) {
+			// if GMU### sort numerically 1-9-23 add toString, failed when was a number
+			if (isNaN(a[item]) && a[item].toString().substr(0,4) == "GMU ")
+				return parseInt(b[item].substring(4)) - parseInt(a[item].substring(4));
+			else if (!isNaN(a[item]))
+				return b[item] - a[item];
+			// Sort by full month name
+			else if (months.indexOf(a[item])>-1 && months.indexOf(b[item]>-1))
+				return (months.indexOf(a[item]) > months.indexOf(b[item])) ? -1 : (months.indexOf(a[item]) < months.indexOf(b[item])) ? 1: 0;
+			// Sort by abbreviated month name
+			else if (mo.indexOf(a[item])>-1 && mo.indexOf(b[item]>-1))
+				return (mo.indexOf(a[item]) > mo.indexOf(b[item])) ? -1 : (mo.indexOf(a[item]) < mo.indexOf(b[item])) ? 1: 0;
+			else
+				return (a[item] > b[item]) ? -1 : (a[item] < b[item]) ? 1: 0;
+		};
 	}
 	function sortMultipleArryOfObj() {
-	// Sort an array of objects by multiple fields
+	// Ascending sort of an array of objects by multiple fields
 	// Example:
 	// // arr = [{city: 'Fort Collins', county: 'Larimer'},
 	//        {city: 'Boulder', county: 'Boulder'}]
@@ -479,7 +512,32 @@
 				i++;
 			}
 			return result;
-		}
+		};
+	}
+	function descendingSortMultipleArryOfObj() {
+		// Descending sort of an array of objects by multiple fields
+		// Example:
+		// // arr = [{city: 'Fort Collins', county: 'Larimer'},
+		//        {city: 'Boulder', county: 'Boulder'}]
+		// arr.sort(descendingSortMultipleArryOfObj("county","city",...));
+		/*
+		 * save the arguments object as it will be overwritten
+		 * note that arguments object is an array-like object
+		 * consisting of the names of the properties to sort by
+		 */
+		var props = arguments;
+		if (arguments[0].constructor === Array) props = arguments[0];
+		return function (obj1, obj2) {
+			var i = 0, result = 0, numberOfProperties = props.length;
+			/* try getting a different result from 0 (equal)
+			 * as long as we have extra properties to compare
+			 */
+			while(result === 0 && i < numberOfProperties) {
+				result = descendingSortArrayOfObj(props[i])(obj1, obj2);
+				i++;
+			}
+			return result;
+		};
 	}
 	Array.prototype.moveUp = function(value, by) {
 		// Rearrange items in an array. Move up so many positions (by).
@@ -518,12 +576,12 @@
 	// detect mobile
 	function detectmob() { 
 	//  || navigator.userAgent.match(/iPad/i)
-	 if( navigator.userAgent.match(/Android/i)
-	 || navigator.userAgent.match(/webOS/i)
-	 || navigator.userAgent.match(/iPhone/i)
-	 || navigator.userAgent.match(/iPod/i)
-	 || navigator.userAgent.match(/BlackBerry/i)
-	 || navigator.userAgent.match(/Windows Phone/i)
+	 if( navigator.userAgent.match(/Android/i) ||
+	 	 navigator.userAgent.match(/webOS/i) ||
+		navigator.userAgent.match(/iPhone/i) ||
+		navigator.userAgent.match(/iPod/i) ||
+		navigator.userAgent.match(/BlackBerry/i) ||
+		navigator.userAgent.match(/Windows Phone/i)
 	 ){
 		return true;
 	  }

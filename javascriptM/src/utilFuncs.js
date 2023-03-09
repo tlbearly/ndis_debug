@@ -21,11 +21,10 @@
 			previewMap.setScale(scale).then(function(){
 				changePrintSize(true);
 			});
-			/*	previewMap.setScale(scale);
+			/*previewMap.setScale(scale);
 			setTimeout(function(){
 				changePrintSize(true);
-			},500);
-			*/
+			},500);*/
 		}
 		
 		function showPreviewMapScale(obj) {
@@ -505,6 +504,8 @@
 //************************
 //     Array Functions
 //************************
+var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+	var mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Nov","Dec"];
 function sortArrayOfObj(item) {
 // Sort an array of objects by field
 // Example: 
@@ -513,11 +514,40 @@ function sortArrayOfObj(item) {
 // To sort by city use: arr.sort(sortArrayOfObj('city'));
 	return function (a,b) {
 		// if GMU### sort numerically
-		if (isNaN(a[item]) && a[item] && a[item].substr(0,4) == "GMU ")
+		if (isNaN(a[item]) && a[item] && a[item].toString().substr(0,4) == "GMU ")
 			return parseInt(a[item].substring(4)) - parseInt(b[item].substring(4));
 		else if (!isNaN(a[item]))
 			return a[item] - b[item];
-		return (a[item] < b[item]) ? -1 : (a[item] > b[item]) ? 1: 0;
+		// Sort by full month name
+		else if (months.indexOf(a[item])>-1 && months.indexOf(b[item]>-1))
+			return (months.indexOf(a[item]) < months.indexOf(b[item])) ? -1 : (months.indexOf(a[item]) > months.indexOf(b[item])) ? 1: 0;
+		// Sort by abbreviated month name
+		else if (mo.indexOf(a[item])>-1 && mo.indexOf(b[item]>-1))
+			return (mo.indexOf(a[item]) < mo.indexOf(b[item])) ? -1 : (mo.indexOf(a[item]) > mo.indexOf(b[item])) ? 1: 0;
+		else
+			return (a[item] < b[item]) ? -1 : (a[item] > b[item]) ? 1: 0;
+	};
+}
+function descendingSortArrayOfObj(item) {
+	// Sort an array of objects by field, descending
+	// Example: 
+	// arr = [{city: 'Fort Collins', county: 'Larimer'},
+	//        {city: 'Boulder', county: 'Boulder'}]
+	// To sort by city use: arr.sort(sortArrOfOj('city'));
+	return function (a,b) {
+		// if GMU### sort numerically 1-9-23 add toString, failed when was a number
+		if (isNaN(a[item]) && a[item].toString().substr(0,4) == "GMU ")
+			return parseInt(b[item].substring(4)) - parseInt(a[item].substring(4));
+		else if (!isNaN(a[item]))
+			return b[item] - a[item];
+		// Sort by full month name
+		else if (months.indexOf(a[item])>-1 && months.indexOf(b[item]>-1))
+			return (months.indexOf(a[item]) > months.indexOf(b[item])) ? -1 : (months.indexOf(a[item]) < months.indexOf(b[item])) ? 1: 0;
+		// Sort by abbreviated month name
+		else if (mo.indexOf(a[item])>-1 && mo.indexOf(b[item]>-1))
+			return (mo.indexOf(a[item]) > mo.indexOf(b[item])) ? -1 : (mo.indexOf(a[item]) < mo.indexOf(b[item])) ? 1: 0;
+		else
+			return (a[item] > b[item]) ? -1 : (a[item] < b[item]) ? 1: 0;
 	};
 }
 function sortMultipleArryOfObj() {
@@ -544,6 +574,31 @@ function sortMultipleArryOfObj() {
         }
         return result;
     };
+}
+function descendingSortMultipleArryOfObj() {
+	// Descending sort of an array of objects by multiple fields
+	// Example:
+	// // arr = [{city: 'Fort Collins', county: 'Larimer'},
+	//        {city: 'Boulder', county: 'Boulder'}]
+	// arr.sort(descendingSortMultipleArryOfObj("county","city",...));
+	/*
+	 * save the arguments object as it will be overwritten
+	 * note that arguments object is an array-like object
+	 * consisting of the names of the properties to sort by
+	 */
+	var props = arguments;
+	if (arguments[0].constructor === Array) props = arguments[0];
+	return function (obj1, obj2) {
+		var i = 0, result = 0, numberOfProperties = props.length;
+		/* try getting a different result from 0 (equal)
+		 * as long as we have extra properties to compare
+		 */
+		while(result === 0 && i < numberOfProperties) {
+			result = descendingSortArrayOfObj(props[i])(obj1, obj2);
+			i++;
+		}
+		return result;
+	};
 }
 
 Array.prototype.moveUp = function(value, by) {

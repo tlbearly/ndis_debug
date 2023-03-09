@@ -154,6 +154,16 @@
 			var app;
 			var settings;
 			var mapBasemap="streets";
+			// get app name
+			if (document.location.search == "") app = "HuntingAtlas";
+                else {
+                    var end = document.location.search.indexOf('&');
+                    if (end == -1) end = document.location.search.length;
+                    app = document.location.search.substring(5, end);
+                }
+				regexp=/([^a-zA-Z])/g; // only allow letters in the app name
+				if (regexp.test(app)) alert("Illegal characters were removed from the application name. Only letters allowed.","Warning");
+				app = app.replace(regexp,""); // clean it
 			// Calculate the widest width on the mobile device
 			//var maxPhoneSize = window.innerHeight || document.body.clientHeight;
 			//var phoneWidth = window.innerWidth || document.body.clientWidth;
@@ -180,11 +190,11 @@
 			],
 			function(parser,esriConfig,ioquery) {
 // for ndis-2020-dev until we get secure setup
-//				// If not loaded as secure redirect to secure url
-//				if (window.location.href.indexOf("https")<0) {
-//					var str = window.location.href;
-//					window.location = "https"+str.substring(4);
-//				}
+				// If not loaded as secure redirect to secure url
+				if (window.location.href.indexOf("https")<0) {
+					var str = window.location.href;
+					window.location = "https"+str.substring(4);
+				}
 				parser.parse();
 				esriConfig.defaults.io.proxyUrl = "/proxy/DotNet/proxy.ashx";
 				esriConfig.defaults.io.alwaysUseProxy = false;
@@ -195,14 +205,7 @@
 				// preserve new lines in way point definitions
 				var location = document.location.search.replace(/\%0D/g,"newline");
 				queryObj = ioquery.queryToObject(location.substr((location[0] === "?" ? 1 : 0)));
-				app = queryObj.app;
-				if (!app)
-					app = "HuntingAtlas";
-				else {
-					regexp=/([^a-zA-Z])/g; // only allow letters in the app name
-					if (regexp.test(app)) alert("Illegal characters were removed from the application name. Only letters allowed.","Warning");
-					app = app.replace(regexp,""); // clean it
-				}
+				
 				// Sanitize user input. Protect against XSS attacks.
 				// test for XSS attack. Pattern contains allowed characters. [^ ] means match any character that is not
 				// in the is set. \ escapes characters used by regex like .-'"|\
@@ -611,7 +614,7 @@
 									<span id="aproxMin">Note that large maps take longer to generate.</span>
 							</span>
 					</div>
-					<div id="print_instr" style="padding-left:10px;text-align: left;">Creates a geospacial PDF for downloading. Uses
+					<div id="print_instr" style="padding-left:10px;text-align: left;">Creates a geospatial PDF for downloading. Uses
 							the existing map boundary.
 							<div id="print_help" style="display:none;">
 								<h3>Download Help:</h3>
@@ -656,6 +659,7 @@
 									<div id="pdf_name_div">
 											<label id="pdf_name_label" for="pdf_name">PDF File Name:</label> <input id="pdf_name" style="color:#333;width:200px;margin:auto;" maxlength="100" type="text" required/>
 									</div><br/><br/>
+									<p id="printLoadingErr" style="display:none;"><span style="color: #efe02a;border: #efe02a 2px solid;border-radius: 70px;padding: 2px 8px;font-weight: bolder;"">!</span> <span id="printLoadingTxt"></span></p>
 									<button id="print_button" data-dojo-type="dojox/mobile/Button" role="presentation" style="margin:0" type="button" onClick="printMap()">Create PDF</button>
 									<span id="printMapLink" style="font-weight:bold;font-style:italic;"></span><br/>
 							</div><br/><br/><br/><br/>
@@ -845,7 +849,40 @@
 		</div>
 	</div>
 
+	<!-- Add Google Analytics 4 Stats for Test Site ndis-2020-dev -->
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-SPF3WKXMYJ"></script>
 	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		/* Custom Dimension Value to pass app name. Set this up in Google Analytics in Admin/Property/Custom Definitions/Custom Dimension/New Custom Dimension/
+			give it a variable name to use on the reports, save it, view it again and it will generate the javascript below. */
+		var theApp;
+		if (document.location.search == "") theApp = "huntingatlas";
+		else {
+			var end = document.location.search.indexOf('&');
+			if (end == -1) end = document.location.search.length;
+			theApp = document.location.search.substring(5,end).toLowerCase();
+		}
+		gtag('js', new Date());
+		gtag('config', 'G-SPF3WKXMYJ', {
+			cookie_flags: 'max-age=7200;secure;samesite=none',
+			'custom_map': {
+				'dimension1': 'app_name',
+				'dimension2': 'page_size',
+				'dimension3': 'map_services',
+				'dimension4': 'map_scale',
+				'dimension5': 'map_type',
+				'metric1': 'seconds',
+				'metric2': 'mb'
+			}
+		});
+		// Sends an event that passes app name as a parameter.
+		gtag('event', 'pageview', {'app_name': theApp});
+		
+	</script>
+	 <!-- End Google Analytics -->
+	<!--script>
 		/* Add Google Analytics Stats */
 		(function(i, s, o, g, r, a, m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 				(i[r].q = i[r].q || []).push(arguments)},i[r].l=1* new Date();a=s.createElement(o),
@@ -867,7 +904,6 @@
 		ga('set', 'dimension1', theApp);
 		ga('send', 'pageview');
 		/* End Google Analytics Stats */
-        </script>
+        </script-->
   </body>
-
 </html>

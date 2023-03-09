@@ -1,60 +1,87 @@
 <?xml version="1.0" ?>
 <!--
-//  Fishing Resource Report XML
+// Fishing Resource Report XML
 //
-// The querylayers specify all the mapservices that will be used
-// <querylayers>
-//	Hunter Resource Report:  (to get the hunter reports you must include the next three tags.)
-//		<pointsofinterest name="Points of Interest" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/0" />
-//    	<contactinfo name="Contact Boundaries" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/1" />
-//	    <gameunits name="Game Boundaries" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2" />
-//	Custom Report:
-//		<layer name="the mapservice name" type="is this mapservice point, line, or poly?" url="mapservice url"/>
-// </querylayers>
+// Generate a PDF Report of Hunter Resources and or Custom Reports
 //
-// <reporttitle> - The main title on the PDF file. Added 4/23/12 
+// Select area to query by: NEW added 1/11/23
+//    selectby: point or polygon. "point" is a buffered point and requires buffer to be defined.
 //
-// CUSTOM REPORTS:
-// The reports section specifies the format of each part of the report.  Two types of reports are available:
-// Set the orientation of the first page in printlayout.  Tables will be printed in landscape and lists
-// in portrait.
+//	  buffer: is used to define distances in miles to buffer around the user defined point.
+//        default: the default value to be selected in the buffer radius pulldown. It must be included in "list" attribute
+//        list:	comma separated list of integers as buffer radius distances
+//        units: units of measure. See //help.arcgis.com/en/webapi/flex/apiref/com/esri/ags/tasks/GeometryService.html#constantSummary
+//        unitslabel: the label displayed on the UI
+//    Polygon example:
+//    <selectby>polygon</selectby>
 //
-// 1) List - One value for each field. All of the data comes from one map service using a where clause
-//	to filter.  Uses the first value found. Examples:
-//    		County:			Larimer
+//    Buffered point example:
+//    <selectby>point</selectby>
+//    <buffer default="25" list="5,10,25,50,100" units="9093" unitslabel="mile" />
+//
+// <reporttitle> - The main title on the PDF file.
+//
+// Hunter Resource Reports: 
+// <hunter_resource_report>
+//		<pointsofinterest name="Points of Interest" url="http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/0" />
+//    	<contactinfo name="Contact Boundaries" url="http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/1" />
+//	    <gameunits name="Game Boundaries" url="http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2" />
+// </hunter_resource_report>
+//
+// Custom Reports:
+// The custom_reports section specifies the format of each part of the custom report.  Two types of reports are available:
+// 1) List - Uses the point at the map click or polygon center. Examples:
+//    	County:			Larimer
 //      or
-//		BLM (underlined)
+//		BLM (underlined sub title)
 //		BLM District:		Colorado River Valley
 //		BLM Field Office:	Colorado River Valley BLM Field Office
 // 		etc.
 //
-// 2) Table - Multiple values for each field.  All of the data comes from one map service using a where
-//	clause to filter.  Example:
+// 2) Table - Uses all values found in the polygon or buffered point. Multiple values for each field.  All of the data comes from one map service.  Example:
 //		Header Row
 //		followed by rows and columns
 //
-// <reports>
-//	<report id="name from <querylayers><layer> or <databaselookups><database> tag above"
-//		type="list or table.  A list will use only one value per field.
-//		title ="the title for this mini report or blank, will generate a page break unless first one"
-//		subtitle="the underlined title for this section"
-//		displayfields="comma delimited display names. Include display names for database fields."
-//		fields="comma delimited field names.  Include fields from a database."
-//		where_field="the field name to use to make a where clause"
-//		where_inequality="equal, not_equal, less_than, or greater_than"
-//		where_value="a value"
-//		where_type="string or number"
-//		sortfields="Comma delimited list of the field names to sort the table on.  Use names from fields tag above."/>
-//		key="the field name in the mapservice that links to the database"
-// **NEW** database lookup file must be on the same machine
-//		database="the url to the asp.net file that queries the database"
-//		filename="the table in the database to query"
-//		one2onefields="comma delimited list of field names containing one value for each key"
-//		one2manyfields="comma delimited list of field names where each key has many values"/>
+// <custom_reports>
+//	<report
+//      url=mapservice url ** NEW ** 1/17/23
+//      id=mapservice name
+//      type=list or table.  A list will use only one value per field at the map click or polygon center. ** NEW list option ** 1/17/23
+//		title=the title for this mini report or leave blank. If not blank, it will generate a page break unless it is the first one. 
+//           Use "_distance_" to insert the buffer distance from the map click. If using type="list" it will append 
+//           "(at polygon center)" or "(at map click)" to the end of this title.
+//		subtitle=the underlined title for this section. 
+//		displayfields=comma delimited display names. Include display names for database fields. Do not put a space after the comma. If will be displayed: eg. " GMU". Should be displaynames="item1,item2"
+//		fields=comma delimited field names.  Include fields from a database.
+//		where_field=the field name to use to make a where clause
+//		where_inequality="equal", "not_equal", "less_than", or "greater_than"
+//		where_value=a value
+//		where_type="string" or "number"
+//		sortfields=Comma delimited list of the field names to sort the table on.  Must use names from fields tag above.
+//      sortorder="ascending" or "descending" The default is ascending. ** NEW ** 1-12-23
+//		key=the field name in the mapservice that links to the database
+//		database=the url to the asp.net file that queries the database
+//		filename=the table in the database to query
+//		one2onefields=comma delimited list of field names containing one value for each key
+//		one2manyfields=comma delimited list of field names where each key has many values
 //
 //	... Repeat report tags.
-// </reports>
+// </custom_reports>
+//
+// Example Custom Report:
+//  <custom_reports>
+//      <report id="Contact Info" url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/1" type="list" title="Contact Information" subtitle="" displayfields="County,CPW Area,CPW District,Field Office Phone" fields="COUNTYNAME,CDOW_Area,CDOW_District,CDOW_FOPhone" />
+//      <report id="Amphibian/Reptile" url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/3" type="table" title="Road Kill" subtitle="Amphibian/Reptile" displayfields="Year,Month,Species,Sex,Age" fields="rkYear,rKMonth,Species,Sex,Age" sortfields="rkYear,Species"/>
+//      <report id="Small Mammal" url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/4" type="table" title="" subtitle="Small Mammals" displayfields="Year,Month,Species,Sex,Age" fields="rkYear,rKMonth,Species,Sex,Age" sortfields="rkYear,Species,Sex" sortorder="descending"/>
+//      <report id="Large Mammal" url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/5" type="table" title="" subtitle="Large Mammals" displayfields="Year,Month,Species,Sex,Age" fields="rkYear,strMonth,Species,Sex,Age" sortfields="rkYear,Species,strMonth,Sex" sortorder="ascending"/>
+//  </custom_reports>
+//
+// Map Title, Subtitle, and Disclaimer
+// <title>map title here</title>
+// <subtitle>map subtitle here</subtitle>
+// <disclaimer>map disclaimer here</disclaimer>
 -->
+
 
 <configuration xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/ResourceReportWidget.xsd">    
 	<!-- buffer section
@@ -64,22 +91,8 @@
 		units:		units of measure. See //help.arcgis.com/en/webapi/flex/apiref/com/esri/ags/tasks/GeometryService.html#constantSummary
 	 	unitslabel:	the label displayed on the UI
 	 -->
+	<selectby>point</selectby>
     <buffer default="25" list="5,10,25,50,100" units="9093" unitslabel="mile" />
-    
-    <!-- querylayers section
-    	These layers are used to generate report data
-    	pointsofinterest:	point featurelayer containing asset information
-    		name:	display name used in error reporting
-    		url:	REST endpoint to layer index in map service
-    	contactinfo:		polygon featurelayer containing contact information in boundary features
-    	gameunits:			polygon featurelayer containing various game unit IDs
-     -->
-    <querylayers>
-		<layers name="Fishing Information Point" type="point" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/0" />
-	    <layers name="POI" type="point" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/0" />
-		<layers name="Special Fishing Regulations (stream)" type="line" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/5" />
-		<layers name="Special Fishing Regulations (lake)" type="poly" url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/12" />
-    </querylayers>
     
     <reporttitle>Colorado Fishing Atlas Asset Report</reporttitle>
     
@@ -88,7 +101,7 @@
 	<basemapurl>streets</basemapurl>
 	
 	<!-- Custom Reports Section -->
-	<reports>
+	<custom_reports>
 		<!-- Fishing Spots Table -->
 			<!-- *** Make sure the database .aspx file does not contain:    -->
 			<!--Response.Write ("<?xml version=""""1.0"""" encoding=""""UTF-8""""?>"&vbcrlf)-->
@@ -96,6 +109,7 @@
 			<!--Response.Write ("<?xml version=""1.0"" encoding=""UTF-8""?>"&vbcrlf)-->
 
 		<report id="Fishing Information Point"
+			url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/0"
 			type="table"
 			title="Fishing Report"
 			subtitle="Lakes, Reservoirs, or Streams Found in Area:"
@@ -107,13 +121,14 @@
 			where_type=""
 			sortfields="FA_NAME2"
 			key="WATERCODE"
-			database="https://ndismaps.nrel.colostate.edu/fishingatlas/ResourceReportFishingSpeciesDB.aspx"
+			database="https://ndis-2020-dev.nrel.colostate.edu/fishingatlas/ResourceReportFishingSpeciesDB.aspx"
 			filename="tblMasterSpecies"
 			one2one_fields=""
 			one2many_fields="AtlasFish"/>
 
 		<!-- Fishing License Agents -->
 		<report id="POI"
+			url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/0"
 			type="table"
 			title=""
 			subtitle="License Agents Found in Area:"
@@ -127,6 +142,7 @@
 			
 		<!-- Special Fishing Regulation -->
 		<report id="Special Fishing Regulations (stream)"
+			url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/5"
 			type="table"
 			title=""
 			subtitle="Special Fishing Regulations (stream):"
@@ -134,13 +150,14 @@
 		    fields="LOC_ID,WATER,SPECIFIC_AREA,REG_DESC"
 			sortfields="WATER"
 			key="LOC_ID"
-		    database="https://ndismaps.nrel.colostate.edu/fishingatlas/ResourceReportFishingRegsDB.aspx"
+		    database="https://ndis-2020-dev.nrel.colostate.edu/fishingatlas/ResourceReportFishingRegsDB.aspx"
 		    filename="LOCATION_NO_OVERLAP"
 		    one2one_fields="WATER,SPECIFIC_AREA"
 		    one2many_fields="REG_DESC" />
 		
 		<!-- Special Fishing Regulation (lake)-->
 		<report id="Special Fishing Regulations (lake)"
+			url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/12"
 			type="table"
 			title=""
 			subtitle="Special Fishing Regulations (lake):"
@@ -148,11 +165,11 @@
 		    fields="LOC_ID,WATER,SPECIFIC_AREA,REG_DESC"
 			sortfields="WATER"
 			key="LOC_ID"
-		    database="https://ndismaps.nrel.colostate.edu/fishingatlas/ResourceReportFishingRegsDB.aspx"
+		    database="https://ndis-2020-dev.nrel.colostate.edu/fishingatlas/ResourceReportFishingRegsDB.aspx"
 		    filename="LOCATION_NO_OVERLAP"
 		    one2one_fields="WATER,SPECIFIC_AREA"
 		    one2many_fields="REG_DESC" />
-	</reports>
+	</custom_reports>
     <!-- ***NEW *** The base map to use in the report map -->
 	<!--Available basemaps:  streets, satellite, hybrid, topo, gray, ocean, osm, and national_geographic-->
 	<basemapurl>streets</basemapurl>
@@ -160,10 +177,11 @@
     <!-- 
     	REST endpoint to a map service that will be displayed in the report print window and included in the printed report
      -->    
-    <reportserviceurl>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Main_Map/MapServer</reportserviceurl>
+    <!--reportserviceurl>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Main_Map/MapServer</reportserviceurl-->
 	
 	<!-- GPService for printing -->
-	<printserviceurl>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printserviceurl>
+	<!--printserviceurl>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/ExportWebMap/GPServer/Export%20Web%20Map</printserviceurl-->
+	<!--printserviceurl>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printserviceurl-->
     
 	<title>Colorado Fishing Atlas</title>
 	<subtitle>Asset Report</subtitle>

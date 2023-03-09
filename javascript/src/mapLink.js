@@ -4,7 +4,8 @@ function setMapLink() {
 	//
 	// Google Analytics count how many times Buy License is clicked on
 	if (typeof ga === "function"){
-		ga('send', 'event', "map_link", "click", "Map Link", "1");
+		//ga('send', 'event', "map_link", "click", "Map Link", "1");
+		if (typeof gtag === "function")gtag('event','click',{'widget_name': 'Map Link','app_name': app});
 	}
 	
 	var len;

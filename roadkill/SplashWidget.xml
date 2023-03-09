@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////
+//
+// Splash Widget
+//
+// content - Contains the disclaimer
+////////////////////////////////////////////////////////////////////////////////
+-->
+<configuration>
+    <disable>yes</disable>
+	<content>
+		<![CDATA[<p align='center'>
+			<img src='assets/images/cpwlogo_48x48.png' width='48' height='48' />
+		</p>
+		<p align='center' style="font-size:large;font-weight:bold;">This is the CSR Fastmap</p>
+		<p style="font-size:large;">This interactive mapping application is produced and managed by the <b>CPW GIS Unit</b>.<BR><BR></p> 
+		<p align='center' style="font-size:large">If you have any questions about this map please call:<BR> Chris Johnson (GIS Analyst) at 970-472-4330.</p>
+		]]>
+	</content>
+</configuration>
