@@ -418,7 +418,9 @@
 			}
 
 	      require(["dojo/dom-construct", "dojo/query", "dojo/dom", "dojo/on", "dojo/domReady!"], function(domConstruct, query, dom, on) {
-	          clickPoint = getScreenClick(evt); //evt.mapPoint;
+			if (typeof ga === 'function')ga('send', 'event', "identify", "click", "Identify", "1");
+            if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Identify'});  
+			clickPoint = getScreenClick(evt); //evt.mapPoint;
 			  // if the info window is already showing clear the title, so that it will load the new point.
 			  if (map.infoWindow.isShowing && !map.infoWindow.wayPt && lastTitle == map.infoWindow._title.innerHTML){
 					map.infoWindow.hide();
@@ -477,7 +479,7 @@
 	              map.infoWindow.hide();
 	              map.infoWindow.setTitle("Loading...");
 	              map.infoWindow.setContent("<p align='center'>Loading...</p>");
-	              if (identifyGroup == "Way Point") identifyGroup = lastIDGroup;
+	              if (identifyGroup === "Way Point") identifyGroup = lastIDGroup;
 	              // remove way point from drop down list if it exists
 	              if (idGroupCombo.getOptions("Way Point")) {
 	                  idGroupCombo.removeOption("Way Point");

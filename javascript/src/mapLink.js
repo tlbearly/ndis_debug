@@ -3,10 +3,8 @@ function setMapLink() {
 	// Called when user clicks on Map Link
 	//
 	// Google Analytics count how many times Buy License is clicked on
-	if (typeof ga === "function"){
-		//ga('send', 'event', "map_link", "click", "Map Link", "1");
-		if (typeof gtag === "function")gtag('event','click',{'widget_name': 'Map Link','app_name': app});
-	}
+	if (typeof ga === "function")ga('send', 'event', "map_link", "click", "Map Link", "1");
+	if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Map Link'});
 	
 	var len;
 	var urlStr = window.location.href;

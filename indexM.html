@@ -116,7 +116,7 @@
 			document.write('<script type="text/javascript" src="'+path+'/xmlUtils.js?v='+jsVer+'"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/findPlace.js?v='+jsVer+'"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/identify.js?v='+jsVer+'"><\/script>');
-			document.write('<script type="text/javascript" src="'+path+'/print.js?v='+jsVer+'"><\/script>');
+			document.write('<script type="text/javascript" src="'+path+'/print.js?v=a"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/readConfig.js?v='+jsVer+'"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/search.js?v='+jsVer+'"><\/script>');
 			document.write('<script type="text/javascript" src="'+path+'/swipe.js?v='+jsVer+'"><\/script>');
@@ -154,6 +154,7 @@
 			var app;
 			var settings;
 			var mapBasemap="streets";
+            var initBasemap=false;//flag to not send Google Analytics widget_click event on startup
 			// get app name
 			if (document.location.search == "") app = "HuntingAtlas";
                 else {
@@ -857,32 +858,15 @@
 		function gtag(){dataLayer.push(arguments);}
 		/* Custom Dimension Value to pass app name. Set this up in Google Analytics in Admin/Property/Custom Definitions/Custom Dimension/New Custom Dimension/
 			give it a variable name to use on the reports, save it, view it again and it will generate the javascript below. */
-		var theApp;
-		if (document.location.search == "") theApp = "huntingatlas";
-		else {
-			var end = document.location.search.indexOf('&');
-			if (end == -1) end = document.location.search.length;
-			theApp = document.location.search.substring(5,end).toLowerCase();
-		}
 		gtag('js', new Date());
+		// live: G-KZGSCS9DMG, dev: G-SPF3WKXMYJ
 		gtag('config', 'G-SPF3WKXMYJ', {
 			cookie_flags: 'max-age=7200;secure;samesite=none',
-			'custom_map': {
-				'dimension1': 'app_name',
-				'dimension2': 'page_size',
-				'dimension3': 'map_services',
-				'dimension4': 'map_scale',
-				'dimension5': 'map_type',
-				'metric1': 'seconds',
-				'metric2': 'mb'
-			}
+			'app_name': app.toLowerCase()
 		});
-		// Sends an event that passes app name as a parameter.
-		gtag('event', 'pageview', {'app_name': theApp});
-		
 	</script>
 	 <!-- End Google Analytics -->
-	<!--script>
+	<script>
 		/* Add Google Analytics Stats */
 		(function(i, s, o, g, r, a, m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 				(i[r].q = i[r].q || []).push(arguments)},i[r].l=1* new Date();a=s.createElement(o),
@@ -904,6 +888,6 @@
 		ga('set', 'dimension1', theApp);
 		ga('send', 'pageview');
 		/* End Google Analytics Stats */
-        </script-->
+        </script>
   </body>
 </html>

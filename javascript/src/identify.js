@@ -360,6 +360,8 @@ function doIdentify2(evt){
     }
     require(["dojo/dom-construct", "dojo/query", "dojo/dom", "dojo/on", "dojo/domReady!"],
         function(domConstruct, query, dom, on) {
+            if (typeof ga === 'function')ga('send', 'event', "identify", "click", "Identify", "1");
+            if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Identify'});
             // Called for each map click or identify group change
             numDatabaseCalls = 0;
             processedDatabaseCalls = 0;

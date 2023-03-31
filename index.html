@@ -112,10 +112,26 @@
             document.write('<script type="text/javascript" src="' + path + '/identify.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/maplink.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/print.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=1"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/resourceReport.js?v=12"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/resourceReport.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/search.js?v=' + jsVer + '"><\/script>');
             try {
+                function settingsXYProj(){
+                    require(['dijit/registry'],function(registry){
+                        if (registry.byId('pointUnits'))registry.byId('pointUnits').set('value',registry.byId('settings_xy_proj').value);
+                        registry.byId('help_xy_proj').set('value',registry.byId('settings_xy_proj').value);
+                        settings.XYProjection=registry.byId('settings_xy_proj').value;
+                        setCookie('prj', registry.byId('settings_xy_proj').value);
+                    });
+                    // Send widget click event, but not on startup!
+                    if (typeof ga === 'function' || typeof gtag === 'function'){
+                        if (initSettingsXYProj){
+                            if (typeof ga === 'function')ga('send', 'event', "settings_xy_proj", "click", "Settings XY Proj", "1");
+                            if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Settings XY Proj'});
+                        }
+                        initSettingsXYProj=true;
+                    }
+                }
                 // load mobile version if necessary
 				// detect mobile
 				function detectmob() { 
@@ -169,6 +185,8 @@
                 var hideGroupSublayers = "",
                     radioLayers = "";
                 var myFindService;
+                var initSettingsXYProj=false;//flag to not send Google Analytics widget_click event on startup
+                var initBasemap=false;//flag to not send Google Analytics widget_click event on startup
 
                 // get app name
                 if (document.location.search == "") app = "HuntingAtlas";
@@ -316,7 +334,7 @@
                     <span id="mapLinkBtn" class="link" style="position:relative;float:right;display:block;"><a href="javascript:setMapLink();"><img id="linkIcon" alt="button to get the link to the current map" src="assets/images/i_link.png"/> Map Link</a></span>
                     <span id="printBtn" class="link" style="position:relative;float:right;display:block;"><a href="javascript:printShow();"><img id="printIcon" alt="button to print the current map" src="assets/images/i_print.png"/> Print</a></span>
                     <!-- Code for gmuCombo is in Identify.js and gmu.js -->
-                    <span id="gmuDiv" style="position:relative;float:right;display:none;"><label for="gmuCombo">Goto GMU: </label><span id="gmuCombo"></span></span>
+                    <span id="gmuDiv" style="position:relative;float:right;display:none;"><label for="gmuCombo">Go to GMU: </label><span id="gmuCombo"></span></span>
                 </div>
 
                 <!-- Print Troubleshooting -->
@@ -934,7 +952,7 @@
                     <span title="Settings Help" onClick="settingsHelpDialog.show();"><img alt="help button" class="help_icon" src="assets/images/i_help.png"></span> Settings are stored in a cookie in your browser history.<br/><br/>
                     <!-- default value is set in identify.js/readSettingsWidget -->
                     <label for="settings_xy_proj" title="Set the coordinate format to use to display points.">Set coordinate format: </label>
-                    <select id="settings_xy_proj" name="settings_xy_proj" data-dojo-type="dijit/form/Select" onChange="require(['dijit/registry'],function(registry){if (registry.byId('pointUnits'))registry.byId('pointUnits').set('value',registry.byId('settings_xy_proj').value);registry.byId('help_xy_proj').set('value',registry.byId('settings_xy_proj').value);settings.XYProjection=registry.byId('settings_xy_proj').value;setCookie('prj', registry.byId('settings_xy_proj').value);});if (typeof gtag === 'function')gtag('event','click',{'widget_name': 'Settings XY Proj','app_name': app});">
+                    <select id="settings_xy_proj" name="settings_xy_proj" data-dojo-type="dijit/form/Select" onChange="settingsXYProj()">
 			  <option value="dd">Lat/Long Decimal Degrees</option>
 			  <option value="dms">Lat/Long Degrees, Min, Sec</option>
 			  <option value="dm">Lat/Long Degrees, Decimal Min</option>
@@ -989,34 +1007,34 @@
             <!-- Footer Section-->
             <div id="footer" data-dojo-type="dijit/layout/ContentPane" data-dojo-props='region:"bottom"'>
                 <span id='mapscale' style="display:block; z-index: 3; position:relative; float:left; width: 200px; color:#FFF; text-shadow: 0 0 .1em #000; text-shadow: -.1em -.1em .2em #000; text-shadow: .1em .1em .1em #000;">Map Scale 1: 
-	  <select id="mapscaleList" onchange="setMapScale(this)" style="color: black">
-			<option style="text-align:right" value="9244649">9M</option>
-			<option style="text-align:right" value="4622324">4M</option>
-			<option style="text-align:right" value="2311162">2M</option>
-			<option style="text-align:right" value="1155581">1M</option>
-			<option style="text-align:right" value="577791">500k</option>
-			<option style="text-align:right" value="288895">250k</option>
-			<option style="text-align:right" value="144448">100k</option>
-			<option style="text-align:right" value="72224">50k</option>
-			<option style="text-align:right" value="36112">24k</option>
-			<option style="text-align:right" value="9028">10k</option>
-			<option style="text-align:right" value="2257">2k</option>
-			<option style="text-align:right" value="1128">1k</option>
-			<!--option style="text-align:right" value="9244649">9,244,649</option>
-			<option style="text-align:right" value="4622324">4,622,324</option>
-			<option style="text-align:right" value="2311162">2,311,162</option>
-			<option style="text-align:right" value="1155581">1,155,581</option>
-			<option style="text-align:right" value="577791">577,791</option>
-			<option style="text-align:right" value="288895">288,895</option>
-			<option style="text-align:right" value="144448">144,448</option>
-			<option style="text-align:right" value="72224">72,224</option>
-			<option style="text-align:right" value="36112">36,112</option>
-			<option style="text-align:right" value="18056">18,056</option>
-			<option style="text-align:right" value="9028">9,028</option>
-			<option style="text-align:right" value="4514">4,514</option>
-			<option style="text-align:right" value="2257">2,257</option>
-			<option style="text-align:right" value="1128">1,128</option-->
-		</select></span>
+                <select id="mapscaleList" onchange="setMapScale(this)" style="color: black">
+                    <option style="text-align:right" value="9244649">9M</option>
+                    <option style="text-align:right" value="4622324">4M</option>
+                    <option style="text-align:right" value="2311162">2M</option>
+                    <option style="text-align:right" value="1155581">1M</option>
+                    <option style="text-align:right" value="577791">500k</option>
+                    <option style="text-align:right" value="288895">250k</option>
+                    <option style="text-align:right" value="144448">100k</option>
+                    <option style="text-align:right" value="72224">50k</option>
+                    <option style="text-align:right" value="36112">24k</option>
+                    <option style="text-align:right" value="9028">10k</option>
+                    <option style="text-align:right" value="2257">2k</option>
+                    <option style="text-align:right" value="1128">1k</option>
+                    <!--option style="text-align:right" value="9244649">9,244,649</option>
+                    <option style="text-align:right" value="4622324">4,622,324</option>
+                    <option style="text-align:right" value="2311162">2,311,162</option>
+                    <option style="text-align:right" value="1155581">1,155,581</option>
+                    <option style="text-align:right" value="577791">577,791</option>
+                    <option style="text-align:right" value="288895">288,895</option>
+                    <option style="text-align:right" value="144448">144,448</option>
+                    <option style="text-align:right" value="72224">72,224</option>
+                    <option style="text-align:right" value="36112">36,112</option>
+                    <option style="text-align:right" value="18056">18,056</option>
+                    <option style="text-align:right" value="9028">9,028</option>
+                    <option style="text-align:right" value="4514">4,514</option>
+                    <option style="text-align:right" value="2257">2,257</option>
+                    <option style="text-align:right" value="1128">1,128</option-->
+                </select></span>
                 <!-- Display mouse coordinates -->
                 <span id="xycoords" onClick="require(['dojo/window'], function(win){var vs = win.getBox();xycoordsDialog.show();var left=vs.w-260;var top=vs.h-180;xycoordsDialog._setStyleAttr('left:'+left+'px !important;');xycoordsDialog._setStyleAttr('top:'+top+'px !important;');});"
                     onmouseover="" style="cursor: pointer; float: right;  padding:10px; display: block; position:relative; color:#FFF; text-shadow: 0 0 .1em #000; text-shadow: -.1em -.1em .2em #000; text-shadow: .1em .1em .1em #000;">Latitude, Longitude</span>
@@ -1032,24 +1050,15 @@
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             // Custom Dimension Values to pass. Set this up in Google Analytics 4 in Admin/Custom Definitions. https://analytics.google.com/analytics
+            // live: G-KZGSCS9DMG, dev: G-SPF3WKXMYJ
             gtag('config', 'G-SPF3WKXMYJ', {
                 cookie_flags: 'max-age=7200;secure;samesite=none',
-                'custom_map': {
-                    'dimension1': 'app_name',
-                    'dimension2': 'page_size',
-                    'dimension3': 'map_services',
-                    'dimension4': 'map_scale',
-                    'dimension5': 'map_type',
-                    'metric1': 'seconds',
-                    'metric2': 'mb'
-                }
+                'app_name': app.toLowerCase()
             });
-            // Sends an event that passes app name as a parameter.
-            gtag('event', 'pageview', {'app_name': app.toLowerCase()});
         </script>
         <!-- End Google Analytics 4 -->
 
-        <!--script>
+        <script>
             /* Add Google Analytics Stats */
             (function(i, s, o, g, r, a, m) {
                 i['GoogleAnalyticsObject'] = r;
@@ -1078,6 +1087,6 @@
             ga('set', 'dimension1', theApp);
             ga('send', 'pageview');
             /* End Google Analytics Stats */
-        </script-->
+        </script>
     </body>
 </html>

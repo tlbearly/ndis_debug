@@ -274,9 +274,6 @@ function searchInit() {
 					function setSelection() {
 						// user made a selection in the "search for:" drop down. Display a table of multiple matches or zoom to a single match.
 						try {
-							// Google Analytics count how many times Buy License is clicked on
-							//if (typeof ga === "function") ga('send', 'event', "feature_search", "click", "Feature Search", "1");
-							if (typeof gtag === "function")gtag('event','click',{'widget_name': 'Feature Search','app_name': app});
 							var userTypedTxt = registry.byId("searchText").get("value");
 							// protect against xss attacks
 							var regexp=/([^a-zA-Z0-9 :#\-\',\.!_\*()/&])/g; // 8-18-20 add / character
@@ -292,7 +289,10 @@ function searchInit() {
 							registry.byId("searchRemoveBtn").set("disabled", false);
 							var expr;
 							document.getElementById("searchLoadingImg").style.display="block";
-							
+							// Google Analytics count how many times Buy License is clicked on
+							if (typeof ga === "function") ga('send', 'event', "feature_search", "click", "Feature Search", "1");
+							if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Feature Search'});
+
 							// --------------------------------------------------
 							// Do we need to do a database lookup with this info?
 							// --------------------------------------------------
@@ -972,8 +972,8 @@ function searchInit() {
 						var queryGeom = geom;
 						require(["esri/tasks/query", "esri/tasks/QueryTask"],function(Query,QueryTask){
 							// Google Analytics count how many times Buy License is clicked on
-							//if (typeof ga === "function") ga('send', 'event', "graphical_search", "click", "Graphical Search", "1");
-							if (typeof gtag === "function")gtag('event','click',{'widget_name': 'Graphical Search','app_name': app});
+							if (typeof ga === "function") ga('send', 'event', "graphical_search", "click", "Graphical Search", "1");
+							if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Graphical Search'});
 							
 							var attr = registry.byId("featureTypeGraphic").attr("displayedValue");
 							if (attr == fishSpeciesGraphicalName) attr = "Fish species";

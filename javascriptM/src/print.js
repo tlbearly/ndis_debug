@@ -351,6 +351,7 @@ function printShow(){
 		var map_layer,osmLayer;
 
 		try {
+			if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Print'});
 			document.getElementById("printLoadingErr").style.display = "none";
 			document.getElementById("printLoadingTxt").innerText = "";
 			prev_layer_events.push(printDialog.on("hide",handleClosePrintDialog));
@@ -463,6 +464,13 @@ function printShow(){
 					createLayer(mapLayers[i]);
 				}
 			}
+			// enable print button after 5 seconds because sometimes it fails
+			setTimeout(function(){
+				if (registry.byId("print_button").label == "Loading"){
+					registry.byId("print_button").set('disabled',false); // enable Print button
+					registry.byId("print_button").set("label", "Create PDF");
+				}
+			},5000);
 			
 
 			// set layers
@@ -1048,13 +1056,45 @@ function printMap(){
 							gtag('event','print',{
 								'seconds':value,
 								'mb':mb,
-								'app_name':app,
 								'page_size':sizeCombo.attr('value'),
 								'map_services':mapservices,
 								'map_scale':mapscale,
-								'map_type':maptype
+								'map_type':maptype,
+								'app_name': app.toLowerCase(),
+								'basemap':mapBasemap
 							});
-							gtag('event',{'widget_name': 'Print','app_name': app});
+						}
+						if (typeof ga === "function"){
+							var label="Print ";
+							switch(maptype){
+								case "pdf":
+									label += "PDF";
+									break;
+								case "geopdf":
+									label += "geoPDF";
+									break;
+								case "jpg":
+									label += "JPG";
+									break;
+								case "geotiff":
+									label += "geoTIFF";
+									break;
+								case "gif":
+									label += "GIF";
+									break;
+							}
+							var action = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
+							var category = action+" "+maptype+" "+mapservices;
+							var custom = {
+								'metric1':value,
+								'metric2': mb,
+								'dimension2':sizeCombo.attr('value'),
+								'dimension3':mapservices,
+								'dimension4':mapscale,
+								'dimension5':maptype
+							};
+
+							ga('send', 'event', category, action, label, value, custom);
 						}
 						document.getElementById("printMB").innerHTML = "File size is "+mb+"MB.";
 						document.getElementById("printMB").style.display="block";
@@ -1067,13 +1107,43 @@ function printMap(){
 				if (typeof gtag === "function"){
 					gtag('event','print',{
 						'seconds':value,
-						'app_name':app,
+						'app_name':app.toLowerCase(),
 						'page_size':sizeCombo.attr('value'),
 						'map_services':mapservices,
 						'map_scale':mapscale,
-						'map_type':maptype
+						'map_type':maptype,
+						'basemap':mapBasemap
 					});
-					gtag('event',{'widget_name': 'Print','app_name': app});
+				}
+				if (typeof ga === "function"){
+					var label="Print ";
+					switch(maptype){
+						case "pdf":
+							label += "PDF";
+							break;
+						case "geopdf":
+							label += "geoPDF";
+							break;
+						case "jpg":
+							label += "JPG";
+							break;
+						case "geotiff":
+							label += "geoTIFF";
+							break;
+						case "gif":
+							label += "GIF";
+							break;
+					}
+					var action = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
+					var category = action+" "+maptype+" "+mapservices;
+					var custom = {
+						'metric1':value,
+						'dimension2':sizeCombo.attr('value'),
+						'dimension3':mapservices,
+						'dimension4':mapscale,
+						'dimension5':maptype
+					};
+					ga('send', 'event', category, action, label, value, custom);
 				}
 			}
 			
@@ -1408,13 +1478,43 @@ function showPrintPreview(){
 			if (typeof gtag === "function"){
 				gtag('event','print',{
 					'seconds':value,
-					'app_name':app,
+					'app_name':app.toLowerCase(),
 					'page_size':sizeCombo.attr('value'),
 					'map_services':mapservices,
 					'map_scale':mapscale,
-					'map_type':maptype
+					'map_type':maptype,
+					'basemap':mapBasemap
 				});
-				gtag('event',{'widget_name': 'Print','app_name': app});
+			}
+			if (typeof ga === "function"){
+				var label="Print ";
+				switch(maptype){
+					case "pdf":
+						label += "PDF";
+						break;
+					case "geopdf":
+						label += "geoPDF";
+						break;
+					case "jpg":
+						label += "JPG";
+						break;
+					case "geotiff":
+						label += "geoTIFF";
+						break;
+					case "gif":
+						label += "GIF";
+						break;
+				}
+				var action = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
+				var category = action+" "+maptype+" "+mapservices;
+				var custom = {
+					'metric1':value,
+					'dimension2':sizeCombo.attr('value'),
+					'dimension3':mapservices,
+					'dimension4':mapscale,
+					'dimension5':maptype
+				};
+				ga('send', 'event', category, action, label, value, custom);
 			}
 			console.log("printing to "+result.url);
 			document.getElementById("print_img").src=result.url;

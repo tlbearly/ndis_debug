@@ -50,9 +50,9 @@ function findPlaceInit() {
 		function titleCase(str) {
 			 // Capitalize words at the beginning and after a space or /
 			 words = str.toLowerCase().split(' ');
-
-			 for(var i = 0; i < words.length; i++) {
-				  var letters = words[i].split('');
+			 var letters,i;
+			 for(i = 0; i < words.length; i++) {
+				  letters = words[i].split('');
 				  letters[0] = letters[0].toUpperCase();
 				  words[i] = letters.join('');
 			 }
@@ -60,8 +60,8 @@ function findPlaceInit() {
 			 
 			 // Fix words after /
 			 words = str.split('/');
-			 for(var i = 0; i < words.length; i++) {
-				  var letters = words[i].split('');
+			 for(i = 0; i < words.length; i++) {
+				  letters = words[i].split('');
 				  letters[0] = letters[0].toUpperCase();
 				  words[i] = letters.join('');
 			 }
@@ -122,7 +122,7 @@ function findPlaceInit() {
 						}
 					}
 				}
-			}
+			};
 			XMLHttpRequest1.send();
 		}
 		registry.byId("findClose").on("click",function(event){
@@ -495,6 +495,7 @@ function _displayXYPoint(point, label) {
 	});
 }
 function gotoLocation() {
+	var url;
 	// Zoom to find a place location on startup or from find a place search box
 	if (document.getElementById('findPlace').style.display == "none") return;
 	var value;
@@ -510,6 +511,9 @@ function gotoLocation() {
 		handleCoordinate(value);
 		return;
 	}
+	// Google Analytics count how many times Buy License is clicked on
+	if (typeof ga === "function") ga('send', 'event', "find_place", "click", "Find a Place", "1");
+	if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Find a Place'});
 	// if selected from drop down suggestion list
 	if (!calledFromURL && findCombo && findCombo.item && findCombo.item.label) {
 		showLoading();
@@ -558,7 +562,7 @@ function gotoLocation() {
 					hideLoading();
 					alert("Had trouble reading "+url+" in findPlace.js/gotoLocation.","Data Error");
 				}
-			}
+			};
 			XMLHttpRequest2.open("GET", url, true);
 			XMLHttpRequest2.send(null);
 		}
@@ -610,7 +614,7 @@ function gotoLocation() {
 							hideLoading();
 							alert("Had trouble reading "+url+" in findPlace.js/gotoLocation.","Data Error");
 						}
-					}
+					};
 					XMLHttpRequest3.open("GET", url, true);
 					XMLHttpRequest3.send(null);
 					break;
@@ -624,7 +628,6 @@ function gotoLocation() {
 			if (value.indexOf("County)") > -1)
 				value = value.substr(0, value.indexOf(" ("));
 			// In GNIS Region countains county name (e.g. Larimer), PlaceName contains just the name, Address contains name, county name (e.g. Fort Collins, Larimer)
-			var url;
 			if (!calledFromURL)
 				url = myFindService + "/findAddressCandidates?f=json&outFields=Region,PlaceName&Address=" + findCombo.get('value');
 			else

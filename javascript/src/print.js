@@ -160,8 +160,10 @@ function printShow(){
 			// try to reload every 1/2 seconds, on the 5th time give warning
 			if (tries[event.target.id] < 10){
 				setTimeout(function(){createLayer(map.getLayer(event.target.id));},500);
+				//console.log("Load failed. Trying again with: "+map.getLayer(event.target.id).url);
 			}
 			else if (tries[event.target.id] == 10){
+				//console.log("Load failed after 5 seconds. Enable Print button. Trying again with: "+map.getLayer(event.target.id).url);
 				if (event.target.id.indexOf("Motor Vehicle") > -1 || event.target.id.indexOf("Wildfire") > -1 || event.target.id.indexOf("BLM") > -1)
 					alert("While printing, the external map service that provides "+event.target.id+" is experiencing problems.  This issue is out of CPW control. We will continue trying to load it. We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
 				else
@@ -172,6 +174,7 @@ function printShow(){
 			}
 			// keep trying every 1 seconds
 			else{
+				//console.log("Load failed. Trying again with: "+map.getLayer(event.target.id).url);
 //DEBUG
 //if(event.target.id === "Hunter Reference")
 //map.getLayer("Hunter Reference").url = "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer";
@@ -273,7 +276,8 @@ function printShow(){
 
 		//4-18-22 move above because createLayer & createFeatureLayer check if it is open and return if is not open.
 		printDialog.show();
-
+		// Google Analytics print widget use
+		if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Print'});
 		// add basemaps
 		for (i=0;i<map.layerIds.length; i++){
 			map_layer = map.getLayer(map.layerIds[i]);
@@ -420,6 +424,15 @@ function printShow(){
 		if (mapLayers.length == 0){
 			registry.byId("print_button").set('disabled',false); // enable Print button
 			registry.byId("print_button").set("label", "Print");
+		}
+		// enable print button after 5 seconds because sometimes it fails
+		else {
+			setTimeout(function(){
+				if (registry.byId("print_button").label === "Loading..."){
+					registry.byId("print_button").set('disabled',false); // enable Print button
+				registry.byId("print_button").set("label", "Print");
+				}
+			},5000);
 		}
 		var pt = new Point(map.extent.xmax+((map.extent.xmin-map.extent.xmax)/2),map.extent.ymin+((map.extent.ymax-map.extent.ymin)/2),map.spatialReference);
 		previewMap.centerAndZoom(pt,map.getLevel()).then(function(){
@@ -603,14 +616,42 @@ function printMap(){
 			if (typeof gtag === "function"){
 				gtag('event','print',{
 					'seconds':value,
-					'app_name':app,
 					'page_size':pagesize,
 					'map_services':mapservices,
 					'map_scale':mapscale,
-					'map_type':maptype
+					'map_type':maptype,
+					'basemap':mapBasemap
 				});
-				gtag('event',{'widget_name': 'Print','app_name': app});
 			}	
+			if (typeof ga === "function"){
+				var label="Print "; // function
+				switch(maptype){
+					case "pdf":
+						label += "PDF";
+						break;
+					case "geopdf":
+						label += "geoPDF";
+						break;
+					case "jpg":
+						label += "JPG";
+						break;
+					case "geotiff":
+						label += "geoTIFF";
+						break;
+					case "gif":
+						label += "GIF";
+						break;
+				}
+				var custom = {
+				'metric1':value,
+				'dimension2':pagesize,
+				'dimension3':mapservices,
+				'dimension4':mapscale,
+				'dimension5':maptype
+			};
+			var action = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
+			ga('send', 'event', category, action, label, value, custom);
+		}
 
 			console.log("printing to "+result.url);
 			if (result.url.indexOf('tif') > -1 || result.url.indexOf('svgz') > -1){

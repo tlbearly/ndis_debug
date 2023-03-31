@@ -103,7 +103,7 @@ function showResults(results) {
 							showGMUCombo(settings.goatUrl,settings.goatField);
 						if (gmuSelect) gmuSelect.destroy();
 						var gmuCombo = document.createElement("span");
-						gmuCombo.id = "gmuCombo"
+						gmuCombo.id = "gmuCombo";
 						gmuDiv.appendChild(gmuCombo);
 					}
 				},
@@ -121,6 +121,9 @@ function showResults(results) {
 						}
 						else
 							query.where = gmu_field +" = "+value;
+						// Google Analytics count how many times GMU Combo is clicked on
+						if (typeof ga === "function")ga('send', 'event', "go_to_gmu", "click", "Go to GMU", "1");
+						if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Go to GMU'});
 						queryTask.execute(query,onResult,onFault);
 						queryTask = null;
 					}

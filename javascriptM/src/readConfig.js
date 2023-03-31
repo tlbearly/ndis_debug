@@ -466,10 +466,11 @@ function createMap() {
 				linkStr += '<span id="emaillink"></span>';							
 				dom.byId("links").innerHTML = linkStr;
 				// Add Google Analytics tracking
-				if (document.getElementById("licenseLink") && typeof ga === "function"){
+				if (document.getElementById("licenseLink")){
 					document.getElementById("licenseLink").addEventListener("click",function(){
 						// Google Analytics count how many times Buy License is clicked on
-						if (typeof gtag === "function")gtag('event','click',{'widget_name': 'Buy License','app_name': app});
+						if(typeof ga === "function")ga("send","event","buy_license","click","Buy License","1");
+						if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Buy License'});
 						// open CPW buy license page
 						window.open(licenseURL, "_new");
 					});
@@ -605,8 +606,7 @@ function createMap() {
 					"level": 19,
 					"resolution": 0.29858214164761665,
 					"scale": 1128.497176
-				}
-			];
+				}];
 
 				map = new Map(mapDiv, {
 					autoResize : true,
@@ -868,187 +868,188 @@ function createMap() {
 								document.getElementById("findClear").style.filter = "alpha(opacity=100)";
 							});
 						}
+					
+			
+				
+						// Zoom to a keyword and value on startup
+						if (queryObj.keyword && queryObj.keyword != "") {
+							if (!queryObj.value || queryObj.value == "") {
+								alert("When &keyword is used on the URL, there must be a &value also.", "URL Keyword/Value Error");
+								useConfigExtent();
+							} else {
+								require(["esri/request", "esri/tasks/QueryTask", "esri/tasks/query"], function (esriRequest, QueryTask, Query) {
+									var urlFile = app + "/url.xml?v=" + ndisVer;
+									var xmlurl = createXMLhttpRequest();
+									xmlurl.onreadystatechange = function () {
+										if (xmlurl.readyState == 4 && xmlurl.status === 200) {
+											var urlDoc = createXMLdoc(xmlurl);
+											var layer = urlDoc.getElementsByTagName("layer");
+											for (var i = 0; i < layer.length; i++) {
+												if (!layer[i].getElementsByTagName("keyword")[0] || !layer[i].getElementsByTagName("keyword")[0].firstChild) {
+													alert("Missing tag keyword or blank, in " + app + "/url.xml file.", "Data Error");
+													useConfigExtent();
+												}
+												if (queryObj.keyword == layer[i].getElementsByTagName("keyword")[0].firstChild.nodeValue)
+													break;
+											}
+											if (i == layer.length) {
+												alert("Keyword [" + queryObj.keyword + "] is not defined in " + app + "/url.xml file.", "Data Error");
+												useConfigExtent();
+											} else {
+												if (!layer[i].getElementsByTagName("url")[0] || !layer[i].getElementsByTagName("url")[0].firstChild) {
+													alert("Missing tag url or blank, in " + app + "/url.xml file for keyword: " + queryObj.keyword + ".", "Data Error");
+													useConfigExtent();
+												} else if (!layer[i].getElementsByTagName("expression")[0] || !layer[i].getElementsByTagName("expression")[0].firstChild) {
+													alert("Missing tag expression, in " + app + "/url.xml file for keyword: " + queryObj.keyword, "Data Error");
+													useConfigExtent();
+												} else {
+													var expr = layer[i].getElementsByTagName("expression")[0].firstChild.nodeValue.replace("[value]", queryObj.value);
+													var queryTask = new QueryTask(layer[i].getElementsByTagName("url")[0].firstChild.nodeValue);
+													var query = new Query();
+													query.where = expr;
+													query.returnGeometry = true;
+													queryTask.execute(query, function (response) {
+														if (response.features.length == 0) {
+															// 6-14-17 If it is not found in the url.xml database file try GNIS.
+															gotoLocation(queryObj.value,true);// in findPlace.js
+															//alert("Cannot zoom to value: " + queryObj.value + ". The feature was not found in " + layer[i].getElementsByTagName("url")[0].firstChild.nodeValue + " for field: " + layer[i].getElementsByTagName("field")[0].firstChild.nodeValue + ". To fix this error, edit keyword = " + queryObj.keyword + " in " + app + "/url.xml file.", "URL Keyword/Value Error");
+															//useConfigExtent();
+														} else {
+															require(["esri/geometry/Point", "esri/graphicsUtils", "esri/geometry/Extent",
+															"esri/layers/GraphicsLayer","esri/graphic","esri/symbols/PictureMarkerSymbol"],
+															function (Point, graphicsUtils, Extent,GraphicsLayer,Graphic,PictureMarkerSymbol) {
+																var searchGraphicsLayer;
+																if (response.geometryType == "esriGeometryPoint") {
+																	level = 8; // 4-19-17 Updated lods. Used to be 14
+																	if (layer[i].getElementsByTagName("mapscale")[0] && layer[i].getElementsByTagName("mapscale")[0].firstChild)
+																		level = parseInt(layer[i].getElementsByTagName("mapscale")[0].firstChild.nodeValue);
+																	if (level > 11) {
+																		alert("Illegal mapscale value, " + level + ", in " + app + "/url.xml file for keyword: " + queryObj.keyword + ". Must be less than 20. It is now a map level instead of map scale.", "Data Error");
+																		level = 8;
+																	}
+																	var d = 2000;
+																	initExtent = new Extent(response.features[0].geometry.x - d, response.features[0].geometry.y - d, response.features[0].geometry.x + d, response.features[0].geometry.y + d, response.spatialReference);
+																	labelPt = new Point(response.features[0].geometry.x, response.features[0].geometry.y, response.spatialReference);
+																	if (queryObj.label && queryObj.label != "") {
+																		// add label to find a place graphics layer
+																		searchGraphicsLayer = new GraphicsLayer();
+																		searchGraphicsLayer.id = "searchgraphics" + searchGraphicsCounter;
+																		searchGraphicsCount.push(searchGraphicsLayer.id);
+																		searchGraphicsCounter++;
+																		addLabel(new Graphic(labelPt), queryObj.label, searchGraphicsLayer, "11pt");
+																		// add point
+																		var symbol = new PictureMarkerSymbol("assets/images/yellowdot.png", 30, 30);
+																		searchGraphicsLayer.add(new Graphic(labelPt, symbol));
+																		document.getElementById("findClear").style.opacity=1.0;
+																		document.getElementById("findClear").style.filter="alpha(opacity=100)"; /* for IE8 and below */
+																	}
+																} else {
+																	var union=false;
+																	if (layer[i].getElementsByTagName("union")[0] && layer[i].getElementsByTagName("union")[0].firstChild &&
+																			layer[i].getElementsByTagName("union")[0].firstChild.nodeValue.toLowerCase() === "true"){
+																		union=true;
+																	}
+																	// zoom to extent of first feature
+																	if (!union){
+																		labelPt = response.features[0].geometry.getCentroid();
+																		initExtent = response.features[0].geometry.getExtent();
+																	}
+																	// zoom to extent of all features 1-14-19
+																	else{
+																		var newExtent = new Extent(response.features[0].geometry.getExtent());
+																		for (var j = 0; j < response.features.length; j++) { 
+																			var thisExtent = response.features[j].geometry.getExtent();
+																			// making a union of extent or previous feature and current feature. 
+																			newExtent = newExtent.union(thisExtent);
+																		} 
+																		initExtent=newExtent;
+																		labelPt = newExtent.getCenter();
+																	}	
+																	if (queryObj.label && queryObj.label != "") {
+																		// add label to find a place graphics layer
+																		searchGraphicsLayer = new GraphicsLayer();
+																		searchGraphicsLayer.id = "searchgraphics" + searchGraphicsCounter;
+																		searchGraphicsCount.push(searchGraphicsLayer.id);
+																		searchGraphicsCounter++;
+																		addLabel(new Graphic(labelPt), queryObj.label, searchGraphicsLayer, "11pt");
+																		document.getElementById("findClear").style.opacity=1.0;
+																		document.getElementById("findClear").style.filter="alpha(opacity=100)"; /* for IE8 and below */
+																	}
+																}
+																map.setExtent(initExtent,true); // 6-14-17
+																//initMap();
+															});
+														}
+													}, function (error) {
+														if (error.responseText)
+															alert("Error: QueryTask failed for keyword=" + queryObj.keyword + " value=" + queryObj.value + " " + error.message + error.responseText, "URL Keyword/Value Error", error);
+														else
+															alert("Error: QueryTask failed for keyword=" + queryObj.keyword + " value=" + queryObj.value + " " + error.message, "URL Keyword/Value Error", error);
+														useConfigExtent();
+													});
+												}
+											}
+										} else if (xmlurl.status === 404) {
+											alert("Missing url.xml file in " + app + " directory.", "Data Error");
+											useConfigExtent();
+										} else if (xmlurl.readyState === 4 && xmlurl.status === 500) {
+											alert("Error: had trouble reading " + app + "/url.xml file in readConfig.js.", "Data Error");
+											useConfigExtent();
+										}
+									};
+									xmlurl.open("GET", urlFile, true);
+									xmlurl.send(null);
+								});
+							}
+						}
+						// Zoom to a place on startup
+						else if (queryObj.place && queryObj.place != "") {
+							var place = queryObj.place.replace("%20"," ");
+							if (queryObj.prj && queryObj.prj!="") settings = {XYProjection: queryObj.prj};				
+							gotoLocation(place,true); // pass true to tell it that it was called from the url. In findPlace.js
+						}
+						else if (queryObj.map && queryObj.map != "") {
+							if (!queryObj.value || queryObj.value == "" || !queryObj.field || queryObj.field == "") {
+								alert("When &map is used on the URL, there must also be an &field and &value.", "URL Map/Value Error");
+								useConfigExtent();
+							} else {
+								require(["esri/request", "esri/tasks/QueryTask", "esri/tasks/query"], function (esriRequest, QueryTask, Query) {
+									var queryTask = new QueryTask(queryObj.map);
+									var query = new Query();
+									if (Number(queryObj.value))
+										query.where = queryObj.field + "=" + queryObj.value;
+									else
+										query.where = "UPPER(" + queryObj.field + ") LIKE UPPER('" + queryObj.value + "')";
+									query.returnGeometry = true;
+									queryTask.execute(query, function (response) {
+										require(["esri/geometry/Point", "esri/graphicsUtils", "esri/geometry/Extent"], function (Point, graphicsUtils, Extent) {
+											if (response.features.length == 0) {
+												alert("Cannot zoom to " + queryObj.value + ". The feature was not found in " + queryObj.map + " for field " + queryObj.field, "URL Map/Value Error");
+												useConfigExtent();
+											} else {
+												if (response.geometryType == "esriGeometryPoint") {
+													var d = 65000;
+													initExtent = new Extent(response.features[0].geometry.x - d, response.features[0].geometry.y - d, response.features[0].geometry.x + d, response.features[0].geometry.y + d, response.spatialReference);
+												} else
+													initExtent = response.features[0].geometry.getExtent();
+												map.setExtent(initExtent,true);
+												//initMap();
+											}
+										});
+									}, function (error) {
+										if (error.responseText)
+											alert("Error: QueryTask failed for map=" + queryObj.map + " " + error.message + error.responseText, "URL Map/Value Error", error);
+										else
+											alert("Error: QueryTask failed for map=" + queryObj.map + " " + error.message, "URL Map/Value Error", error);
+										useConfigExtent();
+									});
+								});
+							}
+						}
 					} catch (e) {
 						alert("Could not load map. " + e.message, "Warning", e);
 					}
-				});
-			
-				// 6-14-17 moved place and keyword url parameters here
-				// Zoom to a keyword and value on startup
-				if (queryObj.keyword && queryObj.keyword != "") {
-					if (!queryObj.value || queryObj.value == "") {
-						alert("When &keyword is used on the URL, there must be a &value also.", "URL Keyword/Value Error");
-						useConfigExtent();
-					} else {
-						require(["esri/request", "esri/tasks/QueryTask", "esri/tasks/query"], function (esriRequest, QueryTask, Query) {
-							var urlFile = app + "/url.xml?v=" + ndisVer;
-							var xmlurl = createXMLhttpRequest();
-							xmlurl.onreadystatechange = function () {
-								if (xmlurl.readyState == 4 && xmlurl.status === 200) {
-									var urlDoc = createXMLdoc(xmlurl);
-									var layer = urlDoc.getElementsByTagName("layer");
-									for (var i = 0; i < layer.length; i++) {
-										if (!layer[i].getElementsByTagName("keyword")[0] || !layer[i].getElementsByTagName("keyword")[0].firstChild) {
-											alert("Missing tag keyword or blank, in " + app + "/url.xml file.", "Data Error");
-											useConfigExtent();
-										}
-										if (queryObj.keyword == layer[i].getElementsByTagName("keyword")[0].firstChild.nodeValue)
-											break;
-									}
-									if (i == layer.length) {
-										alert("Keyword [" + queryObj.keyword + "] is not defined in " + app + "/url.xml file.", "Data Error");
-										useConfigExtent();
-									} else {
-										if (!layer[i].getElementsByTagName("url")[0] || !layer[i].getElementsByTagName("url")[0].firstChild) {
-											alert("Missing tag url or blank, in " + app + "/url.xml file for keyword: " + queryObj.keyword + ".", "Data Error");
-											useConfigExtent();
-										} else if (!layer[i].getElementsByTagName("expression")[0] || !layer[i].getElementsByTagName("expression")[0].firstChild) {
-											alert("Missing tag expression, in " + app + "/url.xml file for keyword: " + queryObj.keyword, "Data Error");
-											useConfigExtent();
-										} else {
-											var expr = layer[i].getElementsByTagName("expression")[0].firstChild.nodeValue.replace("[value]", queryObj.value);
-											var queryTask = new QueryTask(layer[i].getElementsByTagName("url")[0].firstChild.nodeValue);
-											var query = new Query();
-											query.where = expr;
-											query.returnGeometry = true;
-											queryTask.execute(query, function (response) {
-												if (response.features.length == 0) {
-													// 6-14-17 If it is not found in the url.xml database file try GNIS.
-													gotoLocation(queryObj.value,true);// in findPlace.js
-													//alert("Cannot zoom to value: " + queryObj.value + ". The feature was not found in " + layer[i].getElementsByTagName("url")[0].firstChild.nodeValue + " for field: " + layer[i].getElementsByTagName("field")[0].firstChild.nodeValue + ". To fix this error, edit keyword = " + queryObj.keyword + " in " + app + "/url.xml file.", "URL Keyword/Value Error");
-													//useConfigExtent();
-												} else {
-													require(["esri/geometry/Point", "esri/graphicsUtils", "esri/geometry/Extent",
-													"esri/layers/GraphicsLayer","esri/graphic","esri/symbols/PictureMarkerSymbol"],
-													function (Point, graphicsUtils, Extent,GraphicsLayer,Graphic,PictureMarkerSymbol) {
-														var searchGraphicsLayer;
-														if (response.geometryType == "esriGeometryPoint") {
-															level = 8; // 4-19-17 Updated lods. Used to be 14
-															if (layer[i].getElementsByTagName("mapscale")[0] && layer[i].getElementsByTagName("mapscale")[0].firstChild)
-																level = parseInt(layer[i].getElementsByTagName("mapscale")[0].firstChild.nodeValue);
-															if (level > 11) {
-																alert("Illegal mapscale value, " + level + ", in " + app + "/url.xml file for keyword: " + queryObj.keyword + ". Must be less than 20. It is now a map level instead of map scale.", "Data Error");
-																level = 8;
-															}
-															var d = 2000;
-															initExtent = new Extent(response.features[0].geometry.x - d, response.features[0].geometry.y - d, response.features[0].geometry.x + d, response.features[0].geometry.y + d, response.spatialReference);
-															labelPt = new Point(response.features[0].geometry.x, response.features[0].geometry.y, response.spatialReference);
-															if (queryObj.label && queryObj.label != "") {
-																// add label to find a place graphics layer
-																searchGraphicsLayer = new GraphicsLayer();
-																searchGraphicsLayer.id = "searchgraphics" + searchGraphicsCounter;
-																searchGraphicsCount.push(searchGraphicsLayer.id);
-																searchGraphicsCounter++;
-																addLabel(new Graphic(labelPt), queryObj.label, searchGraphicsLayer, "11pt");
-																// add point
-																var symbol = new PictureMarkerSymbol("assets/images/yellowdot.png", 30, 30);
-																searchGraphicsLayer.add(new Graphic(labelPt, symbol));
-																document.getElementById("findClear").style.opacity=1.0;
-																document.getElementById("findClear").style.filter="alpha(opacity=100)"; /* for IE8 and below */
-															}
-														} else {
-															var union=false;
-															if (layer[i].getElementsByTagName("union")[0] && layer[i].getElementsByTagName("union")[0].firstChild &&
-																	layer[i].getElementsByTagName("union")[0].firstChild.nodeValue.toLowerCase() === "true"){
-																union=true;
-															}
-															// zoom to extent of first feature
-															if (!union){
-																labelPt = response.features[0].geometry.getCentroid();
-																initExtent = response.features[0].geometry.getExtent();
-															}
-															// zoom to extent of all features 1-14-19
-															else{
-																var newExtent = new Extent(response.features[0].geometry.getExtent());
-																for (var j = 0; j < response.features.length; j++) { 
-																	var thisExtent = response.features[j].geometry.getExtent();
-																	// making a union of extent or previous feature and current feature. 
-																	newExtent = newExtent.union(thisExtent);
-																} 
-																initExtent=newExtent;
-																labelPt = newExtent.getCenter();
-															}	
-															if (queryObj.label && queryObj.label != "") {
-																// add label to find a place graphics layer
-																searchGraphicsLayer = new GraphicsLayer();
-																searchGraphicsLayer.id = "searchgraphics" + searchGraphicsCounter;
-																searchGraphicsCount.push(searchGraphicsLayer.id);
-																searchGraphicsCounter++;
-																addLabel(new Graphic(labelPt), queryObj.label, searchGraphicsLayer, "11pt");
-																document.getElementById("findClear").style.opacity=1.0;
-																document.getElementById("findClear").style.filter="alpha(opacity=100)"; /* for IE8 and below */
-															}
-														}
-														map.setExtent(initExtent,true); // 6-14-17
-														//initMap();
-													});
-												}
-											}, function (error) {
-												if (error.responseText)
-													alert("Error: QueryTask failed for keyword=" + queryObj.keyword + " value=" + queryObj.value + " " + error.message + error.responseText, "URL Keyword/Value Error", error);
-												else
-													alert("Error: QueryTask failed for keyword=" + queryObj.keyword + " value=" + queryObj.value + " " + error.message, "URL Keyword/Value Error", error);
-												useConfigExtent();
-											});
-										}
-									}
-								} else if (xmlurl.status === 404) {
-									alert("Missing url.xml file in " + app + " directory.", "Data Error");
-									useConfigExtent();
-								} else if (xmlurl.readyState === 4 && xmlurl.status === 500) {
-									alert("Error: had trouble reading " + app + "/url.xml file in readConfig.js.", "Data Error");
-									useConfigExtent();
-								}
-							};
-							xmlurl.open("GET", urlFile, true);
-							xmlurl.send(null);
-						});
-					}
-				}
-				// Zoom to a place on startup
-				else if (queryObj.place && queryObj.place != "") {
-					var place = queryObj.place.replace("%20"," ");
-					if (queryObj.prj && queryObj.prj!="") settings = {XYProjection: queryObj.prj};
-					gotoLocation(place,true); // pass true to tell it that it was called from the url. In findPlace.js
-				}
-				else if (queryObj.map && queryObj.map != "") {
-					if (!queryObj.value || queryObj.value == "" || !queryObj.field || queryObj.field == "") {
-						alert("When &map is used on the URL, there must also be an &field and &value.", "URL Map/Value Error");
-						useConfigExtent();
-					} else {
-						require(["esri/request", "esri/tasks/QueryTask", "esri/tasks/query"], function (esriRequest, QueryTask, Query) {
-							var queryTask = new QueryTask(queryObj.map);
-							var query = new Query();
-							if (Number(queryObj.value))
-								query.where = queryObj.field + "=" + queryObj.value;
-							else
-								query.where = "UPPER(" + queryObj.field + ") LIKE UPPER('" + queryObj.value + "')";
-							query.returnGeometry = true;
-							queryTask.execute(query, function (response) {
-								require(["esri/geometry/Point", "esri/graphicsUtils", "esri/geometry/Extent"], function (Point, graphicsUtils, Extent) {
-									if (response.features.length == 0) {
-										alert("Cannot zoom to " + queryObj.value + ". The feature was not found in " + queryObj.map + " for field " + queryObj.field, "URL Map/Value Error");
-										useConfigExtent();
-									} else {
-										if (response.geometryType == "esriGeometryPoint") {
-											var d = 65000;
-											initExtent = new Extent(response.features[0].geometry.x - d, response.features[0].geometry.y - d, response.features[0].geometry.x + d, response.features[0].geometry.y + d, response.spatialReference);
-										} else
-											initExtent = response.features[0].geometry.getExtent();
-										map.setExtent(initExtent,true);
-										//initMap();
-									}
-								});
-							}, function (error) {
-								if (error.responseText)
-									alert("Error: QueryTask failed for map=" + queryObj.map + " " + error.message + error.responseText, "URL Map/Value Error", error);
-								else
-									alert("Error: QueryTask failed for map=" + queryObj.map + " " + error.message, "URL Map/Value Error", error);
-								useConfigExtent();
-							});
-						});
-					}
-				}
+				});// map on load
 			} catch (e) {
 				alert("Could not load map. " + e.message, "Warning", e);
 			}
@@ -1470,6 +1471,17 @@ function initBasemaps() {
 				document.getElementById("basemapPane").style.display = "none";
 				closeMenu();
 				mapBasemap = item.item.id;// save the selected basemap in a global
+				// send Google Analytics widget_click event but not on startup
+				if(typeof ga === 'function' || typeof gtag === 'function'){
+					if (initBasemap){
+						if (typeof ga === 'function')ga('send', 'event', "basemap", "click", "Basemap", "1");
+						if (typeof gtag === 'function'){
+							gtag('event','widget_click',{'widget_name': 'Basemap'});
+							gtag('event','basemap_change',{'basemap':item.item.id});
+						}
+					}
+					initBasemap=true;
+				}
 			});
 			gallery.startup();
 			gallery._slideDiv.style.width = 'auto';

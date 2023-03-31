@@ -100,6 +100,13 @@
 -->
 <configuration>
 	<layer>
+		<keyword>fspot</keyword>
+		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/0</url>
+		<expression>UNI_ID=[value]</expression>
+		<mapscale/>
+		<field>UNI_ID</field>
+	</layer>
+	<layer>
 		<keyword>county</keyword>
 		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/1</url>
 		<expression>UPPER(COUNTYNAME)=UPPER('[value]')</expression>

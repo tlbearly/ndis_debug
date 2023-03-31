@@ -498,6 +498,9 @@ function gotoLocation() {
 		handleCoordinate(value);
 		return;
 	}
+	// Google Analytics count how many times Buy License is clicked on
+	if (typeof ga === "function") ga('send', 'event', "find_place", "click", "Find a Place", "1");
+	if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Find a Place'});
 	// if selected from drop down suggestion list
 	if (!calledFromURL && findCombo && findCombo.item && findCombo.item.label) {
 		showLoading();

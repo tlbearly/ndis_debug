@@ -1,0 +1,1 @@
+if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Find a Place','app_name': app.toLowerCase()});

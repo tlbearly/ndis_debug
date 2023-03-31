@@ -113,7 +113,7 @@
 				&nbsp;&nbsp;USA_ZIP_Codes_2014/FeatureServer/0&field=Zip&value=80524<br/>
 				
 				<br/>For example zoom to Larimer County:<br>&nbsp;&nbsp;<%=app%>/index.aspx?map=http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/<br/>
-				&nbsp;&nbsp;HuntingAtlas/CHA_FindAPlaceTool_Data/MapServer/1&field=COUNTYNAME&value=larimer<br/><br/>
+				&nbsp;&nbsp;HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/1&field=COUNTYNAME&value=larimer<br/><br/>
 				Note: this map service must be a free Esri map service. Others may or may not work. For a list of Esri map services see: http://www.arcgis.com/home/gallery.html 
 			</li>
 			

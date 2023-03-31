@@ -516,8 +516,8 @@ function reportInit(){
 		}
 		function reportPreview(){
 			// Google Analytics count how many times Resource Report is clicked on
-			//if (typeof ga === "function")ga('send', 'event', "resource_report", "click", "Resource Report", "1");
-			if (typeof gtag === "function")gtag('event','click',{'widget_name': 'Resource Report','app_name': app});
+			if (typeof ga === "function")ga('send', 'event', "resource_report", "click", "Resource Report", "1");
+			if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Resource Report'});
 			
 			document.getElementById("reportMsg1").innerHTML = msg;
 			document.getElementById("reportMsg2").innerHTML = msg;

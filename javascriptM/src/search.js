@@ -528,10 +528,6 @@ function searchInit() {
 					function setSelection(event) {
 						// user made a selection in the "search for:" drop down. Display a table of multiple matches or zoom to a single match.
 						try {
-							// Google Analytics count how many times Feature Search is clicked on
-							//if (typeof ga === "function")ga('send', 'event', "feature_search", "click", "Feature Search", "1");
-							if (typeof gtag === "function")gtag('event','click',{'widget_name': 'Feature Search','app_name': app});
-
 							// Prevent form submission from loading a new page
 							if (event){
 								event.stopImmediatePropagation(); // don't call this twice
@@ -567,6 +563,9 @@ function searchInit() {
 							clearSelection();
 							var expr;
 							document.getElementById("searchLoadingImg").style.display="block";
+							// Google Analytics count how many times Feature Search is clicked on
+							if (typeof ga === "function")ga('send', 'event', "feature_search", "click", "Feature Search", "1");
+							if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Feature Search'});
 							
 							// --------------------------------------------------
 							// Do we need to do a database lookup with this info?
@@ -1037,7 +1036,7 @@ function searchInit() {
 							header[displayNames[i].replace(/ /g,"_")]=obj;
 							if ((header[displayNames[i].replace(/ /g,"_")].label.length+10) > width[displayFields[i]])
 								width[displayFields[i]]=header[displayNames[i].replace(/ /g,"_")].label.length+10;
-							width[displayFields[i]]=width[displayFields[i]]*ave_char_width+"px"
+							width[displayFields[i]]=width[displayFields[i]]*ave_char_width+"px";
 							// if it is a link add formatter function
 							if (queryLinkField.indexOf(displayFields[i]) > -1) header[displayNames[i].replace(/ /g,"_")].formatter = makeLink;
 						}
@@ -1062,7 +1061,7 @@ function searchInit() {
 						for (var i=0;i<sortFields.length;i++) sortFields[i]=sortFields[i].replace(/ /g,"_");
 						var numericSort = {};
 						var numericArr = searchObj[attr].numericsort.split(",");
-						for (var i=0;i<sortFields.length;i++){
+						for (i=0;i<sortFields.length;i++){
 							numericSort[sortFields[i]] = numericArr[i];
 						}
 						function multiColumnSort(arr, sf, numericSort) {
@@ -1083,7 +1082,7 @@ function searchInit() {
 						  });
 						  s += Array(sf.length).join('}') + ';return -1';
 						  return arr.sort(new Function(s));
-						};
+						}
 						multiColumnSort(recAC,sortFields,numericSort);
 						//fsGrid.renderArray(recAC);
 						// Set column widths

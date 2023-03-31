@@ -34,6 +34,8 @@
 	}
 	function setMapScale(list) {
 		map.setScale(list[list.selectedIndex].value);
+		if (typeof ga === 'function')ga('send', 'event', "mapscale", "click", "Map Scale", "1");
+		if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Map Scale'});
 	}
 
 
