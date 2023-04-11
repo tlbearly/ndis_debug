@@ -1505,7 +1505,7 @@ function showPrintPreview(){
 						label += "GIF";
 						break;
 				}
-				var action = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
+				var action = sizeCombo.attr('value');
 				var category = action+" "+maptype+" "+mapservices;
 				var custom = {
 					'metric1':value,
