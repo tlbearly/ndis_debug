@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>Intro to MapView - Create a 2D map</title>
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.26/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.26/"></script>
+    <script>
+      require(["esri/Map", "esri/views/MapView","esri/layers/Layer", "esri/layers/FeatureLayer", "esri/layers/GroupLayer","esri/widgets/LayerList",
+        "esri/widgets/Slider"], 
+      (Map, MapView,Layer,FeatureLayer,GroupLayer,LayerList,Slider) => {
+        const map = new Map({
+          basemap: "topo-vector"
+        });
+        const view = new MapView({
+          container: "viewDiv", // Reference to the view div created in step 5
+          map: map, // Reference to the map object created before the view
+          zoom: 7, // Sets zoom level based on level of detail (LOD)
+          center: [-105.6, 39] // Sets center point of view using longitude,latitude
+        });
+
+
+        // Create a layer from a specified portal item and add to the map
+        // lXJFlE_sZTISvjwjxtrd2RcNLrGRYjg31j3HOhtGET8
+        // winter range https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/43
+        //8444e275037549c1acab02d2626daaee population in cities
+        /*const cities = Layer.fromPortalItem({
+            portalItem: {  // autocasts new PortalItem()
+                id: "50322b83e815436aadf588757822e72f"
+            }
+        });*/
+
+        let gameSpeciesGroupLayer = new GroupLayer({
+            title: "Game Species",
+            visible: true,
+            visibilityMode: "exclusive", // radio buttons
+            opacity: 0.75
+        });
+        // Elk
+        let elkGroupLayer = new GroupLayer({
+            title: "Elk",
+            visible: true,
+            //visibilityMode: "exclusive", // radio buttons
+            opacity: 0.75
+        });
+        // This snippet shows how to add a feature layer from an ArcGIS Server URL
+        // Get an ArcGIS Server URL from a custom function
+       let ewr = new FeatureLayer({
+            url: "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/43",
+            title: "Elk Winter Range"
+        });
+        elkGroupLayer.add(ewr);
+        
+        let ewca = new FeatureLayer({
+            url: "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/42",
+            title: "Elk Winter Concentration Area"
+        });
+        elkGroupLayer.add(ewca);
+        gameSpeciesGroupLayer.add(elkGroupLayer);
+
+        let mooseGroupLayer = new GroupLayer({
+            title: "Moose",
+            visible: true,
+            opacity: 0.75
+        });
+        let mwr = new FeatureLayer({
+            url: "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/84",
+            title: "Moose Winter Range"
+        });
+        mooseGroupLayer.add(mwr);
+        gameSpeciesGroupLayer.add(mooseGroupLayer);
+        
+        map.add(gameSpeciesGroupLayer);
+        
+
+
+        // --------------------
+        //   Layer List
+        //---------------------
+         // Creates actions in the LayerList.
+
+         async function defineActions(event) {
+          // The event object contains an item property.
+          // is is a ListItem referencing the associated layer
+          // and other properties. You can control the visibility of the
+          // item, its title, and actions using this object.
+
+          const item = event.item;
+
+          await item.layer.when();
+
+          if (item.title === "Elk Winter Range") {
+            // An array of objects defining actions to place in the LayerList.
+            // By making this array two-dimensional, you can separate similar
+            // actions into separate groups with a breaking line.
+
+            item.actionsSections = [
+              [
+                {
+                  title: "Go to full extent",
+                  className: "esri-icon-zoom-out-fixed",
+                  id: "full-extent"
+                },
+                {
+                  title: "Layer information",
+                  className: "esri-icon-description",
+                  id: "information"
+                }
+              ],
+              [
+                {
+                  title: "Increase opacity",
+                  className: "esri-icon-up",
+                  id: "increase-opacity"
+                },
+                {
+                  title: "Decrease opacity",
+                  className: "esri-icon-down",
+                  id: "decrease-opacity"
+                }
+              ]
+            ];
+          }
+
+          // Adds a slider for updating a group layer's opacity
+          if(item.children.length > 1 && item.parent){
+            const slider = new Slider({
+              min: 0,
+              max: 1,
+              precision: 2,
+              values: [ 1 ],
+              visibleElements: {
+                labels: true,
+                rangeLabels: true
+              }
+            });
+
+            item.panel = {
+              content: slider,
+              className: "esri-icon-sliders-horizontal",
+              title: "Change layer opacity"
+            }
+
+            slider.on("thumb-drag", (event) => {
+              const { value } = event;
+              item.layer.opacity = value;
+            })
+          }
+        }
+
+        view.when(() => {
+          // Create the LayerList widget with the associated actions
+          // and add it to the top-right corner of the view.
+
+          const layerList = new LayerList({
+            view: view,
+            // executes for each ListItem in the LayerList
+            listItemCreatedFunction: defineActions
+          });
+
+          // Event listener that fires each time an action is triggered
+
+          layerList.on("trigger-action", (event) => {
+            // The layer visible in the view at the time of the trigger.
+            const visibleLayer = event.item.layer;
+
+            // Capture the action id.
+            const id = event.action.id;
+
+            if (id === "full-extent") {
+              // if the full-extent action is triggered then navigate
+              // to the full extent of the visible layer
+              view.goTo(visibleLayer.fullExtent)
+              .catch((error) => {
+                if (error.name != "AbortError"){
+                  console.error(error);
+                }
+              });
+            } else if (id === "information") {
+              // if the information action is triggered, then
+              // open the item details page of the service layer
+              window.open("/HuntingAtlas/definitions.html");
+            } else if (id === "increase-opacity") {
+              // if the increase-opacity action is triggered, then
+              // increase the opacity of the GroupLayer by 0.25
+
+              if (demographicGroupLayer.opacity < 1) {
+                demographicGroupLayer.opacity += 0.25;
+              }
+            } else if (id === "decrease-opacity") {
+              // if the decrease-opacity action is triggered, then
+              // decrease the opacity of the GroupLayer by 0.25
+
+              if (demographicGroupLayer.opacity > 0) {
+                demographicGroupLayer.opacity -= 0.25;
+              }
+            }
+          });
+
+          // Add widget to the top right corner of the view
+          view.ui.add(layerList, "top-right");
+        });
+      
+      });
+    </script>
+  </head>
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+</html>

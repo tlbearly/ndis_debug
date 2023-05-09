@@ -201,12 +201,12 @@ function searchInit() {
 							},function (err){
 								document.getElementById("searchLoadingImg").style.display="none";
 								alert("Feature Search query error: looking up feature type suggestions in javascript/search.js updateSearchTextStore(). "+
-									searchObj[attr].url+"/query?where="+expr+"&outfields="+searchObj[attr].searchfield	+" "+err.message,"Date Error",err);
+									searchObj[attr].url+"/query?where="+expr+"&outfields="+searchObj[attr].searchfield	+" "+err.message,"Code Error",err);
 							});
 						}
 						catch(e){
 							document.getElementById("searchLoadingImg").style.display="none";				
-							alert("Feature Search error: "+e.message+" in search.js/updateSearchTextStore.","Data Error",e);
+							alert("Feature Search error: "+e.message+" in search.js/updateSearchTextStore.","Code Error",e);
 						}
 					}
 					
@@ -274,6 +274,9 @@ function searchInit() {
 					function setSelection() {
 						// user made a selection in the "search for:" drop down. Display a table of multiple matches or zoom to a single match.
 						try {
+							// Google Analytics count how many times Buy License is clicked on
+							if (typeof ga === "function") ga('send', 'event', "feature_search", "click", "Feature Search", "1");
+
 							var userTypedTxt = registry.byId("searchText").get("value");
 							// protect against xss attacks
 							var regexp=/([^a-zA-Z0-9 :#\-\',\.!_\*()/&])/g; // 8-18-20 add / character
@@ -289,10 +292,7 @@ function searchInit() {
 							registry.byId("searchRemoveBtn").set("disabled", false);
 							var expr;
 							document.getElementById("searchLoadingImg").style.display="block";
-							// Google Analytics count how many times Buy License is clicked on
-							if (typeof ga === "function") ga('send', 'event', "feature_search", "click", "Feature Search", "1");
-							if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Feature Search'});
-
+							
 							// --------------------------------------------------
 							// Do we need to do a database lookup with this info?
 							// --------------------------------------------------
@@ -973,8 +973,7 @@ function searchInit() {
 						require(["esri/tasks/query", "esri/tasks/QueryTask"],function(Query,QueryTask){
 							// Google Analytics count how many times Buy License is clicked on
 							if (typeof ga === "function") ga('send', 'event', "graphical_search", "click", "Graphical Search", "1");
-							if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Graphical Search'});
-							
+
 							var attr = registry.byId("featureTypeGraphic").attr("displayedValue");
 							if (attr == fishSpeciesGraphicalName) attr = "Fish species";
 							if (attr == "GMUs" && settings.useGMUs) {

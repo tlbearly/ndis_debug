@@ -4,13 +4,37 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no" />
     <meta charset="utf-8" />
-    <title>Test ArcGIS API for JavaScript 4.24</title>
+    <title>Test ArcGIS API for JavaScript 4.26</title>
 
     <link rel="stylesheet" href="https://js.arcgis.com/4.24/esri/themes/light/main.css" async="true"/>
     <link rel="stylesheet" type="text/css" href="assets/css/claro/claro.css?v=1">
     
     <script src="https://js.arcgis.com/4.24/"></script>
+    <!-- dojo is not longer a part of 4.25 so load it here. Download it from https://dojotoolkit.org/download/ release package .zip 
+        This gave an error so use https://download.dojotoolkit.org/release-1.17.3/dojo-release-1.17.3.zip. Put on Google drive  -->
     <!--script src="//ajax.googleapis.com/ajax/libs/dojo/1.14.1/dojo/dojo.js"></script--> <!-- gets redefined error!!!-->
+    <!--script>
+      var dojoConfig = {
+        baseUrl: "/js/",
+        tlmSiblingOfDojo: false,
+        packages: [
+            { name: "dojo", location: "lib/dojo" },
+            { name: "dijit", location: "lib/dijit" },
+            { name: "dojox", location: "lib/dojox" },
+            {
+              name: "dgrid1",
+              location: "../../3.42/dgrid1"
+            },
+            {
+              name: "dstore",
+              location: "../../3.42/dstore"
+            }
+          ]
+    };
+  </script-->
+
+
+
     <link rel="shortcut icon" href="assets/images/favicon.png" />
     <link rel="icon" type="image/png" href="assets/images/favicon.png" />
     
@@ -27,39 +51,108 @@
     <script type="text/javascript" src="javascript/identify.js?v=3.20"></script>	
     <script type="text/javascript" src="javascript/maplink.js?v=3.17"></script>
     <script type="text/javascript" src="javascript/print.js?v=3.21></script>
-    <script type="text/javascript" src="javascript/readConfig.js?v=3.24a"></script>
+    <script type="text/javascript" src="javascript/readConfig.js?v=3.24"></script>
     <script type="text/javascript" src="javascript/resourceReport.js?v=3.16"></script>
     <script type="text/javascript" src="javascript/search.js?v=3.20"></script-->
 
     <!-- For Debugging -->
     <script>
       var jsVer = Date.now();
+      //var jsVer = "a";
       var path = "javascript/src";
       document.write('<link rel="stylesheet" href="assets/css/layout.css?v=' + jsVer + '"><\/script>');
-      //v4 document.write('<script type="text/javascript" src="' + path + '/errorBox.js?v=' + jsVer + '"><\/script>');
-      document.write('<script type="text/javascript" src="' + path + '/xmlUtils.js?v=' + jsVer + '"><\/script>');
-      document.write('<script type="text/javascript" src="' + path + '/utilFuncs.js?v=' + jsVer + '"><\/script>');
+      //v4 document.write('<script type="text/javascript" src="' + path + '/errorBox.js?v=' + jsVer + '" async><\/script>');
+      document.write('<script type="text/javascript" src="' + path + '/xmlUtils.js?v=' + jsVer + '" async><\/script>');
+      document.write('<script type="text/javascript" src="' + path + '/utilFuncs.js?v=' + jsVer + '" async><\/script>');
       //v4        document.write('<script type="text/javascript" src="' + path + '/bookmark.js?v=' + jsVer + '"><\/script>');
-      document.write('<script type="text/javascript" src="' + path + '/disclaimer.js?v=' + jsVer + '"><\/script>');
+      document.write('<script type="text/javascript" src="' + path + '/disclaimer.js?v=' + jsVer + '" async><\/script>');
       //v4        document.write('<script type="text/javascript" src="' + path + '/draw.js?v=' + jsVer + '"><\/script>');
-      //v4        document.write('<script type="text/javascript" src="' + path + '/findPlace.js?v=' + jsVer + '"><\/script>');
       //v4        document.write('<script type="text/javascript" src="' + path + '/gmu.js?v=' + jsVer + '"><\/script>');
       //v4        document.write('<script type="text/javascript" src="' + path + '/identify.js?v=' + jsVer + '"><\/script>');
-      //v4        document.write('<script type="text/javascript" src="' + path + '/maplink.js?v=' + jsVer + '"><\/script>');
+      document.write('<script type="text/javascript" src="' + path + '/maplink.js?v=' + jsVer + '"><\/script>');
       //v4        document.write('<script type="text/javascript" src="' + path + '/print.js?v=' + jsVer + '"><\/script>');
       //document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '"><\/script>');
-        document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=46"><\/script>');
+        document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '" async><\/script>');
+        //document.write('<script type="text/javascript" src="' + path + '/basemapGallery.js?v=' + jsVer + '"><\/script>');
+          document.write('<script type="text/javascript" src="' + path + '/myBasemapGallery.js?v=' + jsVer + '"><\/script>');
       //v4        document.write('<script type="text/javascript" src="' + path + '/resourceReport.js?v=' + jsVer + '"><\/script>');
       //v4        document.write('<script type="text/javascript" src="' + path + '/search.js?v=' + jsVer + '"><\/script>');
     </script>
 
     <script>
+      function settingsXYProj(){
+        require(['dijit/registry'],function(registry){
+            if (registry.byId('pointUnits'))registry.byId('pointUnits').set('value',registry.byId('settings_xy_proj').value);
+            registry.byId('help_xy_proj').set('value',registry.byId('settings_xy_proj').value);
+            settings.XYProjection=registry.byId('settings_xy_proj').value;
+            setCookie('prj', registry.byId('settings_xy_proj').value);
+        });
+        // Send widget click event, but not on startup!
+        if (typeof ga === 'function' || typeof gtag === 'function'){
+            if (initSettingsXYProj){
+                if (typeof ga === 'function')ga('send', 'event', "settings_xy_proj", "click", "Settings XY Proj", "1");
+                if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Settings XY Proj'});
+            }
+            initSettingsXYProj=true;
+        }
+      }
+
+      // Global Variables
+      var ndisVer = Date.now(); // for xml files
       var map,view;
-      var app="HuntingAtlas";
-      var ndisVer="4.0";
       var natgeo,streets,aerial,topo,fsTopo,imagery_topo,topo2;
       var wkid;
       var openedFeatureSearch = false;
+      var queryObj = {};
+      var geometryService; // set in readConfig.js from geometryservice tag in config.xml
+      var printServiceUrl; // set in readConfig.js from printservice tag in config.xml
+      var printGeoServiceUrl; // set in readConfig.js from printservice tag in config.xml
+      var map, geocoder, legendLayers = [];
+      var initExtent, wkid, fullExtent;
+      var mapBasemap = "streets";
+      var basemapGallery;
+      var drawing = false; // flag to turn off identify if drawing
+      var loading;
+      var visible = [];
+      var settings; // hold user defined settings {XYProjection: 26913, ...} Set in readSettingsWidget in identify.js
+      var use_map_link, use_get_extent; // Read from SettingsWidget.xml in readSettingsWidget in identify.js.
+      var drawGraphicsCount = []; // store names of graphics layers used to display one point,line, label, or polygon for Draw, Label, Measure.
+      var drawGraphicsCounter = 0;
+      var drawGraphicsLayer;
+      var drawTextGraphicsLayer;
+      var drawTextGraphicsCount = []; // store names of graphics layers used to display one point,line, label, or polygon for Draw, Label, Measure.
+      var drawTextGraphicsCounter = 0;
+      var app;
+      var addressVideo = null;
+      var tocVideo = null;
+      var searchVideo = null;
+      var reportVideo = null;
+      var mapLayers = [];
+      var previewMap; // print preview map
+      var hideGroupSublayers = "",
+          radioLayers = "";
+      var myFindService;
+
+      // for multiple httprequests. Used in identify.js and resourceReport.js
+      var index;
+      var XMLHttpRequestObjects = []; // holds database call object
+
+      var gmu = "Big Game GMU";
+      var openedFeatureSearch = false; // call feature search initiation routine when panel is opened, not at startup
+      var openedHB1298 = false; // call feature HB1298 initiation routine when panel is opened, not at startup
+      var initSettingsXYProj=false;//flag to not send Google Analytics widget_click event on startup
+      var initBasemap=false;//flag to not send Google Analytics widget_click event on startup
+      
+      // get app name
+      if (document.location.search == "") app = "HuntingAtlas";
+      else {
+          var end = document.location.search.indexOf('&');
+          if (end == -1) end = document.location.search.length;
+          app = document.location.search.substring(5, end);
+      }
+      regexp=/([^a-zA-Z])/g; // only allow letters in the app name
+      if (regexp.test(app)) alert("Illegal characters were removed from the application name. Only letters allowed.","Warning");
+      app = app.replace(regexp,""); // clean it
       
       require([
         "esri/config",
@@ -113,7 +206,7 @@
       function show(id){
         document.getElementById(id).style.display = "flex";
       }
-      function toggleSearch(){
+      /*function toggleSearch(){
         // show / hid the search box on mobile
         var f = document.getElementById("findDiv");
         // Hide
@@ -134,7 +227,7 @@
           document.getElementById("findBtnOpen").style.display = "none";
           document.getElementById("titleBox").style.display = "none";
         }
-      }
+      }*/
       function showHideTools(){
         if (document.getElementById("toolbar").style.display === "block")
           document.getElementById("toolbar").style.display = "none";
@@ -147,12 +240,12 @@
         }
       }
 
-      function toggleBasemap(event){
+      /*function toggleBasemap2(event){
         const name = event.target.id;
         document.getElementsByClassName("bmSelected")[0].className = "bmUnselected";
         document.getElementById(name).className = "bmSelected";
         map.basemap = window[name]; // get variable
-      }
+      }*/
       function toggleCoordsDialog(){
         if (document.getElementById("xyCoordsDialog").style.bottom === "-500px" || document.getElementById("xyCoordsDialog").style.bottom === ""){
           document.getElementById("xyCoordsDialog").style.bottom = document.getElementById("footer").scrollHeight+"px";
@@ -182,12 +275,12 @@
                   <img id="logo" title="Link to Colorado Parks and Wildlife home page" alt="Link to Colorado Parks and Wildlife home page" style="vertical-align: middle;" src="assets/images/cpwlogo_48x48.png" style="width:48px;height:48px;" />
                 </a>
                 <span style="display:inline-block;vertical-align: middle;">
-                <h1 id="title">Colorado Hunting Atlas</h1>
+                <h1 id="title">Colorado Atlas</h1>
                 <h2 id="subtitle">Colorado Parks and Wildlife</h2>
               </div>
               
               <!-- Find a Place -->
-              <div style="min-width:40px;height:50px;">
+              <!--div style="min-width:40px;height:50px;">
                 <button id="findBtnOpen" class="headerBtn myBtn" alt="show search box" title="Open Search Box" onClick="javascript:toggleSearch()"><img src="assets/images/icons8-search-50.png"/></button>
                 <button id="findBtnClose" class="headerBtn myBtn" alt="hide search box" title="Close Search Box" onClick="javascript:toggleSearch()">X</button>
                 <div id="findDiv">
@@ -199,26 +292,25 @@
                   </div>
                   <div id="findBtnHelp"role="button" class="findBtnHelp" style="width:0" onClick="show('searchHelpDialog');">
                     <img alt="search help button" class="help_icon" title="Search Help" src="assets/images/i_help.png"/>
-                  </div>
+                  </div-->
                   <!-- removeSearchItem is in javascript/utilFuncs.js -->
-                  <div>
+                  <!--div>
                     <button id="findClear" class="findBtnClear" title="Remove last highlight/push pin from map" alt="Remove last highlight/push pin from map" onClick="removeSearchItem()">Clear</button>
                   </div>
                 </div>
-              </div>
+              </div-->
 
-          </div>
+         
           <!-- Button Bar Toolbar -->
-          <div id="toolbar" data-dojo-type="dijit/layout/ContentPane" style="height:25px;margin:0 10px;">
+          <div id="toolbar" data-dojo-type="dijit/layout/ContentPane" style="margin:20px 10px;">
             <span id="links"></span>
-            <!-- showMapExtent() and showMapLink() are in javascript/mapLink.js -->
-            <span id="showExtentBtn" class="link" style="position:relative;float:right;display:none;"><a href="javascript:showMapExtent()"><img id="extentIcon" alt="show current map extent" src="assets/images/i_extent.png"/> Display Extent</a></span>
+            <!-- setMapLink() are in javascript/mapLink.js -->
             <span id="mapLinkBtn" class="link" style="position:relative;float:right;display:block;"><a href="javascript:setMapLink();"><img id="linkIcon" alt="button to get the link to the current map" src="assets/images/i_link.png"/> Map Link</a></span>
             <span id="printBtn" class="link" style="position:relative;float:right;display:block;"><a href="javascript:printShow();"><img id="printIcon" alt="button to print the current map" src="assets/images/i_print.png"/> Print</a></span>
             <!-- Code for gmuCombo is in Identify.js and gmu.js -->
             <span id="gmuDiv" style="position:relative;float:right;display:none;"><label for="gmuCombo">Goto GMU: </label><span id="gmuCombo"></span></span>
           </div>
-        
+        </div>
       </header>
     
       <!-- Dialog Popups -->
@@ -238,8 +330,8 @@
 
         <!-- XY Coordinate Format Dialog -->
         <div id="xyCoordsDialog" class="dialog" style="display:block;">
-          <h3 class="dialogTitle">Change Display Format</h3>
-          <select id="xycoords_combo" size="4" onChange="toggleCoordsDialog();setCookie('xycoords',document.getElementById('xycoords_combo').value);" style="width:100%;">
+          <h3 class="dialogTitle">Change XY Display Format</h3>
+          <select id="xycoords_combo" size="4" onChange="toggleCoordsDialog();setCookie('xycoords',document.getElementById('xycoords_combo').value);document.getElementById('settings_xycoords_combo').value=this.value;" style="width:100%;">
             <option value="mercator">WGS84 Web Mercator</option>
             <option value="geo">Decimal Degrees</option>
             <option value="dms" selected>Degrees, Minutes, Seconds</option>
@@ -508,12 +600,29 @@ with it. To shorten it uncheck some boxes below:</span><br/>
             <!-- Widgets -->
             <div style="flex-grow:2;overflow-y:auto;">
               <!-- TOC WIDGET -->
-              <div id="tocPane" class="pane_container" style="overflow:auto;"></div>
+              
+              <!--div id="tocPane" class="pane_container" style="overflow:auto;"></div-->
               <!--div id="tocDiv" style="overflow:auto;"></div-->
-              <!-- LEGEND -->
-              <div id="legendPane" style="overflow:auto;"></div>
-              <!-- BASEMAPS -->
-              <div id="basemapPane" class="pane_container"></div>
+              
+              <div id="tocPane" class="pane_container">
+                <div id="tocContent" style="width:100%;height:100%;;position:relative;">
+                  <img id='tocHelpBtn' role='button' alt='map layers help' class='help_icon help_icon_dialog' src='assets/images/i_help.png'>
+                  <div id="tocTabs" data-dojo-type="dijit/layout/TabContainer" doLayout="false">
+                    <div id="layers_Pane" data-dojo-type="dijit/layout/ContentPane" title="Layers" data-dojo-props="selected:true">
+                      <div id="layersContent"></div>
+                    </div>
+                    <!-- LEGEND -->
+                    <div id="legend_Pane" data-dojo-type="dijit/layout/ContentPane" title="Legend">
+                      <div id="legendContent"></div>
+                    </div>
+                    <!-- BASEMAPS -->
+                    <div id="basemap_Pane" data-dojo-type="dijit/layout/ContentPane" title="Basemaps">
+                      <div id="basemapContent"></div>
+                    </div>
+                  </div>
+                 </div> 
+              </div>
+              
               <!-- REPORT WIDGET -->
               <!-- position relative for resizeHandle to work-->
               <div id="reportDiv" class="pane_container">
@@ -853,6 +962,14 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                 <div id="settingsContent" style='position:relative'>
                   <img id='settingsHelpBtn' alt='Settings Help' role="button" class='help_icon help_icon_dialog' src='assets/images/i_help.png'/>
                   <input id='toolsMenuChkBox' class='largeCheckbox' onclick='javascript:showHideTools()' type='checkbox'/><label for='toolsMenuChkBox'>Show tools menu?</label>
+                  <br><br>
+                  <label for="settings_xycoords_combo">XY Display Format:</label>
+                  <select id="settings_xycoords_combo" size="1" onchange="document.getElementById('xycoords_combo').value=this.value;setCookie('xycoords',this.value);">
+                    <option value="mercator">WGS84 Web Mercator</option>
+                    <option value="geo">Decimal Degrees</option>
+                    <option value="dms" selected="">Degrees, Minutes, Seconds</option>
+                    <option value="dm">Degrees, Decimal Minutes</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -881,7 +998,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
       </main>
       
       <footer id="footer">
-          <div id="mapscale" style="z-index: 3;color:#000;">Map Scale 1: 
+          <div id="mapscale" style="color:#000;">Map Scale 1: 
             <select id="mapscaleList" onchange="setMapScale(this)" style="color: black">
               <option style="text-align:right" value="9244649">9M</option>
               <option style="text-align:right" value="4622324">4M</option>

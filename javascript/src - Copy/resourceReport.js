@@ -1,16 +1,11 @@
-/* report.js
- * Does the hunter resource report or a custom report on a freehand polygon selected area or buffered circle.
- * Modified: 1/10/23 Tammy Bearly
- */
 function reportInit(){
 	require(["dojo/dom","dijit/registry","dojo/sniff","dijit/form/Select", "esri/toolbars/draw","dojo/i18n!esri/nls/jsapi","esri/layers/GraphicsLayer","esri/geometry/Circle",
 	"esri/symbols/SimpleMarkerSymbol", "esri/symbols/SimpleLineSymbol", "esri/symbols/SimpleFillSymbol","dojo/_base/Color", "esri/graphic",
-	"dijit/Dialog","esri/map","dijit/form/Button","esri/graphicsUtils","esri/layers/ArcGISDynamicMapServiceLayer","esri/layers/FeatureLayer","esri/layers/ArcGISTiledMapServiceLayer","esri/layers/VectorTileLayer",
+	"dijit/Dialog","esri/map","dijit/form/Button","esri/graphicsUtils","esri/layers/ArcGISDynamicMapServiceLayer",
 	"esri/tasks/PrintTask", "esri/tasks/PrintTemplate", "esri/tasks/PrintParameters","esri/urlUtils","esri/geometry/webMercatorUtils",
-	 "esri/tasks/query","esri/tasks/QueryTask","dojo/promise/all","dojo/on","dojo/_base/array"],
+	 "esri/tasks/query","esri/tasks/QueryTask","dojo/promise/all"],
 	function(dom,registry,has,Select,Draw,bundle,GraphicsLayer,Circle,SimpleMarkerSymbol,SimpleLineSymbol,SimpleFillSymbol,Color,Graphic,Dialog,Map,Button,
-	graphicsUtils,ArcGISDynamicMapServiceLayer,FeatureLayer,ArcGISTiledMapServiceLayer,VectorTileLayer,PrintTask,PrintTemplate,PrintParameters,urlUtils,webMercatorUtils,Query,QueryTask,all,on,array){
-		var displayedOnce = false;
+	graphicsUtils,ArcGISDynamicMapServiceLayer,PrintTask,PrintTemplate,PrintParameters,urlUtils,webMercatorUtils,Query,QueryTask,all){
 		function pixels2pts(px) {
 			return Math.round((px/dpi) * 72);
 		}
@@ -120,13 +115,26 @@ function reportInit(){
 				sliderStyle: "large",
 				basemap: basemapUrl,
 				minScale: 9244649,
-				extent: initExtent,
 				lods: customLods
 			});
 			
 			reportPreviewGraphicsLayer = new GraphicsLayer();
 			reportPreviewGraphicsLayer.id = "reportPreviewGraphicsLayer1";
 			
+			reportMap.on("load",function(){
+				try {
+					var myLayer = new ArcGISDynamicMapServiceLayer(mapService, {
+						"opacity": 1,
+						"id": "reportserviceurl",
+						"visible": true
+					});
+					reportMap.addLayers([myLayer]); // calling addLayers will generate layers-add-result event to check for errors
+					reportMap.addLayer(reportPreviewGraphicsLayer);
+				}
+				catch(e){
+					alert("Error loading layers from "+app+"/ResourceReportWidget.xml. "+e.message, "Data Error");
+				}
+			});
 			reportMap.on('layers-add-result',function(layer){
 				var errFlag = false;
 				try{
@@ -141,37 +149,31 @@ function reportInit(){
 					alert("Resource Report Error in reportMap.on(layers-add-result): "+e.message,"Code Error",e);
 				}
 			});
-			if (selectby === "point"){
-				// Fill report area buffer radius dropdown box
-				var optList = [];
-				for (var i=0; i<bufferList.length; i++){
-					optList.push({label: bufferList[i], value: parseInt(bufferList[i])});
-				}
-				new Select(
-				{
-					id: "distCombo",
-					value: bufferDist,
-					sortByLabel: false,
-					labelAttr: "label",
-					style: {width: "50px"},
-					onChange: function(){
-						bufferDist = this.get("value");
-						bufferDistTitle = " within " +this.get("value")+ " miles of map click";
-						drawBuffer();
-						distanceTitle = " ("+this.get("value")+" "+bufferUnitsLabel+" buffer radius)";
-					},
-					options: optList
-				}, "reportDistCbo");
-				document.getElementById("reportDistLabel").innerHTML=" "+bufferUnitsLabel+" buffer radius";
-				bufferDistTitle = " within " +registry.byId("distCombo").get("value")+ " miles of map click";
-				distanceTitle = " ("+registry.byId("distCombo").get("value")+" "+bufferUnitsLabel+" buffer radius)";
-				optList=null;
-			}	
+			// Fill report area buffer radius dropdown box
+			var optList = [];
+			for (var i=0; i<bufferList.length; i++){
+				optList.push({label: bufferList[i], value: parseInt(bufferList[i])});
+			}
+			new Select(
+			{
+				id: "distCombo",
+				value: bufferDist,
+				sortByLabel: false,
+				labelAttr: "label",
+				style: {width: "50px"},
+				onChange: function(){
+					bufferDist = this.get("value");
+					drawBuffer();
+				},
+				options: optList
+			}, "reportDistCbo");
+			document.getElementById("reportDistLabel").innerHTML=" "+bufferUnitsLabel+" buffer radius";
+			optList=null;
 			
 			reportToolbar = new Draw(map, {showTooltips:true});
 			reportToolbar.on("draw-end", reportDrawEnd);
 			// Register click event handlers for buttons
-			document.getElementById(selectBtn).addEventListener('click',function(event) {activateReportTool();});
+			document.getElementById("reportLocBtn").addEventListener('click',function(event) {activateReportTool();});
 			registry.byId("reportPrintBtn").on("click",reportPreview);
 			registry.byId("reportPrintBtn").set('disabled',true);
 			registry.byId("reportCancelBtn").on("click",reportCancel);
@@ -192,35 +194,11 @@ function reportInit(){
 			alert("WARNING: In "+app+"/ResourceReportWidget.xml file, required value missing for the "+tag+".","Data Error");
 		}
 		
-		function drawPoly(poly){
-			if (!centerPt) return;
-			reportGraphicsLayer.clear();
-			reportPreviewGraphicsLayer.clear(); // for changing buffer radius, erase old buffer
-			var lineSymb = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([0,0,0]), 2);
-			var polySymb = new SimpleFillSymbol(
-			  SimpleFillSymbol.STYLE_SOLID,
-			  lineSymb,
-			  new Color([255, 255, 0, 0.1])
-			);
-			var polySymb2 = new SimpleFillSymbol(
-			  SimpleFillSymbol.STYLE_NULL,
-			  lineSymb
-			);
-			var graphic = new Graphic(poly, polySymb);
-			var graphic2 = new Graphic(poly, polySymb2);
-			reportGraphicsLayer.add(graphic);
-			reportPreviewGraphicsLayer.add(graphic2);
-			graphic=null;
-			lineSymb=null;
-			polySymb=null;
-			polySymb2=null;
-			graphic2=null;
-		}
 		function drawBuffer(){
 			if (!centerPt) return;
 			reportGraphicsLayer.clear();
 			reportPreviewGraphicsLayer.clear(); // for changing buffer radius, erase old buffer
-			theArea = new Circle({
+			circle = new Circle({
 				center: centerPt,
 				geodesic: true,
 				radius: registry.byId("distCombo").get("value"),
@@ -236,8 +214,8 @@ function reportInit(){
 			  SimpleFillSymbol.STYLE_NULL,
 			  lineSymb
 			);
-			var graphic = new Graphic(theArea, circleSymb);
-			var graphic2 = new Graphic(theArea, circleSymb2);
+			var graphic = new Graphic(circle, circleSymb);
+			var graphic2 = new Graphic(circle, circleSymb2);
 			reportGraphicsLayer.add(graphic);
 			reportPreviewGraphicsLayer.add(graphic2);
 			// SimpleMarkerSymbol(style,size,outline,color)
@@ -253,24 +231,16 @@ function reportInit(){
 		}
 		
 		function reportDrawEnd(event){
+			document.getElementById("reportLocBtn").className = "graphBtn";
 			drawing=false;
 			reportToolbar.deactivate();
-			if (selectby === "polygon"){
-				document.getElementById("reportPolyBtn").className = "graphBtn";
-				centerPt = event.geometry.getExtent().getCenter();
-				theArea = event.geometry;
-				drawPoly(event.geometry);
-			}
-			else if (selectby === "point"){
-				document.getElementById("reportPtBtn").className = "graphBtn";
-				centerPt = event.geometry;
-				drawBuffer();
-			}
+			centerPt = event.geometry;
+			drawBuffer();
 			registry.byId("reportPrintBtn").set('disabled',false); // enable Open Report button
 			registry.byId("reportCancelBtn").set('disabled',false);
 		}
 		function reportCancel(){
-			document.getElementById(selectBtn).className = "graphBtn";
+			document.getElementById("reportLocBtn").className = "graphBtn";
 			drawing=false;
 			reportToolbar.deactivate();
 			reportGraphicsLayer.clear();
@@ -280,342 +250,43 @@ function reportInit(){
 			registry.byId("saveReportBtn1").set('disabled',false);
 			registry.byId("openReportBtn2").set('disabled',false);
 			registry.byId("saveReportBtn2").set('disabled',false);
-			registry.byId("reportPrintBtn").set('disabled',true);
-			registry.byId("reportCancelBtn").set('disabled',true);
 		}
 		
 		function activateReportTool(){
-			// Draw point or polygon button was clicked.
+			// Draw point button was clicked.
 			registry.byId("reportPrintBtn").set('disabled',true);
 			registry.byId("reportCancelBtn").set('disabled',true);
 			// Check if button was already depressed. If so reset to Identify
-			if (document.getElementById(selectBtn).className === "graphBtnSelected") {
+			if (document.getElementById("reportLocBtn").className == "graphBtnSelected") {
 				reportCancel();
 				return;
 			}
 			reportGraphicsLayer.clear();
 			reportPreviewGraphicsLayer.clear();
+			document.getElementById("reportLocBtn").className = "graphBtnSelected";
 			drawing = true; // flag to turn off identify in identify.js, doIdentify()
-			if (selectby === "polygon") {
-				document.getElementById("reportPolyBtn").className = "graphBtnSelected";
-				reportToolbar.activate(Draw.FREEHAND_POLYGON);
-			} else if (selectby === "point"){
-				bundle.toolbars.draw.addPoint = "Click on location"; // change tooltip
-				document.getElementById("reportPtBtn").className = "graphBtnSelected";
-				reportToolbar.activate(Draw.POINT);
-			}
-		}
-
-		var  prev_layer_events=[],correctOrder,previewLayers,tries,numberOfBasemaps;
-		function handleCloseReportDialog(){
-			// remove on load and on error listeners
-			//console.log("removing listeners="+prev_layer_events.length);
-			array.forEach(prev_layer_events, function(handle){
-				 handle.remove();
-				 });
-			prev_layer_events = [];
-		}
-		function handleLayerLoad(event){
-			var layer = event.layer;
-			previewLayers.push(layer);
-			//console.log("layer loaded for "+event.layer.id);
-			if (layer.url && layer.url.toLowerCase().indexOf("mapserver")>-1){
-				var m;
-				if ((layer.setVisibleLayers!= undefined) && layer.visibleLayers && layer.layerInfos){
-					var visLayers = layer.visibleLayers;
-					var layerInfos = layer.layerInfos;
-					// add hidden group ids
-					for (j=0; j<layer.visibleLayers.length; j++) {
-						k=layer.visibleLayers[j];
-						do {
-							// Add hidden group sublayers for all levels
-							if (hideGroupSublayers.indexOf(layerInfos[k].name) > -1 && layerInfos[k].subLayerIds) {
-								for (m=0; m<layerInfos[k].subLayerIds.length; m++){
-									if (visLayers.indexOf(layerInfos[k].subLayerIds[m]) == -1)
-										visLayers.push(layerInfos[k].subLayerIds[m]);
-									// handle GMUs they are not always an offset of 1
-									if (layerInfos[layerInfos[k].subLayerIds[m]+1].name == "Big Game GMU"){
-										var offset=1;
-										if (gmu == "Bighorn GMU") offset = 2;
-										else if (gmu == "Goat GMU") offset = 3;
-										if (visLayers.indexOf(layerInfos[k].subLayerIds[m]+offset) == -1)
-											visLayers.push(layerInfos[k].subLayerIds[m]+offset);
-									}
-									else if (visLayers.indexOf(layerInfos[k].subLayerIds[m]+1) == -1)
-										visLayers.push(layerInfos[k].subLayerIds[m]+1);
-								}
-							}
-							k = layerInfos[k].parentLayerId;
-						}
-						while (k != -1);
-					}
-					
-					// Set visible layers for each layerInfo
-					var num = new Array(0,1,2,3,4,5,6,7,8,9);
-					for (m=0; m<layerInfos.length; m++)
-					{	
-						// If layer is found in the visLayers make it visible.
-						if (visLayers.indexOf(layerInfos[m].id) != -1)
-							layerInfos[m].visible = true;
-						
-						// Else if this is not the top layer and it has no sub-layers set default visibility
-						else if (layerInfos[m].parentLayerId != -1 && !layerInfos[m].subLayerIds)
-						{
-							// if this is a gmu layer make sure it is the one that was turned on in visLayers
-							if (layerInfos[m].name.substr(layerInfos[m].name.length-3,3).indexOf("GMU") > -1){
-								if (layerInfos[m].name == gmu) {
-									if (visLayers.indexOf(m) == -1) {
-										layerInfos[m].visible = true;
-									}
-									if ((num.indexOf(parseInt(layerInfos[layerInfos[m].parentLayerId].name.substr(0,1))) > -1) &&
-										(visLayers.indexOf(layerInfos[m].parentLayerId) == -1)){
-										layerInfos[layerInfos[m].parentLayerId].visible = true;
-									}
-								}
-								else 
-									layerInfos[m].visible = false;
-							}
-							// use the default value for sub menu item layers that are under a menu item that is unchecked
-							else if ((layerInfos[m].defaultVisibility == true) && (visLayers.indexOf(layerInfos[m].parentLayerId) === -1)){
-								// If by default it is visible see if the name of the parent is a number (varies with extent) and make it visible also
-								if (num.indexOf(parseInt(layerInfos[layerInfos[m].parentLayerId].name.substr(0,1))) > -1) {
-									layerInfos[layerInfos[m].parentLayerId].visible = true;
-								}
-							}
-						}
-						// Else this is a top level toc menu item and not found in the visible list, make it not visible.
-						else {
-							layerInfos[m].visible = false;
-						}
-						
-						// Remove parent layers from visLayers
-						var pos = visLayers.indexOf(layerInfos[m].id);
-						if (pos > -1 && layerInfos[m].subLayerIds)
-							visLayers.splice(pos,1); // remove 1 item at index pos
-					}								
-					layer.setVisibleLayers(visLayers.sort(function(a,b){return a-b;}), false);
-				}
-			}
-
-			// add layer to report map
-			layer.spatialReference=map.spatialReference;
-			layer.refresh();
-			reportMap.addLayer(layer);
-
-			// reorderLayer(layer,index) 0 is basemap, highest number is on top
-			// Reorder layers
-			var index=numberOfBasemaps;
-			for (i=0; i<correctOrder.length; i++){
-				for (j=0; j<previewLayers.length; j++){
-					if (correctOrder[i] == previewLayers[j].id){			
-						reportMap.reorderLayer(previewLayers[j],index);
-						index++;
-					}
-				}
-			}
-			// All layers have loaded, enable print buttons
-			if (correctOrder.length == previewLayers.length){
-				registry.byId("openReportBtn1").set('disabled',false);
-				registry.byId("saveReportBtn1").set('disabled',false);
-				registry.byId("openReportBtn2").set('disabled',false);
-				registry.byId("saveReportBtn2").set('disabled',false);
-			}
-		}
-		function handleLayerError(event){
-			//console.log("failed to load: "+event.target.id+" tries="+tries[event.target.id]);
-			// try to reload every 1 seconds, after 5 seconds give warning
-			if (tries[event.target.id] < 10){
-				setTimeout(function(){createLayer(map.getLayer(event.target.id));},500);
-			}
-			else if (tries[event.target.id] === 10){
-				if (event.target.id.indexOf("Motor Vehicle") > -1 || event.target.id.indexOf("Wildfire") > -1 || event.target.id.indexOf("BLM") > -1)
-					alert("While creating the report map, the external map service that provides "+event.target.id+" is experiencing problems.  This issue is out of CPW control. We will continue trying to load it. We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
-				else if (event.target.id.indexOf(layer)>-1)
-					alert("While creating the report map, the basemap service is busy or not responding. We will continue trying to load it.","Data Error");
-				else
-					alert("While creating the report map, the "+event.target.id+" service is busy or not responding. We will continue trying to load it.","Data Error");
-				setTimeout(function(){createLayer(map.getLayer(event.target.id));},500);
-				// enable print buttons after 5 seconds of trying to load
-				registry.byId("openReportBtn1").set('disabled',false);
-				registry.byId("saveReportBtn1").set('disabled',false);
-				registry.byId("openReportBtn2").set('disabled',false);
-				registry.byId("saveReportBtn2").set('disabled',false);
-			}
-			// keep trying every 1 seconds
-			else{
-//DEBUG
-//if(event.target.id === "Hunter Reference")
-//map.getLayer("Hunter Reference").url = "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer";
-//console.log("trying again with: "+map.getLayer(event.target.id).url);
-				setTimeout(function(){createLayer(map.getLayer(event.target.id));},1000);
-			}
-		}
-		function createLayer(layer){
-			if (!registry.byId("reportPreviewDialog").open)return;
-			var prev_layer;
-			tries[layer.id]++;
-			// Add graphics layers, they do not fire loaded event!??
-			if (layer.url === null && layer.graphics){
-				prev_layer = new GraphicsLayer({
-					id: layer.id,
-					"visible": layer.visible
-				});
-				prev_layer.id = layer.id;
-				var graphics = layer.graphics;
-				for (a=0; a<graphics.length; a++){
-					g = graphics[a].clone(); // 4-12-22
-					prev_layer.add(g); // 4-12-22
-				}
-				reportMap.addLayer(prev_layer);
-				previewLayers.push(prev_layer);
-				//console.log("added map layer "+prev_layer.id);
-				graphics=null;
-				// All layers have loaded, enable print buttons
-				if (correctOrder.length == previewLayers.length){
-					registry.byId("openReportBtn1").set('disabled',false);
-					registry.byId("saveReportBtn1").set('disabled',false);
-					registry.byId("openReportBtn2").set('disabled',false);
-					registry.byId("saveReportBtn2").set('disabled',false);
-				}
-				return;
-			}
-			// add MapServer layers
-			else if(layer.url.toLowerCase().indexOf("mapserver")>-1){
-				prev_layer = new ArcGISDynamicMapServiceLayer(layer.url, {
-					"opacity": parseFloat(layer.opacity),
-					"id":layer.id,
-					"visible": layer.visible
-				});
-				//console.log("created "+prev_layer.id);
-				// turn on and off the current visible layers
-				if (layer.visibleLayers){
-					var visLayers = [];
-					for (var j=0; j<layer.visibleLayers.length; j++)
-						visLayers.push(parseInt(layer.visibleLayers[j]));
-					prev_layer.setVisibleLayers(visLayers);
-					visLayers = null;
-				}
-			}
-			// add FeatureServer layers
-			else if (layer.url.toLowerCase().indexOf("featureserver")>-1){
-				prev_layer = new FeatureLayer(layer.url, {
-					"opacity": parseFloat(layer.opacity),
-					"id":layer.id,
-					"visible": layer.visible
-				});
-				//console.log("created "+prev_layer.id);
-			}
-			else {
-				alert("Unknown map layer type for "+layer.url+" in "+app+"/config.xml","Data Error");
-			}
-		
-			if (prev_layer) {
-				prev_layer_events.push(on(prev_layer,"error",handleLayerError));
-				prev_layer_events.push(on(prev_layer,"load",handleLayerLoad));
-			}
+			bundle.toolbars.draw.addPoint = "Click on location"; // change tooltip
+			reportToolbar.activate(Draw.POINT);
 		}
 		function reportPreview(){
 			// Google Analytics count how many times Resource Report is clicked on
 			if (typeof ga === "function")ga('send', 'event', "resource_report", "click", "Resource Report", "1");
-			if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Resource Report'});
 			
 			document.getElementById("reportMsg1").innerHTML = msg;
 			document.getElementById("reportMsg2").innerHTML = msg;
 			// Enable Print/Save Report buttons
-			registry.byId("openReportBtn1").set('disabled',true);
-			registry.byId("saveReportBtn1").set('disabled',true);
-			registry.byId("openReportBtn2").set('disabled',true);
-			registry.byId("saveReportBtn2").set('disabled',true);
-			// Zoom to the selected area boundary & add visible layers to report map
-			reportMap.setExtent(graphicsUtils.graphicsExtent(reportPreviewGraphicsLayer.graphics),true).then(function(){
-				registry.byId("reportPreviewDialog").set("title", "Resource Report Preview "+distanceTitle);
-				registry.byId("reportPreviewDialog").show().then(function(){
-					// center the map only the first time
-					if(!displayedOnce){
-						displayedOnce = true;
-						var extChangeEvent = reportMap.on("extent-change",function(){
-							reportMap.centerAt(centerPt);
-							extChangeEvent.remove();	
-						});	
-					}
-					// update map layers to what is showing on main map
-					var mapLayers = [];
-					correctOrder=[];
-					previewLayers=[];
-					tries=[];
-					numberOfBasemaps=0;
-					reportMap.removeAllLayers();
-					// add basemaps
-					for (i=0;i<map.layerIds.length; i++){
-						map_layer = map.getLayer(map.layerIds[i]);
-						if (map.layerIds[i] == "layer_osm"){
-							osmLayer = new OpenStreetMapLayer();
-							osmLayer.id = "layer_osm";
-							reportMap.addLayer(osmLayer);
-							osmLayer = null;
-							numberOfBasemaps++;
-						}
-						// vector open street maps
-						else if (map_layer.attributionDataUrl && map_layer.attributionDataUrl.indexOf("OpenStreet")>-1){
-							osmLayer = new OpenStreetMapLayer();
-							osmLayer.id = "layer_osm";
-							reportMap.addLayer(osmLayer);
-							osmLayer = null;
-							numberOfBasemaps++;
-						}
-						else if (map.layerIds[i].indexOf("layer")>-1){
-							if (map.getLayer(map.layerIds[i]).visibleAtMapScale == true){
-								if (map.getLayer(map.layerIds[i]).url.indexOf ("MapServer")>-1)
-									basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[i]).url,{"id":"basemap","visible": true});
-								else {
-									basemap = new VectorTileLayer(map.getLayer(map.layerIds[i]).url,{"id":"basemap","visible": true});
-									basemap.setStyle(map.getLayer(map.layerIds[i]).url);
-								}
-								if (map_layer._basemapGalleryLayerType == "reference")
-									basemap.id="reference";
-								else if (i>0)basemap.id="basemap"+i;
-								basemap.spatialReference = map.spatialReference;
-								basemap._basemapGalleryLayerType = map_layer._basemapGalleryLayerType;
-								basemap.refresh();
-								reportMap.addLayer(basemap);
-								basemap = null;
-								numberOfBasemaps++;
-							}
-						}
-					}
-					// count visible non-basemap layers
-					var layers = map.getLayersVisibleAtScale();
-					for (var i=0;i<layers.length;i++){
-						if (layers[i].visible && layers[i].id.indexOf("layer") == -1){
-							mapLayers.push(layers[i]);
-							correctOrder.push(layers[i].id);
-						}
-					}
-					for (i=0;i<mapLayers.length;i++){
-						if (mapLayers[i].visible) {
-							tries[mapLayers[i].id]=0;
-							//DEBUB make if fail to load
-							//if (mapLayers[i].id === "Hunter Reference")mapLayers[i].url = mapLayers[i].url+"1";
-							createLayer(mapLayers[i]);
-						}
-					}
-					if (mapLayers.length == 0){
-						// enable print buttons, only basemap
-						registry.byId("openReportBtn1").set('disabled',false);
-						registry.byId("saveReportBtn1").set('disabled',false);
-						registry.byId("openReportBtn2").set('disabled',false);
-						registry.byId("saveReportBtn2").set('disabled',false);
-					}
-				}, function(){
-					alert("Show map failed.","Warning");
-				});
-			},function(){
-				alert("Set map extent failed.","Warning");
-			});	
+			registry.byId("openReportBtn1").set('disabled',false);
+			registry.byId("saveReportBtn1").set('disabled',false);
+			registry.byId("openReportBtn2").set('disabled',false);
+			registry.byId("saveReportBtn2").set('disabled',false);
+			// Zoom to the buffer
+			var deferreds = reportMap.setExtent(graphicsUtils.graphicsExtent(reportPreviewGraphicsLayer.graphics),true);
+			reportMap.centerAt(centerPt);
+			registry.byId("reportPreviewDialog").set("title", "Resource Report Preview ("+registry.byId("distCombo").get("value")+" "+bufferUnitsLabel+" buffer radius)");
+			registry.byId("reportPreviewDialog").show();
 		}
 		
 		function hidePreview(){
-			handleCloseReportDialog(); //remove listeners
 			registry.byId("reportPreviewDialog").hide();
 		}
 		
@@ -674,8 +345,7 @@ function reportInit(){
 				doc.text(marginLeft, y, today);
 				y += lineHt;
 				// XY
-				if (selectby === "point") doc.text(marginLeft, y, 'X/Y at map click:');
-				else if (selectby === "polygon") doc.text(marginLeft, y, 'X/Y at polygon center:');
+				doc.text(marginLeft, y, 'X/Y at map click:');
 				var dd = webMercatorUtils.webMercatorToGeographic(centerPt);
 				doc.text(colMarginLeft, y, dd.y.toFixed(5)+" N, "+-1*dd.x.toFixed(5)+" W");
 				y += lineHt;
@@ -684,12 +354,12 @@ function reportInit(){
 				var query=[], queryTask=[], promises;
 				var queries = [];
 				var q=0, poiIndex, contactIndex, gameIndex, layersIndex;
-				if (hunterResourceReport.pointsOfInterest) {
-					queryTask[q] = new QueryTask(hunterResourceReport.pointsOfInterest.url);
+				if (queryLayers.pointsOfInterest) {
+					queryTask[q] = new QueryTask(queryLayers.pointsOfInterest.url);
 					query[q] = new Query();
 					// use fast bounding box query. Will only go to the server if bounding box is outside of the visible map.
 					// then filter later.
-					query[q].geometry = theArea;
+					query[q].geometry = circle.getExtent();
 					query[q].returnGeometry = true;
 					query[q].spatialRelationship = Query.SPATIAL_REL_INTERSECTS;
 					query[q].outFields = ["*"]; 
@@ -697,11 +367,11 @@ function reportInit(){
 					poiIndex = q;
 					q++;
 				}
-				if (hunterResourceReport.contactBoundaries){
+				if (queryLayers.contactBoundaries){
 				
 					query[q] = new Query();
-					queryTask[q] = new QueryTask(hunterResourceReport.contactBoundaries.url);
-					query[q].geometry = theArea;
+					queryTask[q] = new QueryTask(queryLayers.contactBoundaries.url);
+					query[q].geometry = circle.getExtent();
 					query[q].returnGeometry = true;
 					query[q].spatialRelationship = Query.SPATIAL_REL_INTERSECTS;
 					query[q].outFields = ["*"]; 
@@ -710,10 +380,10 @@ function reportInit(){
 					contactIndex = q;
 					q++;
 				}
-				if (hunterResourceReport.gameBoundaries) {
+				if (queryLayers.gameBoundaries) {
 					query[q] = new Query();
-					queryTask[q] = new QueryTask(hunterResourceReport.gameBoundaries.url);
-					query[q].geometry = theArea;
+					queryTask[q] = new QueryTask(queryLayers.gameBoundaries.url);
+					query[q].geometry = circle.getExtent();
 					query[q].returnGeometry = true;
 					query[q].spatialRelationship = Query.SPATIAL_REL_INTERSECTS;
 					query[q].outFields = ["*"]; 
@@ -722,23 +392,30 @@ function reportInit(){
 					gameIndex = q;
 					q++;
 				}
-				for (var i=0; i<reports.length; i++) {
+				for (var i=0; i<queryLayers.layers.length; i++) {
 					layersIndex = q;
-					queryTask[q] = new QueryTask(reports[i].url);
-					query[q] = new Query();
-					// use fast bounding box query. Will only go to the server if bounding box is outside of the visible map.
-					// then filter later. Have to set returnGeometry to true!!!
-					if (reports[i].type ==="list"){
-						query[q].geometry = centerPt;
-					}
+					//if (queryLayers.layers[i].type.toLowerCase() == "poly") {
+						queryTask[q] = new QueryTask(queryLayers.layers[i].url);
+						query[q] = new Query();
+						// use fast bounding box query. Will only go to the server if bounding box is outside of the visible map.
+						// then filter later. Have to set returnGeometry to true!!!
+						query[q].geometry = circle.getExtent();
+						query[q].returnGeometry = true;
+						query[q].spatialRelationship = Query.SPATIAL_REL_INTERSECTS;
+						query[q].outFields = ["*"];
+						queries.push(queryTask[q].execute(query[q]));
+						q++;
+					/*}
 					else {
-						query[q].geometry = theArea;
-					}
-					query[q].returnGeometry = true;
-					query[q].spatialRelationship = Query.SPATIAL_REL_INTERSECTS;
-					query[q].outFields = ["*"];
-					queries.push(queryTask[q].execute(query[q]));
-					q++;
+						queryTask[q] = new QueryTask(queryLayers.layers[i].url);
+						query[q] = new Query();
+						query[q].geometry = centerPt;
+						query[q].returnGeometry = true;
+						query[q].spatialRelationship = Query.SPATIAL_REL_INTERSECTS;
+						query[q].outFields = ["*"];
+						queries.push(queryTask[q].execute(query[q]));
+						q++;
+					}*/
 				}
 				// Register the event handlers
 				if (queries.length > 0) {
@@ -750,13 +427,12 @@ function reportInit(){
 				function queryCompleteHandler(results){
 					// Write the report text		
 					var inBuffer,CGblm,CGcpw,CGparks,CGusfs;
-					if (hunterResourceReport.gameBoundaries) {
+					if (queryLayers.gameBoundaries) {
 						// Location & Contact Info
 						y += lineHt;
 						doc.setFontSize(16);
 						doc.setFont(myFont,"bold");
-						if (selectby === "polygon") doc.text(marginLeft, y, "Location & Contact Information (at polygon center):");
-						else doc.text(marginLeft, y, "Location & Contact Information (at map click):");
+						doc.text(marginLeft, y, "Location & Contact Information:");
 						// County
 						y += lineHt;
 						doc.setFont(myFont,"normal");
@@ -768,7 +444,7 @@ function reportInit(){
 						doc.text(marginLeft, y, "Game Mgt. Unit (GMU):");
 						doc.text(colMarginLeft, y, results[gameIndex].features[0].attributes.GMUID.toString());
 					}
-					if (hunterResourceReport.contactBoundaries){
+					if (queryLayers.contactBoundaries){
 						// Sheriff
 						y += lineHt;
 						doc.text(marginLeft, y, "Sheriff Phone:");
@@ -826,12 +502,12 @@ function reportInit(){
 						doc.text(colMarginLeft, y, results[contactIndex].features[0].attributes.BLM_FOPhone);
 
 						// USFS
+						y += lineHt*2;
+						doc.setFont(myFont,"bold");
+						doc.text(marginLeft, y, "USFS");
+						doc.setLineWidth(0.5);
+						doc.line(marginLeft,y+1,marginLeft+34, y+1);
 						if (results[contactIndex].features[0].attributes.USFS_FOName){
-							y += lineHt*2;
-							doc.setFont(myFont,"bold");
-							doc.text(marginLeft, y, "USFS");
-							doc.setLineWidth(0.5);
-							doc.line(marginLeft,y+1,marginLeft+34, y+1);
 							y += lineHt;
 							doc.setFont(myFont,"normal");
 							doc.setFontSize(fontsize);
@@ -855,7 +531,7 @@ function reportInit(){
 							doc.text(colMarginLeft, y, results[contactIndex].features[0].attributes.USFS_FOPhone);
 						}
 					}
-					if (hunterResourceReport.pointsOfInterest){
+					if (queryLayers.pointsOfInterest){
 						CGblm = [];
 						CGcpw = [];
 						CGparks = [];
@@ -872,7 +548,7 @@ function reportInit(){
 						for (var p = 0; p < results[poiIndex].features.length; p++) {
 							feature = results[poiIndex].features[p];
 							attr = results[poiIndex].features[p].attributes;
-							if(theArea.contains(feature.geometry)){
+							if(circle.contains(feature.geometry)){
 								// Campgrounds							
 								if (attr.Type.toLowerCase() == "campground"){ 
 									if (attr.Manager == "BLM") {
@@ -994,7 +670,7 @@ function reportInit(){
 							doc.addPage();
 							doc.setFontSize(16);
 							doc.setFont(myFont,"bold");
-							doc.text(marginLeft, y, "Campsites"+bufferDistTitle+":");
+							doc.text(marginLeft, y, "Campsites within " + bufferDist + " miles of map click:");
 							doc.setFontSize(fontsize);
 							y+=lineHt*2;
 							// Campsites
@@ -1039,7 +715,7 @@ function reportInit(){
 							doc.addPage();
 							doc.setFontSize(16);
 							doc.setFont(myFont,"bold");
-							doc.text(marginLeft, y, "Information resources"+bufferDistTitle+":");
+							doc.text(marginLeft, y, "Information resources within " + bufferDist + " miles of map click:");
 							y += lineHt*2;
 							header=null;
 							header=[];
@@ -1077,7 +753,7 @@ function reportInit(){
 
 					if(reports.length>0){
 						// if printed some reports add a page break
-						if (hunterResourceReport.gameBoundaries || hunterResourceReport.contactBoundaries || hunterResourceReport.pointsOfInterest){ 
+						if (queryLayers.gameBoundaries || queryLayers.contactBoundaries || queryLayers.pointsOfInterest){ 
 							footer();
 							y = marginTop+14;
 							doc.addPage();
@@ -1096,13 +772,7 @@ function reportInit(){
 					// print first title
 					doc.setFontSize(16);
 					doc.setFont(myFont,"bold");
-					// for point query add to title
-					if (reports[0].type === "list"){
-						if (selectby === "polygon") doc.text(marginLeft, y, reports[0].title.replace("_distance_",bufferDist)+" (at polygon center)");
-						else if (selectby === "point") doc.text(marginLeft, y, reports[0].title.replace("_distance_",bufferDist)+" (at map click)");
-					}
-					else
-						doc.text(marginLeft, y, reports[0].title.replace("_distance_",bufferDist));
+					doc.text(marginLeft, y, reports[0].title.replace("_distance_",bufferDist));
 					doc.setFontSize(fontsize);
 					doc.setFont(myFont,"normal");
 					reports[0].title="";
@@ -1123,9 +793,9 @@ function reportInit(){
 					function tableQuery(results){
 						// if there are database calls use http request to call each and add to results array
 						var r=0; // index for results array
-						if (hunterResourceReport.gameBoundaries) r++;
-						if (hunterResourceReport.contactBoundaries) r++;
-						if (hunterResourceReport.pointsOfInterest) r++;
+						if (queryLayers.gameBoundaries) r++;
+						if (queryLayers.contactBoundaries) r++;
+						if (queryLayers.pointsOfInterest) r++;
 						processedDatabaseCalls = 0;
 						for (var i=0; i<reports.length; i++) {
 							if (reports[i].database && reports[i].database != ""){
@@ -1282,14 +952,15 @@ function reportInit(){
 							}
 							r++; // increment results array
 						}
+						
 					}
 					function addReports(results){
-						var r=0; // index for results array
+						var i=0; // index for results array
 						// if there were hunting reports increment index
-						if (hunterResourceReport.gameBoundaries) r++;
-						if (hunterResourceReport.contactBoundaries) r++;
-						if (hunterResourceReport.pointsOfInterest) r++;
-						for(var i=0; i<reports.length; i++){		
+						if (queryLayers.gameBoundaries) i++;
+						if (queryLayers.contactBoundaries) i++;
+						if (queryLayers.pointsOfInterest) i++;
+						for(var r=0; r<reports.length; r++){		
 							// main title	
 							if (reports[i].title && reports[i].title != ""){
 								footer();
@@ -1297,13 +968,7 @@ function reportInit(){
 								doc.addPage();
 								doc.setFontSize(16);
 								doc.setFont(myFont,"bold");
-								// for point query add to title
-								if (reports[i].type === "list"){
-									if (selectby === "polygon") doc.text(marginLeft, y, reports[i].title.replace("_distance_",bufferDist)+" (at polygon center)");
-									else if (selectby === "point") doc.text(marginLeft, y, reports[i].title.replace("_distance_",bufferDist)+" (at map click)");
-								}
-								else
-									doc.text(marginLeft, y, reports[i].title.replace("_distance_",bufferDist));
+								doc.text(marginLeft, y, reports[i].title.replace("_distance_",bufferDist));
 								doc.setFontSize(fontsize);
 								doc.setFont(myFont,"normal");
 								y+=lineHt*2;
@@ -1316,11 +981,11 @@ function reportInit(){
 							for (var j=0; j<reports[i].displayfields.length; j++){
 								colWidths[j] = reports[i].displayfields[j];
 							}
-							for (var p = 0; p < results[r].features.length; p++) {
-								feature = results[r].features[p];
+							for (var p = 0; p < results[i].features.length; p++) {
+								feature = results[i].features[p];
 								attr = feature.attributes;
-								//if point is in the selected area
-								if((feature.geometry.type == "point" && theArea.contains(feature.geometry)) ||
+								//if point is in the circle
+								if((feature.geometry.type == "point" && circle.contains(feature.geometry)) ||
 									feature.geometry.type != "point"){
 									var obj={};
 									// Find the maximum width for each column
@@ -1398,7 +1063,8 @@ function reportInit(){
 										table.push(obj);
 										obj=null;
 									}
-								}	
+								}
+								
 							}
 							
 							// Adjust column widths. colWidths[j] holds the longest text from all rows.
@@ -1442,16 +1108,10 @@ function reportInit(){
 								});
 							}
 							if (table.length > 0){
-								if (reports[i].sortorder === "descending")
-									table.sort(descendingSortMultipleArryOfObj(reports[i].sortfields));
-								else
-									table.sort(sortMultipleArryOfObj(reports[i].sortfields));
-								
-								// NEW 1-17-23 table or list
-								if (reports[i].type === "list") list(reports[i].subtitle,table,header);
-								else grid(reports[i].subtitle,table,header);
+								table.sort(sortMultipleArryOfObj(reports[i].sortfields));
+								grid(reports[i].subtitle,table,header);
 							}
-							r++;
+							i++;
 							colWidths=null;
 							header=null;
 						}
@@ -1467,38 +1127,17 @@ function reportInit(){
 					document.getElementById("reportMsg2").innerHTML = "";
 				}
 				
-				function list(title, arr, header){
-					// title
-					if (title !== ""){
-						doc.setFont(myFont,"bold");
-						doc.setFontSize(fontsize);
-						doc.myText(marginLeft, y, title, {underline: true});
-						// header - grey outlined box with text
-						y += lineHt;
-					}
-					doc.setFont(myFont,"normal");
-					for(var i=0;i<header.length;i++){
-						if(header[i].displayname){
-							doc.text(marginLeft,y,header[i].displayname+":");
-							doc.text(colMarginLeft,y,arr[0][header[i].field].toString());
-							y += lineHt;
-						}
-					}
-					y += lineHt;
-				}
 				function grid(title, arr, header) {
 					// draw a table, check for new page
 					// arr is and array of data
 					// header is and array of the header fields
 					function printHeader(){
 						// title
-						if (title !== ""){
-							doc.setFont(myFont,"bold");
-							doc.setFontSize(fontsize);
-							doc.myText(marginLeft, y, title, {underline: true});
-							// header - grey outlined box with text
-							y += 5;
-						}
+						doc.setFont(myFont,"bold");
+						doc.setFontSize(fontsize);
+						doc.myText(marginLeft, y, title, {underline: true});
+						// header - grey outlined box with text
+						y += 5;
 						doc.setFillColor(204,204,204); // CCCCCC
 						doc.setDrawColor(0);
 						doc.rect(marginLeft,y,pageWidth,rowHt,'FD'); // Fill and outline rectangle
@@ -1720,8 +1359,6 @@ function reportInit(){
 							img.src = "assets/images/testmap.jpg";
 							alert("The image in the pdf is a placeholder. <a href='"+result.url+"' target='pdf_image'>Here is a link to the true image.</a>","Note for Test Site");
 						}
-						else if (printServiceUrl.indexOf(window.location.hostname) === -1)
-							alert("The fastmap url machine name or alias must match the printserviceurl in the ResourceReport.xml file.","Data Error");
 					}
 					function printError(err){
 						document.getElementById("reportMsg1").innerHTML = msg;
@@ -1767,30 +1404,30 @@ function reportInit(){
 
 		try{
 			var bufferDist;
-			var bufferDistTitle="";
 			var bufferList;
 			var bufferUnitsLabel;
-			var hunterResourceReport = {
+			var queryLayers = {
 				pointsOfInterest: null,
 				contactBoundaries: null,
-				gameBoundaries: null
+				gameBoundaries: null,
+				layers: []
 			};
 			var reports = [];
 			var numDatabaseCalls = 0;
 			var processedDatabaseCalls;
+			var queriesPending = 0;
+			var mapService;
 			var basemapUrl;
 			var reportToolbar;
 			var centerPt=null;
-			var theArea=null;
 			var reportTitle;
 			var mapTitle;
 			var mapSubTitle;
 			var disclaimer;
-			var selectby;
-			var selectBtn;
-			var distanceTitle="";
+			var circle;
 			var marginLeft = 18; // .25 inches
 			var marginTop = 18;
+			var lineHt = 14;
 			var dpi = 300;
 			var pageWidth = 792 - (2*marginLeft); // 11 inches * 72 - margins
 			var pageHeight = 612 - (marginTop); // height of page (8.5*72) - bottom margin
@@ -1799,7 +1436,7 @@ function reportInit(){
 			//var mapWidthPts;
 			//var mapHeightPts;
 			var doc = new jsPDF("landscape","pt","letter");
-			//var printServiceUrl;
+			var printServiceUrl;
 			var	reportMap;
 			var msg = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Adjust map boundaries. Click Open/Save Report when ready.";
 			var reportPreviewGraphicsLayer;
@@ -1821,87 +1458,86 @@ function reportInit(){
 					//require(["dojo/dom","dijit/registry"], function(dom,registry){
 						var xmlDoc=createXMLdoc(xmlhttp);
 						if (!xmlDoc) alert("Missing "+app+"/ResourceReportWidget.xml file.", "Data Error");
-						if(xmlDoc.getElementsByTagName("reports")[0]) alert("Warning: The reports tag has been renamed 'custom_reports'. Please fix this in "+configFile,"Data Error");
-						var reportsTag = xmlDoc.getElementsByTagName("custom_reports")[0] && xmlDoc.getElementsByTagName("custom_reports")[0].getElementsByTagName("report") ? xmlDoc.getElementsByTagName("custom_reports")[0].getElementsByTagName("report") : null; 
-						if(xmlDoc.getElementsByTagName("reportserviceurl")[0])alert("reportserviceurl tag is no longer used in ResourceReportWidget.xml");
-						if(xmlDoc.getElementsByTagName("printserviceurl")[0])alert("printserviceurl tag is no longer used in ResourceReportWidget.xml");
+						var buffer = xmlDoc.getElementsByTagName("buffer")[0] ? xmlDoc.getElementsByTagName("buffer")[0] : showWarning("buffer tag");
+						bufferDist = buffer.getAttribute("default") ? buffer.getAttribute("default") : (25, showWarning("default attribute of the buffer tag"));
+						bufferList = buffer.getAttribute("list") ? buffer.getAttribute("list").split(",") : (["5","10","25","50","100"], showWarning("list attribute of the buffer tag"));
+						bufferUnitsLabel = buffer.getAttribute("unitslabel") ? buffer.getAttribute("unitslabel") : ("mile", showWarning("unitslabel attribute of the buffer tag"));
+						var layersTag = xmlDoc.getElementsByTagName("querylayers")[0].getElementsByTagName("layers") ? xmlDoc.getElementsByTagName("querylayers")[0].getElementsByTagName("layers") : null;
+						var reportsTag = xmlDoc.getElementsByTagName("reports")[0] && xmlDoc.getElementsByTagName("reports")[0].getElementsByTagName("report") ? xmlDoc.getElementsByTagName("reports")[0].getElementsByTagName("report") : null; 
+						mapService = xmlDoc.getElementsByTagName("reportserviceurl")[0] ? xmlDoc.getElementsByTagName("reportserviceurl")[0].firstChild.nodeValue : showWarning("reportserviceurl tag");
+						printServiceUrl = xmlDoc.getElementsByTagName("printserviceurl")[0] ? xmlDoc.getElementsByTagName("printserviceurl")[0].firstChild.nodeValue : showWarning("printserviceurl tag");
 						basemapUrl = xmlDoc.getElementsByTagName("basemapurl")[0] ? xmlDoc.getElementsByTagName("basemapurl")[0].firstChild.nodeValue : showWarning("basemapurl tag");
 						reportTitle = xmlDoc.getElementsByTagName("reporttitle")[0] ? xmlDoc.getElementsByTagName("reporttitle")[0].firstChild.nodeValue : showWarning("reporttitle tag");
-						selectby = xmlDoc.getElementsByTagName("selectby")[0] ? xmlDoc.getElementsByTagName("selectby")[0].firstChild.nodeValue : "point";
-						
-						if (selectby === "polygon"){
-							selectBtn = "reportPolyBtn";
-							document.getElementById("polyReport").style.display = "block";
-							document.getElementById("pointReport").style.display = "none";
-							bufferDist = ""; // for title, _distance__ in the title gets replaced with the point buffer distance
-						} else if (selectby === "point"){
-							selectBtn = "reportPtBtn";
-							var buffer = xmlDoc.getElementsByTagName("buffer")[0] ? xmlDoc.getElementsByTagName("buffer")[0] : showWarning("buffer tag");
-							bufferDist = buffer.getAttribute("default") ? buffer.getAttribute("default") : (25, showWarning("default attribute of the buffer tag"));
-							bufferList = buffer.getAttribute("list") ? buffer.getAttribute("list").split(",") : (["5","10","25","50","100"], showWarning("list attribute of the buffer tag"));
-							bufferUnitsLabel = buffer.getAttribute("unitslabel") ? buffer.getAttribute("unitslabel") : ("mile", showWarning("unitslabel attribute of the buffer tag"));
-							document.getElementById("pointReport").style.display = "block";
-							document.getElementById("polyReport").style.display = "none";
-						} else {
-							alert("Error in ResourceReportWidget.xml file. selectby tag must be point or polygon. If tag is missing 'point' will be assumed.");
-						}
 						
 						// Hunter Resource Report
-						if (xmlDoc.getElementsByTagName("pointsofinterest")[0])
+						if (xmlDoc.getElementsByTagName("pointsofinterest")[0] && xmlDoc.getElementsByTagName("contactinfo"[0]) && xmlDoc.getElementsByTagName("gameunits")[0])
 						{
-							hunterResourceReport.pointsOfInterest = {
+							queryLayers.pointsOfInterest = {
 								url: xmlDoc.getElementsByTagName("pointsofinterest")[0].getAttribute("url"),
 								name: xmlDoc.getElementsByTagName("pointsofinterest")[0].getAttribute("name")
 							};
-						}
-						if (xmlDoc.getElementsByTagName("contactinfo")[0])
-						{
-							hunterResourceReport.contactBoundaries = {
+							
+							queryLayers.contactBoundaries = {
 								url: xmlDoc.getElementsByTagName("contactinfo")[0].getAttribute("url"),
 								name: xmlDoc.getElementsByTagName("contactinfo")[0].getAttribute("name")
 							};
-						}
-						if (xmlDoc.getElementsByTagName("gameunits")[0])
-						{
-							hunterResourceReport.gameBoundaries = {
+							queryLayers.gameBoundaries = {
 								url: xmlDoc.getElementsByTagName("gameunits")[0].getAttribute("url"),
 								name: xmlDoc.getElementsByTagName("gameunits")[0].getAttribute("name")
 							};
 						}
 						
 						// Custom Reports
-						if (reportsTag){
-							for (i=0; i<reportsTag.length; i++)
+						if (layersTag)
+						{
+							// tlb read generic mapservice layers
+							for (var i=0; i<layersTag.length; i++)
 							{
-								var obj = {
-									url: reportsTag[i].getAttribute("url")?reportsTag[i].getAttribute("url"):showWarning("report tag, url attribute"),
-									id: reportsTag[i].getAttribute("id")?reportsTag[i].getAttribute("id"):showWarning("report tag, id attribute"),
-									type: reportsTag[i].getAttribute("type")?reportsTag[i].getAttribute("type"):showWarning("report tag, type attribute"),
-									title: reportsTag[i].getAttribute("title")?reportsTag[i].getAttribute("title"):"",
-									subtitle: reportsTag[i].getAttribute("subtitle")?reportsTag[i].getAttribute("subtitle"):"",
-									displayfields: reportsTag[i].getAttribute("displayfields")?reportsTag[i].getAttribute("displayfields").split(","):showWarning("report tag, displayfields attribute"),
-									fields: reportsTag[i].getAttribute("fields")?reportsTag[i].getAttribute("fields").split(","):showWarning("report tag, fields attribute"),
-									where_field: reportsTag[i].getAttribute("where_field")?reportsTag[i].getAttribute("where_field"):"",
-									where_inequality: reportsTag[i].getAttribute("where_inequality")?reportsTag[i].getAttribute("where_inequality"):"",
-									where_value: reportsTag[i].getAttribute("where_value")?reportsTag[i].getAttribute("where_value"):"",
-									where_type: reportsTag[i].getAttribute("where_type")?reportsTag[i].getAttribute("where_type"):"",
-									sortfields: reportsTag[i].getAttribute("sortfields")?reportsTag[i].getAttribute("sortfields").split(","):reportsTag[i].getAttribute("fields").split(","),
-									sortorder: reportsTag[i].getAttribute("sortorder")?reportsTag[i].getAttribute("sortorder"):"ascending",
-									keyField: reportsTag[i].getAttribute("key")?reportsTag[i].getAttribute("key"):null,
-									database: reportsTag[i].getAttribute("database")?reportsTag[i].getAttribute("database"):null,
-									filename: reportsTag[i].getAttribute("filename")?reportsTag[i].getAttribute("filename"):null,
-									one2one_fields: reportsTag[i].getAttribute("one2one_fields")?reportsTag[i].getAttribute("one2one_fields").split(","):null,
-									one2one_display: reportsTag[i].getAttribute("one2one_display")? reportsTag[i].getAttribute("one2one_display").split(","):reportsTag[i].getAttribute("one2one_fields")?reportsTag[i].getAttribute("one2one_fields").split(","):null,
-									one2many_fields: reportsTag[i].getAttribute("one2many_fields")?reportsTag[i].getAttribute("one2many_fields").split(","):null,
-									one2many_display: reportsTag[i].getAttribute("one2many_display")?reportsTag[i].getAttribute("one2many_display").split(","):reportsTag[i].getAttribute("one2many_fields")?reportsTag[i].getAttribute("one2many_fields").split(","):null
-								};
-								reports.push(obj);
-								// lookup data in database if necessary
-								if (obj.database && obj.database != "")
+								if (!layersTag[i].getAttribute("type"))
+									alert("Missing type parameter in layer tag in "+app+"/ResourceReportWidget.xml file", "Data Error");
+								if (!layersTag[i].getAttribute("name"))
+									alert("Missing name parameter in layer tag in "+app+"/ResourceReportWidget.xml file", "Data Error");
+								if (!layersTag[i].getAttribute("url"))
+									alert("Missing url parameter in layer tag in "+app+"/ResourceReportWidget.xml file", "Data Error");
+								queryLayers.layers.push({
+									type: layersTag[i].getAttribute("type"),
+									name: layersTag[i].getAttribute("name"),
+									url:  layersTag[i].getAttribute("url")
+								});
+							}
+							
+							// tlb read custom reports
+							if (reportsTag){
+								for (i=0; i<reportsTag.length; i++)
 								{
-									numDatabaseCalls++;
+									var obj = {
+										id: reportsTag[i].getAttribute("id")?reportsTag[i].getAttribute("id"):showWarning("reports tag, id attribute"),
+										type: reportsTag[i].getAttribute("type")?reportsTag[i].getAttribute("type"):showWarning("reports tag, type attribute"),
+										title: reportsTag[i].getAttribute("title")?reportsTag[i].getAttribute("title"):"",
+										subtitle: reportsTag[i].getAttribute("subtitle")?reportsTag[i].getAttribute("subtitle"):showWarning("reports tag, subtitle attribute"),
+										displayfields: reportsTag[i].getAttribute("displayfields")?reportsTag[i].getAttribute("displayfields").split(","):showWarning("reports tag, displayfields attribute"),
+										fields: reportsTag[i].getAttribute("fields")?reportsTag[i].getAttribute("fields").split(","):showWarning("reports tag, fields attribute"),
+										where_field: reportsTag[i].getAttribute("where_field")?reportsTag[i].getAttribute("where_field"):"",
+										where_inequality: reportsTag[i].getAttribute("where_inequality")?reportsTag[i].getAttribute("where_inequality"):"",
+										where_value: reportsTag[i].getAttribute("where_value")?reportsTag[i].getAttribute("where_value"):"",
+										where_type: reportsTag[i].getAttribute("where_type")?reportsTag[i].getAttribute("where_type"):"",
+										sortfields: reportsTag[i].getAttribute("sortfields")?reportsTag[i].getAttribute("sortfields").split(","):reportsTag[i].getAttribute("fields").split(","),
+										keyField: reportsTag[i].getAttribute("key")?reportsTag[i].getAttribute("key"):null,
+										database: reportsTag[i].getAttribute("database")?reportsTag[i].getAttribute("database"):null,
+										filename: reportsTag[i].getAttribute("filename")?reportsTag[i].getAttribute("filename"):null,
+										one2one_fields: reportsTag[i].getAttribute("one2one_fields")?reportsTag[i].getAttribute("one2one_fields").split(","):null,
+										one2one_display: reportsTag[i].getAttribute("one2one_display")? reportsTag[i].getAttribute("one2one_display").split(","):reportsTag[i].getAttribute("one2one_fields")?reportsTag[i].getAttribute("one2one_fields").split(","):null,
+										one2many_fields: reportsTag[i].getAttribute("one2many_fields")?reportsTag[i].getAttribute("one2many_fields").split(","):null,
+										one2many_display: reportsTag[i].getAttribute("one2many_display")?reportsTag[i].getAttribute("one2many_display").split(","):reportsTag[i].getAttribute("one2many_fields")?reportsTag[i].getAttribute("one2many_fields").split(","):null
+									};
+									reports.push(obj);
+									// lookup data in database if necessary
+									if (obj.database && obj.database != "")
+									{
+										numDatabaseCalls++;
+									}
+									obj = null;
 								}
-								obj = null;
 							}
 						}
 						

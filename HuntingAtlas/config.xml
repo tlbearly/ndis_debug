@@ -55,13 +55,17 @@
 			<!-- Layer must be named "Hunter Reference".  It is used in widgets/Legend/toc/tocClasses/TocMapLayerItem.as -->
 			<layer label="Hunter Reference" open="true" type="dynamic" visible="true" alpha="0.8"
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer"/>
+            <!--group label="Game Species" portal="">
+                <group label="Elk">
+                    <layer label="Elk Migration Patterns" open="false" type="dynamic" visible="false" alpha="0.7"
+					id="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map/MapServer"/>
+                </group>
+            </group-->
 			<!-- Layer must be named "Game Species".  It is used in widgets/Legend/toc/tocClasses/TocMapLayerItem.as -->
 			<layer label="Game Species" open="false" type="dynamic" visible="false" alpha="0.7"
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map/MapServer"/>					
 			<layer label="Motor Vehicle Use Map" open="true" type="dynamic" visible="false" alpha="1"
                     url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/>
-					<!--url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/--> <!-- old service -->
-                    <!--url="https://apps.fs.fed.us/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/--> <!-- new service -->
             <layer label="BLM Roads and Trails" open="true" type="dynamic" visible="false" alpha="1"
                     url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer" />     
             <layer label="Wildfire Incidents" open="true" type="dynamic" visible="true" alpha="0.8"
@@ -83,6 +87,7 @@
          	preload="open"
 			height="420"
             video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
+		 <!-- Widget label must contain the word "Report"-->
          <widget label="Hunter Resource Report"
             preload="minimized"
 			video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>

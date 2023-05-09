@@ -4,12 +4,12 @@ var emptyStore;
 var lodLevel = 6; // 4-19-17 Updated lods. Used to be 9.
 var findObj = null;
 function findPlaceInit() {
-	require(["dojo/store/Memory", "dijit/form/ComboBox",
-	"dojo/dom","dijit/registry"], 
-	function (Memory, ComboBox, dom, registry) {
+	require(["dojo/store/Memory", "dijit/form/ComboBox", "esri/SpatialReference", "esri/geometry/Point", "esri/graphic",
+	"esri/tasks/query", "esri/tasks/QueryTask", "dojo/dom","dijit/registry", "dojo/domReady!"], 
+	function (Memory, ComboBox, SpatialReference, Point, Graphic, Query, QueryTask, dom, registry) {
 		emptyStore = new Memory({
-			data : []
-		});
+				data : []
+			});
 			
 		findCombo = new ComboBox({
 				id : "findCombo",
@@ -32,13 +32,13 @@ function findPlaceInit() {
 					registry.byId("findCombo").set("store", emptyStore);
 					registry.byId("findCombo").closeDropDown(true);
 				},
-				onChange : gotoLocation
-				/*style : {
+				onChange : gotoLocation,
+				style : {
 					width : "350px",
 					borderRadius : "5px 0 0 5px",
 					borderStyle : "inset",
 					padding : "5px 45px 5px 25px"
-				}*/
+				}
 			}, "findCombo");
 		findCombo.startup();
 		var findBtn = document.createElement("img");
@@ -134,7 +134,7 @@ function findPlaceInit() {
 	});
 }
 function handleCoordinate(label) {
-	require(["esri/geometry/SpatialReference", "esri/geometry/Point", "esri/Graphic", "dojo/domReady!"], function (SpatialReference, Point, Graphic) {
+	require(["esri/SpatialReference", "esri/geometry/Point", "esri/graphic", "dojo/domReady!"], function (SpatialReference, Point, Graphic) {
 		var point;
 		var inSR,
 		outSR,
@@ -254,123 +254,80 @@ function zoomToFindLocation(label, x, y) {
 		label = label.replace(quote,"''");
 		// Is it a boundary? county, gmu, stl, sfu, swa, wwa, national forest, grassland, or wilderness
 		if ((label.toUpperCase().slice(-6, label.length) == "COUNTY") || (label.toUpperCase().slice(0, 4) == "GMU ") || (label.toUpperCase().slice(-4, label.length) == " STL") || (label.toUpperCase().indexOf(" STL ") > -1) || (label.toUpperCase().slice(-4, label.length) == " SWA") || (label.toUpperCase().indexOf(" SWA ") > -1) || (label.toUpperCase().slice(-4, label.length) == " SFU") || (label.toUpperCase().indexOf(" SFU ") > -1) || (label.toUpperCase().slice(-4, label.length) == " WWA") || (label.toUpperCase().indexOf(" WWA ") > -1) || (label.toUpperCase().slice(-15, label.length) == "NATIONAL FOREST") || (label.toUpperCase().indexOf("NATIONAL GRASSLAND") > -1) || (label.toUpperCase().indexOf("WILDERNESS") > -1)) {
-			require(["esri/rest/query","esri/layers/FeatureLayer"], function (query,FeatureLayer) {
-				var url;
-				var where;
-				var text;
-				var outFields;
+			var queryTask;
+			var query;
+			require(["esri/tasks/query", "esri/tasks/QueryTask", "dojo/_base/lang"], function (Query, QueryTask, lang) {
 				if (label.toUpperCase().slice(-6, label.length) == "COUNTY") {
-					url = findObj["county"].url;
-					where = "UPPER(" + findObj["county"].field + ") LIKE UPPER('" + label.substring(0, label.length - 7) + "')";
-					where = findObj["county"].field +" LIKE '" + label.substring(0, label.length - 7) + "'";
-					text = label;
-					outFields = [findObj["county"].field];
+					queryTask = new QueryTask(findObj["county"].url);
+					query = new Query();
+					query.where = "UPPER(" + findObj["county"].field + ") LIKE UPPER('" + label.substring(0, label.length - 7) + "')";
+					query.text = label;
+					query.returnGeometry = true;
+					query.outFields = [findObj["county"].field];
 				} else if ((label.toUpperCase().slice(-4, label.length) == " STL") || (label.toUpperCase().indexOf(" STL ") > -1) || (label.toUpperCase().slice(-4, label.length) == " SWA") || (label.toUpperCase().indexOf(" SWA ") > -1) || (label.toUpperCase().slice(-4, label.length) == " SFU") || (label.toUpperCase().indexOf(" SFU ") > -1) || (label.toUpperCase().slice(-4, label.length) == " WWA") || (label.toUpperCase().indexOf(" WWA ") > -1)) {
-					url = findObj["public"].url;
-					where = "UPPER(" + findObj["public"].field + ") LIKE UPPER('" + label + "')";
-					text = label;
-					outFields = [findObj["public"].field];
+					queryTask = new QueryTask(findObj["public"].url);
+					query = new Query();
+					query.where = "UPPER(" + findObj["public"].field + ") LIKE UPPER('" + label + "')";
+					query.text = label;
+					query.returnGeometry = true;
+					query.outFields = [findObj["public"].field];
 				} else if (label.toUpperCase().slice(0, 4) == "GMU ") {
-					url = findObj["gmu"].url;
-					where = findObj["gmu"].field + " = " + label.substring(4, label.length);
-					text = label;
-					outFields = [findObj["gmu"].field];
+					queryTask = new QueryTask(findObj["gmu"].url);
+					query = new Query();
+					query.where = findObj["gmu"].field + " = " + label.substring(4, label.length);
+					query.text = label;
+					query.returnGeometry = true;
+					query.outFields = [findObj["gmu"].field];
 				} else if (label.toUpperCase().slice(-15, label.length) == "NATIONAL FOREST") {
 					if (label == "Arapaho National Forest" || label == "Roosevelt National Forest")
 						label = "Arapaho and Roosevelt National Forests";
-					url = findObj["forest"].url;
-					where = "UPPER(" + findObj["forest"].field + ") LIKE UPPER('" + label + "')";
-					text = label;
-					outFields = [findObj["forest"].field];
+					queryTask = new QueryTask(findObj["forest"].url);
+					query = new Query();
+					query.where = "UPPER(" + findObj["forest"].field + ") LIKE UPPER('" + label + "')";
+					query.text = label;
+					query.returnGeometry = true;
+					query.outFields = [findObj["forest"].field];
 				} else if (label.toUpperCase().indexOf("NATIONAL GRASSLAND") > -1) {
-					url = findObj["grassland"].url;
-					where = "UPPER(" + findObj["grassland"].field + ") LIKE UPPER('" + label + "%')";
-					text = label;
-					outFields = [findObj["grassland"].field];
+					queryTask = new QueryTask(findObj["grassland"].url);
+					query = new Query();
+					query.where = "UPPER(" + findObj["grassland"].field + ") LIKE UPPER('" + label + "%')";
+					query.text = label;
+					query.returnGeometry = true;
+					query.outFields = [findObj["grassland"].field];
 				} else if (label.toUpperCase().indexOf("WILDERNESS") > -1) {
-					url = findObj["wilderness"].url;
+					queryTask = new QueryTask(findObj["wilderness"].url);
+					query = new Query();
 					if (label.toUpperCase().indexOf("LAPOUDRE") > -1)
 						label = label.replace("LaPoudre", "La Poudre");
-					where = "UPPER(" + findObj["wilderness"].field + ") LIKE UPPER('" + label + "%')";
-					text = label;
-					outFields = [findObj["wilderness"].field];
+					query.where = "UPPER(" + findObj["wilderness"].field + ") LIKE UPPER('" + label + "%')";
+					query.text = label;
+					query.returnGeometry = true;
+					query.outFields = [findObj["wilderness"].field];
 				}
-
-				// 4-27-23 Test labeling
-				label = label.replace("/n"," "); // replace carriage returns with space for flex bookmarks
-				const labelArcade = "$feature."+outFields;
-				const labelClass = {
-					// autocasts as new LabelClass()
-					symbol: {
-					  type: "text", // autocasts as new TextSymbol()
-					  color: "black",
-					  haloColor: [255,255,153,1.0],
-						haloSize: "2px",
-					  yoffset: -23,
-					  font: {
-						//autocast as new Font()
-						family: "Arial Bold",
-						size: "11pt"
-					  }
-					},
-					labelPlacement: "always-horizontal", //below-center for points
-					labelExpressionInfo: {
-						expression: labelArcade //"$feature.Team + TextFormatting.NewLine + $feature.Division"
-					}
-					//where: "COUNTYNAME LIKE 'Larimer'" //where
-				};
-				const layer = new FeatureLayer({
-					url: url,
-					renderer: {
-					  type: "simple",
-					  symbol: {
-						type: "simple-line",  // autocasts as new SimpleLineSymbol()
-						style: "solid",
-						color: "red",
-						width: "3px"
-					  }
-					},
-					labelingInfo: [labelClass]
-				});
-		  
-				view.map.add(layer);
-				view.goTo({
-					target: point
-					//zoom: 9//lodLevel
-				});
-				document.getElementById("findClear").style.opacity = 1;
-				document.getElementById("findClear").style.filter = "alpha(opacity=100)";
-				// Clear the boundary after a couple seconds
-				var t = window.setTimeout(function (){
-					removeSearchItem();
-					window.clearTimeout(t);
-				}, 4000);
-				hideLoading();
-				return;
-			
-				query.executeQueryJSON(url,{  // autocasts as new Query()
-					where: where,
-					returnGeometry: true,
-					outFields: outFields
-				}).then(function(results){
-					// results is a FeatureSet containing an array of graphic features
-					// Sometimes it is found in GNIS but not the boundary mapservice. If not found zoom to the GNIS point.
-					if (results.features.length == 0) {
-						//alert("Boundary for "+label+" not found. Zooming to point.","Note");
-						_clearAndZoom(point, lodLevel);
-						_displayXYPoint(point, label);
-					}
-					else {
-						_clearAndZoom(null,-1); // just clear, do not zoom in
-						_highlightPolygonResults(results, label, point);
-					}
-				}, function(error){
-					console.log(error); // will print error in console, if any
+			});
+			queryTask.execute(query, function (results) {
+				// Sometimes it is found in GNIS but not the boundary mapservice. If not found zoom to the GNIS point.
+				if (results.features.length == 0) {
+					//alert("Boundary for "+label+" not found. Zooming to point.","Note");
+					_clearAndZoom(point, lodLevel);
+					_displayXYPoint(point, label);
+				}
+				else {
+					_clearAndZoom(null,-1); // just clear, do not zoom in
+					_highlightPolygonResults(results, label, point);
+				}
+			}, function (error) {
+				/*if (error.details && error.details.length == 2){
+					hideLoading();
+					alert("Error querying in FindPlace.js " + error.message + " " + error.details[0] + " " + error.details[1] + ". Check url.xml and findplaceservice tag in config.xml.", "Data Error");
+				}else {*/
 					hideLoading();
 					// note:  if receiving this error, check the URLs in url.xml and findplaceservice tag in config.xml.
-					alert("Service is busy or not responding. Please try again. Error at: FindPlace.js line 325. Query value: "+label+". Error: "+error, "Data Error");
-				});
+					alert("Service is busy or not responding. Please try again. Error at: FindPlace.js line 325. Query value: "+label, "Data Error");
+				//}
 			});
+			query = null;
+			queryTask = null;
 		}
 		// Not a boundary
 		else {
@@ -387,27 +344,27 @@ function loadFindBoundaries(label, x, y){
 		var configFile = app + "/url.xml?v="+ndisVer;
 		findObj = {
 			"county" : {
-				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/1",
+				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_FindAPlaceTool_Data/MapServer/1",
 				field : "COUNTYNAME"
 			},
 			"public" : {
-				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/3",
+				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/3",
 				field : "PropName"
 			},
 			"gmu" : {
-				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/4",
+				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_FindAPlaceTool_Data/MapServer/4",
 				field : "GMUID"
 			},
 			"forest" : {
-				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/5",
+				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/5",
 				field : "MapName"
 			},
 			"grassland" : {
-				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/5",
+				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/5",
 				field : "MapName"
 			},
 			"wilderness" : {
-				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/4",
+				url : "//ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/CHA_AssetReport_Data/MapServer/4",
 				field : "NAME"
 			}
 		};
@@ -466,90 +423,41 @@ function loadFindBoundaries(label, x, y){
 	}
 }
 
-function _clearAndZoom(point, lodLevel) {
+function _clearAndZoom(point, lod) {
 	try {
 		require(["dijit/registry","dijit/focus"],function(registry,focusUtil){
-			if (point) {
-				view.goTo({
-					target: point,
-					zoom: lodLevel
-				}); 
-				//map.centerAndZoom(point, lod);
-			}
+			if (point) map.centerAndZoom(point, lod);
 			if (!registry.byId("findCombo"))
 				return;
 			registry.byId("findCombo").set("store", emptyStore);
 			registry.byId("findCombo").set("value", "");
-			//focusUtil.curNode && focusUtil.curNode.blur(); // TODO what does this do??????
+			focusUtil.curNode && focusUtil.curNode.blur();
 		});
 	} catch (e) {
 		alert(e.message, "findPlace.js _clearAndZoom", "Code Error", e);
 	}
 }
 function _highlightPolygonResults(results, label, point) {
-	require(["dojo/_base/Color", "esri/symbols/SimpleLineSymbol", "esri/layers/FeatureLayer", "esri/layers/GraphicsLayer", "esri/Graphic" ],
-	    function (Color, SimpleLineSymbol, FeatureLayer, GraphicsLayer, Graphic) {
+	require(["dojo/_base/Color", "esri/symbols/SimpleLineSymbol", "esri/layers/GraphicsLayer", "esri/graphic", "esri/graphicsUtils"], function (Color, SimpleLineSymbol, GraphicsLayer, Graphic, graphicsUtils) {
 		// Sometimes it is found in GNIS but not the boundary mapservice. If not found zoom to the GNIS point.
 		if (results.features.length == 0) {
-			view.goTo({
-				target: point,
-				zoom: lodLevel
-			});
-			//map.centerAndZoom(point, lodLevel);
+			map.centerAndZoom(point, lodLevel);
 			_displayXYPoint(point, label);
 			hideLoading();
 			return;
 		}
-		let highlightSymbol = {
-			type: "simple-line",  // autocasts as new SimpleLineSymbol()
-			style: "solid",
-			color: "red",
-			width: "3px"
-		};
-			
-		label=label.replace(/''/g, "'");
-		/*var searchGraphicsLayer = new GraphicsLayer();
-		var searchGraphicsLayer = new FeatureLayer();
-		searchGraphicsLayer.id = "searchgraphics" + searchGraphicsCounter;
-		searchGraphicsCount.push(searchGraphicsLayer.id);
-		searchGraphicsCounter++;*/
-
-		const borderGraphic=[];
-		// TODO add label to polygon must use feature service!!
-		for (var i = 0; i < results.features.length; i++) {
-			/*view.graphics.add(new Graphic({
-				geometry:results.features[i].geometry,
-				symbol: highlightSymbol
-			}));*/
-			borderGraphic.push(new Graphic({
-				geometry:results.features[i].geometry,
-				symbol: highlightSymbol,
-				attributes: {
-					NAME: label
-				}
-			}));
-			/*searchGraphicsLayer.add(new Graphic({
-				geometry:results.features[i].geometry,
-				symbol: highlightSymbol
-			}));*/
-		}
-		// Goto extent of polygon
-		view.goTo({
-			target: results.features
-		});
-		var searchGraphicsLayer = new FeatureLayer({
-			source: borderGraphic,  // autocast as a Collection of new Graphic()
-			objectIdField: "NAME"
-		});
+		var highlightSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 0]), 3);
+		var searchGraphicsLayer = new GraphicsLayer();
 		searchGraphicsLayer.id = "searchgraphics" + searchGraphicsCounter;
 		searchGraphicsCount.push(searchGraphicsLayer.id);
 		searchGraphicsCounter++;
+		for (var i = 0; i < results.features.length; i++) {
+			searchGraphicsLayer.add(new Graphic(results.features[i].geometry, highlightSymbol));
+		}
+		map.setExtent(graphicsUtils.graphicsExtent(results.features), true);
+		label=label.replace(/''/g, "'");
 		addLabel(new Graphic(point), label, searchGraphicsLayer, "11pt");
-		map.add(searchGraphicsLayer);
-		//map.setExtent(graphicsUtils.graphicsExtent(results.features), true);
-		
-		
-		//map.addLayer(searchGraphicsLayer);
+		map.addLayer(searchGraphicsLayer);
 		document.getElementById("findClear").style.opacity = 1;
 		document.getElementById("findClear").style.filter = "alpha(opacity=100)";
 		// Clear the boundary after a couple seconds
@@ -561,7 +469,7 @@ function _highlightPolygonResults(results, label, point) {
 	});
 }
 function _displayXYPoint(point, label) {
-	require(["esri/symbols/PictureMarkerSymbol", "esri/Graphic", "esri/layers/GraphicsLayer"], function (PictureMarkerSymbol, Graphic, GraphicsLayer) {
+	require(["esri/symbols/PictureMarkerSymbol", "esri/graphic", "esri/layers/GraphicsLayer"], function (PictureMarkerSymbol, Graphic, GraphicsLayer) {
 		var symbol = new PictureMarkerSymbol("assets/images/i_flag.png", 40, 40);
 		var searchGraphicsLayer = new GraphicsLayer();
 		searchGraphicsLayer.id = "searchgraphics" + searchGraphicsCounter;
@@ -590,9 +498,6 @@ function gotoLocation() {
 		handleCoordinate(value);
 		return;
 	}
-	// Google Analytics count how many times Buy License is clicked on
-	if (typeof ga === "function") ga('send', 'event', "find_place", "click", "Find a Place", "1");
-	if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Find a Place'});
 	// if selected from drop down suggestion list
 	if (!calledFromURL && findCombo && findCombo.item && findCombo.item.label) {
 		showLoading();

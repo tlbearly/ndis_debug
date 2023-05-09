@@ -266,9 +266,8 @@ function readConfig() {
 								"url": layer.getAttribute("url"),
 								"opacity": layerObj[id].opacity,
 								"title": id,
-								"id":id,
 								"visible": layerObj[id].visible,
-								///TODO this does not exist in v4.24**********  "visibleLayers": layerObj[id].visLayers
+								//"visibleLayers": layerObj[id].visLayers
 								"sublayers": layerObj[id].visLayers
 							});
 						// not found on url, not visible
@@ -277,7 +276,6 @@ function readConfig() {
 								"url": layer.getAttribute("url"),
 								"opacity": Number(layer.getAttribute("alpha")),
 								"title": id,
-								"id":id,
 								"visible": false
 							});
 						}
@@ -313,7 +311,6 @@ function readConfig() {
 								"url": layer.getAttribute("url"),
 								"opacity": Number(layer.getAttribute("alpha")),
 								"title": id,
-								"id":id,
 								"visible": false
 							});
 						else
@@ -321,7 +318,6 @@ function readConfig() {
 								"url":layer.getAttribute("url"),
 								"opacity": Number(layer.getAttribute("alpha")),
 								"title": id,
-								"id":id,
 								"visible": true
 							});
 					} 
@@ -332,7 +328,6 @@ function readConfig() {
 								"url": layer.getAttribute("url"),
 								"opacity": Number(layer.getAttribute("alpha")),
 								"title": id,
-								"id":id,
 								"visible": false
 							});
 						else
@@ -340,7 +335,6 @@ function readConfig() {
 								"url":layer.getAttribute("url"),
 								"opacity": Number(layer.getAttribute("alpha")),
 								"title": id,
-								"id":id,
 								"visible": true,
 							});
 					}
@@ -575,41 +569,13 @@ function readConfig() {
 		// *********************************
 		// Creates actions in the LayerList.
 		// *********************************
-        async function defineActions(event) {
+        function defineActions(event) {
             // The event object contains an item property.
             // is is a ListItem referencing the associated layer
             // and other properties. You can control the visibility of the
             // item, its title, and actions using this object.
 
             const item = event.item;
-			await item.layer.when();
-
-			// Adds a slider for updating a top level group or individual layer's opacity
-			if((item.children.length == 0 && item.parent) || item.parent === null ){
-				const slider = new Slider({
-					min: 0,
-					max: 1,
-					precision: 2,
-					values: [ item.layer.opacity ],
-					visibleElements: {
-					labels: true,
-					rangeLabels: true
-					}    
-				});
-
-				item.panel = {
-					content: slider,
-					className: "esri-icon-sliders-horizontal",
-					title: "Change layer opacity"
-				};
-
-				slider.on("thumb-drag", (event) => {
-					const { value } = event;
-					item.layer.opacity = value;
-				});
-			}
-			
-
             // show legend  
             /*if (item.layer.type != "group") {
                 // don't show legend twice
@@ -619,19 +585,64 @@ function readConfig() {
                 };
             }*/
 
+          if (item.title === "Game Species") {
             // An array of objects defining actions to place in the LayerList.
             // By making this array two-dimensional, you can separate similar
             // actions into separate groups with a breaking line.
 
             item.actionsSections = [
-				[
-					{
-						title: "Layer information",
-						className: "esri-icon-description",
-						id: "information"
-					}
-				]
-            ];
+            /*  [
+                {
+                  title: "Go to full extent",
+                  className: "esri-icon-zoom-out-fixed",
+                  id: "full-extent"
+                },*/
+               {
+                  title: "Layer information",
+                  className: "esri-icon-description",
+                  id: "information"
+                }
+              /*], 
+              [
+                {
+                  title: "Increase opacity",
+                  className: "esri-icon-up",
+                  id: "increase-opacity"
+                },
+                {
+                  title: "Decrease opacity",
+                  className: "esri-icon-down",
+                  id: "decrease-opacity"
+                }
+              ]*/
+            ];   
+          }
+
+         //console.log(item.title+" vis: "+item.visible+" vis at scale: "+ item.visibleAtCurrentScale);
+          // Adds a slider for updating a top level group or individual layer's opacity
+          if((item.children.length == 0 && item.parent) || item.parent === null ){
+            const slider = new Slider({
+              min: 0,
+              max: 1,
+              precision: 2,
+              values: [ item.layer.opacity ],
+              visibleElements: {
+                labels: true,
+                rangeLabels: true
+              }    
+            });
+
+            item.panel = {
+              content: slider,
+              className: "esri-icon-sliders-horizontal",
+              title: "Change layer opacity"
+            };
+
+            slider.on("thumb-drag", (event) => {
+              const { value } = event;
+              item.layer.opacity = value;
+            });
+          }
         }
 
 		//*************
@@ -728,7 +739,8 @@ function readConfig() {
 								// if the information action is triggered, then
 								// open the item details page of the service layer
 								//window.open(layer.url);
-								window.open("/"+app+"/definitions.html");
+								if (event.item.title === "Game Species")
+                					window.open("/HuntingAtlas/definitions.html");
 							} else if (id === "increase-opacity") {
 								// if the increase-opacity action is triggered, then
 								// increase the opacity of the GroupLayer by 0.25
@@ -888,7 +900,10 @@ function readConfig() {
 						//if (icon)
 						//	document.getElementById("printIcon").src = icon;
 					} else if (label == "Identify") {}
-					else if (label == "MapLink") {
+					else if (label == "GetExtent") {
+						if (icon)
+							document.getElementById("extentIcon").src = icon;
+					} else if (label == "MapLink") {
 						if (icon)
 							document.getElementById("linkIcon").src = icon;
 					} else {

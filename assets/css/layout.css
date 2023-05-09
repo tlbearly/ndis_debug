@@ -166,7 +166,7 @@ body{
 }
 #bmGallery li{
 	padding:10px;
-	width:100px;
+	width:120px;
 }
 #bmGallery img{
 	object-fit:cover;
@@ -178,8 +178,8 @@ body{
 }
 .bmSelected img {
 	border:3px solid gold;
-	width: 94px;
-	height: 64px;
+	width: 100px;
+	height: 70px;
 }
 .headerBtn {
     /*background-color: #5877a2;
@@ -291,7 +291,13 @@ option{
 	padding: 0.5em 2px;
 }
 
-
+/* print widget 5-5-23 */
+.esri-print__author-info-container{
+	display:none;
+}
+.esri-print__copyright-info-container{
+	display:none;
+}
 
 /* wrap long text in dialog panes. For long url */
 .dijitDialogPaneContentArea {
@@ -597,9 +603,9 @@ label {
 #streetTxt, #cityTxt, #zipTxt {
 padding: 5px;
 }
-#widget_findCombo{
+/*#widget_findCombo{
 	padding:0 45px 0 25px!important;
-}
+}*/
 #widget_gmuList .dijitInputField {
 padding: 1px 2px;
 }

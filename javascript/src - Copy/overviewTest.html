@@ -1,0 +1,265 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Overview map | Sample | ArcGIS API for JavaScript 4.24</title>
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+        z-index: -1;
+      }
+
+      #overviewDiv {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 300px;
+        height: 200px;
+        border: 1px solid black;
+        z-index: 1;
+        overflow: hidden;
+      }
+
+      /* overview map location rectangle */
+      #extentDiv {
+        background-color: rgba(0, 0, 0, 0.5);
+        position: absolute;
+        z-index: 2;
+        cursor:move;
+      }
+    </style>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.24/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.24/"></script>
+
+    <script>
+      require(["esri/Map", "esri/views/MapView", "esri/geometry/Extent", "esri/Graphic", "esri/core/reactiveUtils", "esri/core/promiseUtils"], (
+        Map,
+        MapView,
+        Extent,
+        Graphic,
+        reactiveUtils,
+        promiseUtils
+      ) => {
+        
+        var wkid = "102100";
+        ext=[-12350000, 4250000, -11150000, 5250000];
+        const initExtent = new Extent({
+            "xmin": parseFloat(ext[0]),
+            "ymin": parseFloat(ext[1]),
+            "xmax": parseFloat(ext[2]),
+            "ymax": parseFloat(ext[3]),
+            "spatialReference": {
+                "wkid": wkid
+            }
+        });
+        // Create a Map with a basemap, to be used with in the main view
+        const mainMap = new Map({
+          basemap: "streets-vector",
+        });
+
+        
+        // Create the Map
+        const view = new MapView({
+          container: "viewDiv",
+          map: mainMap,
+          extent: initExtent,
+          constraints: {
+            maxScale: 9244649,
+            minScale: 1128
+          }
+        });
+
+
+        //-----------------
+        //   Overview Map
+        //-----------------
+        var extentGraphic, dragging=false;
+        // Create another Map, to be used in the overview "view"
+        const ovMap = new Map({
+          basemap: "streets-vector"
+        });
+
+        // Create the MapView for overview map
+        const overviewMap = new MapView({
+          container: "overviewDiv",
+          map: ovMap,
+          extent: initExtent,
+          constraints: {
+            rotationEnabled: false
+          }
+        });
+
+        overviewMap.when(() => {
+          view.when(() => {
+            setupOverviewMap();
+          });
+        });
+
+        const extentDebouncer = promiseUtils.debounce(() => {
+          if (view.stationary) {
+            overviewMap.goTo({
+              center: view.center,
+              //extent: view.extent.expand(2)
+              scale:view.scale * 2 *
+                Math.max(
+                  view.width / overviewMap.width,
+                  view.height / overviewMap.height
+                )
+            });
+          }
+        });
+
+        function setupOverviewMap() {
+          // Overview map extent graphic
+          extentGraphic = new Graphic({
+            geometry: null,
+            symbol: {
+              type: "simple-fill",
+              color: [0, 0, 0, 0.5],
+              outline: null
+            }
+          });
+          overviewMap.graphics.add(extentGraphic);
+          
+         // Disable all zoom gestures on the overview map
+          overviewMap.popup.dockEnabled = true;
+          // Removes the zoom action on the popup
+          overviewMap.popup.actions = [];
+          // stops propagation of default behavior when an event fires
+          function stopEvtPropagation(event) {
+            event.stopPropagation();
+          }
+          // exlude the zoom widget from the default UI
+          // Remove the default widgets
+          overviewMap.ui.components = [];
+          // disable mouse wheel scroll zooming on the view
+          overviewMap.on("mouse-wheel", stopEvtPropagation);
+          // disable zooming via double-click on the view
+          overviewMap.on("double-click", stopEvtPropagation);
+          // disable zooming out via double-click + Control on the view
+          overviewMap.on("double-click", ["Control"], stopEvtPropagation);
+
+          // pan the overview graphic to move main map
+          // disables pinch-zoom and panning on the view
+          var start, update, diffX, diffY;
+          let tempGraphic;
+          let draggingGraphic;
+          overviewMap.on("drag",(event) => {
+            if (event.action === "start") {
+                // if this is the starting of the drag, do a hitTest
+                overviewMap.hitTest(event).then(resp => {
+                    if (resp.results[0].graphic && resp.results[0].graphic.geometry && resp.results[0].graphic.geometry.type === 'extent'){
+                      event.stopPropagation();
+                      dragging=true;
+                      console.log("start dragging"); 
+                      // if the hitTest returns an extent graphic, set dragginGraphic
+                      draggingGraphic = resp.results[0].graphic;
+                      start =  overviewMap.toMap({x: event.x, y: event.y});
+                    }
+                });
+            }
+            if (event.action === "update") {
+                // on drag update events, only continue if a draggingGraphic is set
+                if (draggingGraphic){
+                    event.stopPropagation();
+                    console.log("update dragging");
+                    // if there is a tempGraphic, remove it
+                    if (tempGraphic) {
+                        overviewMap.graphics.remove(tempGraphic);
+                    } else {
+                        // if there is no tempGraphic, this is the first update event, so remove original graphic
+                        overviewMap.graphics.remove(draggingGraphic);
+                    }
+                    // create new temp graphic and add it
+                    tempGraphic = draggingGraphic.clone();
+                    // Calculate new extent
+                    update = overviewMap.toMap({x: event.x, y: event.y});
+                    diffX = update.x - start.x;
+                    diffY = update.y - start.y;
+                    start = update;
+                    const extent = extentGraphic.geometry;
+                    extent.xmin += diffX;
+                    extent.xmax += diffX; 
+                    extent.ymin += diffY;
+                    extent.ymax += diffY; 
+                    tempGraphic.geometry = extent;
+                    overviewMap.graphics.add(tempGraphic);
+                }
+            }
+            else if (event.action === "end") {
+                // on drag end, continue only if there is a draggingGraphic
+                if (draggingGraphic){
+                  event.stopPropagation();
+                  console.log("end dragging");
+                  // rm temp
+                  if (tempGraphic) overviewMap.graphics.remove(tempGraphic);
+                  // create new graphic based on original dragging graphic
+                  extentGraphic = draggingGraphic.clone();
+                  if (tempGraphic)
+                    extentGraphic.geometry = tempGraphic.geometry.clone();
+                  else
+                    extentGraphic.geometry = draggingGraphic.geometry.clone();
+                  
+                  // add replacement graphic
+                  overviewMap.graphics.add(extentGraphic);
+                  
+                  // reset vars
+                  draggingGraphic = null;
+                  tempGraphic = null;
+                  
+                  // Adjust main map
+                  view.center = extentGraphic.geometry.extent.center;
+                  dragging=false;
+                }
+            }
+          });
+
+          // disable the view's zoom box to prevent the Shift + drag
+          // and Shift + Control + drag zoom gestures.
+          overviewMap.on("drag", ["Shift"], stopEvtPropagation);
+          overviewMap.on("drag", ["Shift", "Control"], stopEvtPropagation);
+
+          // prevents zooming with the + and - keys
+          overviewMap.on("key-down", (event) => {
+            const prohibitedKeys = ["+", "-", "Shift", "_", "=", "ArrowUp", "ArrowDown", "ArrowRight", "ArrowLeft"];
+            const keyPressed = event.key;
+            if (prohibitedKeys.indexOf(keyPressed) !== -1) {
+              event.stopPropagation();
+            }
+          });
+          
+          reactiveUtils.watch(
+            () => view.extent,
+            (extent) => {
+              // Sync the overview map location
+              // whenever the view is stationary
+              if(dragging) return;
+              extentDebouncer().then(() => {
+                extentGraphic.geometry = extent;
+              });
+              overviewMap.scale = view.scale * 2 * Math.max(
+                  view.width / overviewMap.width,
+                  view.height / overviewMap.height
+                );
+              overviewMap.center = view.center;
+            },
+            {
+              initial: true
+            }
+          );
+        }
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+    <div id="overviewDiv"><div id="extentDiv"></div></div>
+  </body>
+</html>

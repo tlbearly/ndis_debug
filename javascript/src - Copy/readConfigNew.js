@@ -12,8 +12,9 @@ var layerObj; // holds layer id, visiblelayers, visible when read from url &laye
 function lookupAddress() {
 	require(["dojo/dom"], function(dom){
 		// Google Analytics count how many times Address is clicked on
-		if (typeof ga === "function")ga('send', 'event', "address", "click", "Address", "1");	
-		if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Address'});
+		if (typeof ga === "function"){
+			ga('send', 'event', "address", "click", "Address", "1");
+		}
 
 		var addr = dom.byId("streetTxt").value;
 		// protect against xss attacks
@@ -157,11 +158,10 @@ function readConfig() {
 	// "agsjs/dijit/TOC", "esri/tasks/locator", "esri/rest/support/ProjectParameters", "esri/widget/Popup",
 	require(["dojo/dom", "dojo/io-query", "esri/core/promiseUtils", "esri/core/reactiveUtils", "esri/layers/MapImageLayer", "esri/layers/FeatureLayer", "esri/rest/geometryService",
 	 "esri/geometry/SpatialReference", "esri/Graphic", "esri/Map", "esri/views/MapView","esri/widgets/Print","esri/geometry/Extent",
-	 "esri/widgets/Home", "esri/widgets/Expand", "esri/widgets/LayerList", "esri/widgets/Legend", "esri/widgets/Locate", "esri/widgets/Search", "esri/widgets/ScaleBar", "esri/widgets/Slider", "esri/rest/support/ProjectParameters",
-	 "esri/symbols/SimpleFillSymbol", "dijit/form/CheckBox", "dijit/layout/ContentPane", "dijit/TitlePane", "dijit/layout/TabContainer", "esri/symbols/SimpleLineSymbol", "dojo/sniff"], 
+	 "esri/widgets/Home", "esri/widgets/Expand", "esri/widgets/LayerList", "esri/widgets/Legend", "esri/widgets/ScaleBar", "esri/widgets/Slider", "esri/rest/support/ProjectParameters",
+	 "esri/symbols/SimpleFillSymbol", "dijit/form/CheckBox", "dijit/layout/ContentPane", "dijit/TitlePane", "esri/symbols/SimpleLineSymbol", "dojo/sniff"], 
 	 function (dom, ioquery, promiseUtils, reactiveUtils, MapImageLayer, FeatureLayer, GeometryService, SpatialReference,
-		Graphic, Map, MapView, Print, Extent, Home, Expand, LayerList, Legend, Locate, Search, ScaleBar, Slider, ProjectParameters, SimpleFillSymbol, CheckBox,
-		ContentPane, TitlePane, TabContainer, SimpleLineSymbol, has) {
+		Graphic, Map, MapView, Print, Extent, Home, Expand, LayerList, Legend, ScaleBar, Slider, ProjectParameters, SimpleFillSymbol, CheckBox, ContentPane, TitlePane, SimpleLineSymbol, has) {
 		var xmlDoc; // config.xml document json
 		var ext;
 		var tries={}; // number of times we have tried to load each map layer
@@ -195,7 +195,7 @@ function readConfig() {
 				//   text|font|font size|color|bold as t or f|italic as t or f|underline as t or f|placement|offset, next point...
 				// For example: circle|10|4173788|1|0|1|-11713310|4743885|480;779; 4;333;990|1|12|4173788|t|f|f|above|5
 				if (queryObj.point && queryObj.point != "") {
-					points(queryObj.point, sr);
+					addPoints(queryObj.point, sr);
 				}
 				
 				//----------------------------
@@ -266,9 +266,8 @@ function readConfig() {
 								"url": layer.getAttribute("url"),
 								"opacity": layerObj[id].opacity,
 								"title": id,
-								"id":id,
 								"visible": layerObj[id].visible,
-								///TODO this does not exist in v4.24**********  "visibleLayers": layerObj[id].visLayers
+								//"visibleLayers": layerObj[id].visLayers
 								"sublayers": layerObj[id].visLayers
 							});
 						// not found on url, not visible
@@ -277,7 +276,6 @@ function readConfig() {
 								"url": layer.getAttribute("url"),
 								"opacity": Number(layer.getAttribute("alpha")),
 								"title": id,
-								"id":id,
 								"visible": false
 							});
 						}
@@ -313,7 +311,6 @@ function readConfig() {
 								"url": layer.getAttribute("url"),
 								"opacity": Number(layer.getAttribute("alpha")),
 								"title": id,
-								"id":id,
 								"visible": false
 							});
 						else
@@ -321,7 +318,6 @@ function readConfig() {
 								"url":layer.getAttribute("url"),
 								"opacity": Number(layer.getAttribute("alpha")),
 								"title": id,
-								"id":id,
 								"visible": true
 							});
 					} 
@@ -332,7 +328,6 @@ function readConfig() {
 								"url": layer.getAttribute("url"),
 								"opacity": Number(layer.getAttribute("alpha")),
 								"title": id,
-								"id":id,
 								"visible": false
 							});
 						else
@@ -340,7 +335,6 @@ function readConfig() {
 								"url":layer.getAttribute("url"),
 								"opacity": Number(layer.getAttribute("alpha")),
 								"title": id,
-								"id":id,
 								"visible": true,
 							});
 					}
@@ -575,41 +569,13 @@ function readConfig() {
 		// *********************************
 		// Creates actions in the LayerList.
 		// *********************************
-        async function defineActions(event) {
+        function defineActions(event) {
             // The event object contains an item property.
             // is is a ListItem referencing the associated layer
             // and other properties. You can control the visibility of the
             // item, its title, and actions using this object.
 
             const item = event.item;
-			await item.layer.when();
-
-			// Adds a slider for updating a top level group or individual layer's opacity
-			if((item.children.length == 0 && item.parent) || item.parent === null ){
-				const slider = new Slider({
-					min: 0,
-					max: 1,
-					precision: 2,
-					values: [ item.layer.opacity ],
-					visibleElements: {
-					labels: true,
-					rangeLabels: true
-					}    
-				});
-
-				item.panel = {
-					content: slider,
-					className: "esri-icon-sliders-horizontal",
-					title: "Change layer opacity"
-				};
-
-				slider.on("thumb-drag", (event) => {
-					const { value } = event;
-					item.layer.opacity = value;
-				});
-			}
-			
-
             // show legend  
             /*if (item.layer.type != "group") {
                 // don't show legend twice
@@ -619,19 +585,67 @@ function readConfig() {
                 };
             }*/
 
+          //if (item.title === "US Demographics") {
             // An array of objects defining actions to place in the LayerList.
             // By making this array two-dimensional, you can separate similar
             // actions into separate groups with a breaking line.
 
-            item.actionsSections = [
-				[
-					{
-						title: "Layer information",
-						className: "esri-icon-description",
-						id: "information"
-					}
-				]
+            /*item.actionsSections = [
+              [
+                {
+                  title: "Go to full extent",
+                  className: "esri-icon-zoom-out-fixed",
+                  id: "full-extent"
+                },
+               {
+                  title: "Layer information",
+                  className: "esri-icon-description",
+                  id: "information"
+                }
+              ],
+              [
+                {
+                  title: "Increase opacity",
+                  className: "esri-icon-up",
+                  id: "increase-opacity"
+                },
+                {
+                  title: "Decrease opacity",
+                  className: "esri-icon-down",
+                  id: "decrease-opacity"
+                }
+              ]
             ];
+            */
+         // }
+
+         //console.log(item.title+" vis: "+item.visible+" vis at scale: "+ item.visibleAtCurrentScale);
+          // Adds a slider for updating a group layer's opacity
+          //|| item.parent == null
+          if((item.children.length == 0 && item.parent) || item.parent === null ){
+            const slider = new Slider({
+              min: 0,
+              max: 1,
+              precision: 2,
+              values: [ item.layer.opacity ],
+              visibleElements: {
+                labels: true,
+                rangeLabels: true
+              }
+              
+            });
+
+            item.panel = {
+              content: slider,
+              className: "esri-icon-sliders-horizontal",
+              title: "Change layer opacity"
+            };
+
+            slider.on("thumb-drag", (event) => {
+              const { value } = event;
+              item.layer.opacity = value;
+            });
+          }
         }
 
 		//*************
@@ -652,30 +666,19 @@ function readConfig() {
 					widgetStr += label;
 					if (label == "Map Layers & Legend") {
 						var tocPane = new TitlePane({
-							title: "<img id='tocIcon' role='presentation' alt='map layers icon' src='assets/images/i_layers.png'/> Map Layers & Legend",
+							title: "<img id='tocIcon' role='presentation' alt='map layers icon' src='assets/images/i_layers.png'/> Map Layers",
 							open: preload,
-							content: document.getElementById("tocContent")
-							 //"<div id='tocContent' style='position:relative'><img id='tocHelpBtn' role='button' alt='map layers help' class='help_icon help_icon_dialog' src='assets/images/i_help.png'></div>"
-						},"tocPane");
+							content: "<div id='tocContent' style='position:relative'><img id='tocHelpBtn' role='button' alt='map layers help' class='help_icon help_icon_dialog' src='assets/images/i_help.png'><div id='listContent'></div></div>"
+						});
 						tocPane.startup();
+						document.getElementById("tocPane").appendChild(tocPane.domNode);
 						document.getElementById("tocHelpBtn").addEventListener("click",function(){show("tocHelpDialog");});
-					
-						// Layer List
+						
 						var layerList = new LayerList({
 							view: view,
 							listItemCreatedFunction: defineActions,
-							container: document.getElementById('layersContent') //tocPane.containerNode.id
+							container: document.getElementById('listContent') //tocPane.containerNode.id
 						});
-
-						// Basemaps
-						document.getElementById("basemapContent").appendChild(new My_BasemapGallery());
-		
-						// Legend
-						let legendWidget = new Legend({
-							view: view,
-							container: document.getElementById("legendContent")
-						});
-					
 						layerList.when(() => {
 							// hide toc items
 							var tocItems = document.getElementsByClassName("esri-layer-list__item--has-children");
@@ -727,8 +730,7 @@ function readConfig() {
 							} else if (id === "information") {
 								// if the information action is triggered, then
 								// open the item details page of the service layer
-								//window.open(layer.url);
-								window.open("/"+app+"/definitions.html");
+								window.open(layer.url);
 							} else if (id === "increase-opacity") {
 								// if the increase-opacity action is triggered, then
 								// increase the opacity of the GroupLayer by 0.25
@@ -753,9 +755,7 @@ function readConfig() {
 						dom.byId("tocPane").style.visibility = "visible";
 						//if (widgetHeight && widgetHeight != "") //cuts off the toc!!!!!
 						//	document.getElementById("tocContent").style.maxHeight = widgetHeight + "px";
-					}
-					
-					/*else if (label == "HB1298 Report") {
+					} /*else if (label == "HB1298 Report") {
 						if (video == null)
 							alert("Warning: Missing help video in " + app + "/config.xml file for widget Map Layers & Legend.", "Data Error");
 							dom.byId("hb1298Help").href = video;
@@ -766,8 +766,7 @@ function readConfig() {
 							openedHB1298 = true;
 							loadjscssfile("javascript/hb1298.js", "js");
 						}
-					}*/ 
-					else if (label.indexOf("Resource Report") > 0) {
+					}*/ else if (label.indexOf("Resource Report") > 0) {
 						var reportPane = new TitlePane({
 							title: "<img id='reportIcon' role='presentation' alt='resrouce report icon' src='assets/images/i_table.png'/> "+label,
 							open: preload,
@@ -883,12 +882,15 @@ function readConfig() {
 						
 						dom.byId("settingsDiv").style.display = "block";
 						dom.byId("settingsDiv").style.visibility = "visible";
-					}
+					} else if (label == "Find a Place") {}
 					else if (label == "Print") {
-						//if (icon)
-						//	document.getElementById("printIcon").src = icon;
+						if (icon)
+							document.getElementById("printIcon").src = icon;
 					} else if (label == "Identify") {}
-					else if (label == "MapLink") {
+					else if (label == "GetExtent") {
+						if (icon)
+							document.getElementById("extentIcon").src = icon;
+					} else if (label == "MapLink") {
 						if (icon)
 							document.getElementById("linkIcon").src = icon;
 					} else {
@@ -936,290 +938,14 @@ function readConfig() {
 						// open CPW buy license page and count how many times it is clicked on
 						// Google Analytics count how many times Buy License is clicked on
 						window.open(licenseURL, "_new");
-						if(typeof ga === "function")ga("send","event","buy_license","click","Buy License","1");
-						if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Buy License'});
-
+						ga('send', 'event', 'buy_license', 'click', 'Buy License', '1');
 					});
 				}
+
+				
 			});
 		}
 
-		//***********************
-		// Add Print
-		//***********************
-		function addPrint(){
-			// Get the disclaimer and create the print widget by calling createPrintWidget.
-
-			// Read the PrintPdfWidget.xml file to get the disclaimer
-			var prtDisclaimer="disclaimer";
-			var xmlhttp = createXMLhttpRequest();
-			var xmlFile = app+"/PrintPdfWidget.xml?v="+ndisVer;
-			xmlhttp.onreadystatechange = function() {
-				if (xmlhttp.readyState===4 && xmlhttp.status === 200) {
-					var xmlDoc=createXMLdoc(xmlhttp);
-					if (xmlDoc.getElementsByTagName("disclaimer")[0]){
-						prtDisclaimer=xmlDoc.getElementsByTagName("disclaimer")[0].firstChild.nodeValue;
-					}
-					else
-						alert("Missing tag, disclaimer, in "+app+"/PrintPdfWidget.xml file.","Data Error");
-					if (xmlDoc.getElementsByTagName("helpvideo")[0])
-						document.getElementById("printVideo").innerHTML="<a target='help' href="+xmlDoc.getElementsByTagName("helpvideo")[0].firstChild.nodeValue+">Click here to view help video.</a><br/><br/>";
-					createPrintWidget(prtDisclaimer);
-				}
-				else if (xmlhttp.status === 404) {
-					alert("Cannot add print widget. Missing PrintPdfWidget.aspx file in "+app+ " directory.","Data Error");
-				}
-				else if (xmlhttp.readyState===4 && xmlhttp.status===500) {
-					alert("Cannot add print widget. Missing PrintPdfWidget.aspx file in "+app+ " directory.","Data Error");
-				}
-			};
-			xmlhttp.open("GET",xmlFile,true);
-			xmlhttp.send();
-		}
-		function createPrintWidget(prtDisclaimer){
-			const print = new Print({
-				view: view,
-				// specify your own print service
-				printServiceUrl: printServiceUrl,
-				allowedFormats: ["pdf","jpg"],
-				allowedLayouts: ["Letter ANSI A landscape", "Letter ANSI A portrait", "Tabloid ANSI B landscape", "Tabloid ANSI B portrait"],
-				templateOptions: {
-					author: prtDisclaimer,
-					legendEnabled: true,
-					dpi: 300
-				},
-				templateCustomTextElements: {
-					"Subtitle": "subtitle"
-				}
-			});
-			const printExpand = new Expand({
-				view,
-				content: print,
-				expandTooltip: "Print",
-				expandIconClass: "esri-icon-printer"
-			});
-			view.ui.add(printExpand, "top-right");
-		}
-
-		//**********************
-		//   Add Find a Place
-		//**********************
-		function addFindPlace(){
-			// Find a Place Widget ESRI default
-			//require(["esri/geometry/Point","esri/geometry/Polygon"],function(Point,Polygon){
-				/*
-				// Create a symbol for drawing the point
-				const textSymbol = {
-				type: "text", // autocasts as new TextSymbol()
-				color: "#7A003C",
-				text: "\ue61d", // esri-icon-map-pin // "", // esri-icon-map-pin
-				font: {
-					// autocasts as new Font()
-					size: 36,
-					family: "CalciteWebCoreIcons"
-				}
-				};
-				*/
-				/*let highlightSymbol = {
-					type: "simple-line",  // autocasts as new SimpleLineSymbol()
-					style: "solid",
-					color: "red",
-					width: "3px"
-				};*/
-
-				//define layers for boundaries
-				var countyFL = new FeatureLayer({
-					url:"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/1",
-					popupTemplate: {
-						// autocasts as new PopupTemplate()
-						title: "{COUNTYNAME} County",
-						overwriteActions: true
-					}
-				});
-				var propertyFL = new FeatureLayer({
-					url:"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/3",
-					popupTemplate: {
-						// autocasts as new PopupTemplate()
-						title: "{PropName}",
-						overwriteActions: true
-					  }
-				});
-				var gmuFL = new FeatureLayer({
-					url:"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/4",
-					popupTemplate: {
-						// autocasts as new PopupTemplate()
-						title: "GMU {GMUID}",
-						overwriteActions: true
-					  }
-				});
-				var forestFL = new FeatureLayer({
-					url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/5",
-					popupTemplate: {
-						// autocasts as new PopupTemplate()
-						title: "{MapName}",
-						overwriteActions: true
-					  }
-				});
-				var wildernessFL = new FeatureLayer({
-					url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/4",
-					popupTemplate: {
-						// autocasts as new PopupTemplate()
-						title: "{NAME}",
-						overwriteActions: true
-					  }
-				});
-				const searchWidget = new Search({
-					view: view,
-					includeDefaultSources:false, // include ESRI geocode service "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer"
-					searchAllEnabled:false, // if true has drop down list of sources includeing ESRI's
-					popupEnabled:true,
-					locationEnabled:true, // Adds option to go to current location
-					maxResults: 6,
-					maxSuggestions: 50,
-					suggestionsEnabled: true,
-					minSuggestCharacters: 2,
-					sources: [
-							{
-								url: myFindService, //https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer 
-								singleLineFieldName: "SingleLine",
-								outFields: ["*"],
-								name: "Colorado Places",
-								placeholder: "Search Colorado Places",
-								zoomScale: 72224,
-								resultSymbol: {
-									type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
-									url: "/assets/images/i_flag.png",
-									size: 24,
-									width: 24,
-									height: 24,
-									xoffset: 0,
-									yoffset: -12
-								},
-								// maybe parse results here for multiple found, weld and boulder county, fish species.
-								// if polygon change resultSymbol
-								  /*getSuggestions: (params) => {
-									return testData.then((data) => {
-									  var results = [];
-									  var toSearch = params.suggestTerm;
-									  data = data["allIBLocations"]["data"];
-								
-									  for(var i=0; i<data.length; i++) {
-										if(data[i]["name"].indexOf(toSearch)!=-1) {
-										  results.push(data[i]);
-										}
-									  }
-									  return results.map((feature) => {
-										return {
-										  key: "name",
-										  text: feature.name,
-										  sourceIndex: params.sourceIndex
-										};
-									  });
-									});
-								  },
-								  getResults: (params) => {
-									return testData.then((data) => {
-									  var results = [];
-									  var toSearch = params.suggestResult.text;
-									  data = data["allIBLocations"]["data"];
-									  for(var i=0; i<data.length; i++) {
-										if(data[i]["name"].indexOf(toSearch)!=-1) {
-										  results.push(data[i]);
-										}}
-									  
-									  const searchResults = results.map((feature) => {
-										console.log(feature)
-										const graphic = new Graphic({
-										  geometry: new Point({
-											latitude: feature.geoCode.latitude,
-											longitude: feature.geoCode.longitude
-										  }),
-										  attributes: feature.address
-										});
-										const buffer = geometryEngine.geodesicBuffer(
-										  graphic.geometry,
-										  100,
-										  "meters"
-										);
-										const searchResult = {
-										  extent: buffer.extent,
-										  feature: graphic,
-										  name: feature["name"]
-										};
-										return searchResult;
-									  });
-									  return searchResults;
-									});
-								}*/
-							},
-							{
-								layer: countyFL,
-								searchFields: ["COUNTYNAME"],
-								displayField: "COUNTYNAME",
-								exactMatch: false,
-								outFields: ["COUNTYNAME"],
-								name: "Counties",
-								placeholder: "Search Counties"
-							},
-							{
-								layer: propertyFL,
-								searchFields: ["PropName"],
-								displayField: "PropName",
-								exactMatch: false,
-								maxSuggestions: 1000,
-								outFields: ["PropName"],
-								name: "CPW Properties (STL, SWA, SFU, or WWA)",
-								placeholder: "Search CPW Properties"
-							},
-							{
-								layer: gmuFL,
-								searchFields: ["GMUID"],
-								displayField: "GMUID",
-								exactMatch: false,
-								maxResults: 6,
-								maxSuggestions: 100,
-								minSuggestCharacters: 1,
-								outFields: ["GMUID"],
-								name: "GMUs",
-								placeholder: "Search GMUs"
-							},
-							{
-								layer: forestFL,
-								searchFields: ["MapName"],
-								displayField: "MapName",
-								exactMatch: false,
-								outFields: ["MapName"],
-								name: "Forest or Grassland",
-								placeholder: "Search Forests/Grasslands"
-							},
-							{
-								layer: wildernessFL,
-								searchFields: ["NAME"],
-								displayField: "NAME",
-								exactMatch: false,
-								outFields: ["NAME"],
-								name: "Wilderness",
-								placeholder: "Search Wildernesses"
-							}
-						]
-						/*resultGraphic: new Polygon({
-							symbol: highlightSymbol
-						})*/
-				  });
-				  searchWidget.on("search-complete", function(event){
-					//alert(event.results);
-				  });
-				  searchWidget.on("select-result", function(event){
-					//alert("clicked");
-				  });
-				  // Adds the search widget below other elements in
-				  // the top left corner of the view
-				  view.ui.add(searchWidget, {
-					position: "top-right",
-					index: 2
-				  });
-				//});	
-		}
 		//********************
 		//  Add OverviewMap
 		//********************
@@ -1231,7 +957,7 @@ function readConfig() {
 			});
 
 			const overviewDiv = document.getElementById("overviewDiv");
-			
+
 			overviewMap = new MapView({
 				container: "overviewDiv",
 				map: ovMap,
@@ -1239,22 +965,20 @@ function readConfig() {
 				constraints: {
 					rotationEnabled: false
 				}
-		 	});
-			
+			});
 			overviewMap.when(() => {
 				setupOverviewMap();
-			});
+			  });
 			const ovExpand = new Expand({
 				view: view,
 				content: overviewDiv,
 				id: "overviewBtn",
-				expandTooltip: "Overview Map",
-				expandIconClass: "esri-icon-overview-arrow-bottom-right",
+				expandTooltip: "Expand Overview Map",
+				expandIconClass: "esri-icon-overview-arrow-bottom-left",
 				collapseIconClass: "esri-collapse__icon esri-expand__icon--expanded esri-icon-collapse",
 				label: "Show Overview"
 				});
-			view.ui.add(ovExpand, "top-left");
-			overviewMap.on("click",function(){alert('ov');});
+			view.ui.add(ovExpand, "top-right");
 
 			// set up initial extent on overview map
 			extentDebouncer = promiseUtils.debounce(() => {
@@ -1430,8 +1154,6 @@ function readConfig() {
               initial: true
             }
           );
-
-		  overviewDiv.style.border="1px solid gray";
         }
 
 		
@@ -1607,7 +1329,17 @@ function readConfig() {
 							minScale: 1128
 						}
 					});
-					
+					const print = new Print({
+					  view: view,
+					  // specify your own print service
+					  printServiceUrl:
+						 printServiceUrl
+					});
+
+					// Adds widget below other elements in the top left corner of the view
+					view.ui.add(print, {
+					  position: "top-right"
+					});
 				} catch (e) {
 					alert("Error creating map in readConfig.js addMap. " + e.message, "Code Error", e);
 				}
@@ -1783,11 +1515,6 @@ function readConfig() {
 				
 				// Load listener function for when the first or base layer has been successfully added
 				view.when(() => {
-					// layer create error
-					view.on("layerview-create-error", function(event) {
-						const err = new Error({name:"Warning",message:"Layer failed to load: "+event.layer.id});
-						console.error("test LayerView failed to create for layer with the id: ", event.layer.id);
-					});
 					// Update mouse coordinates
 					view.on('pointer-move', (event)=>{
 						showCoordinates(event);  
@@ -1827,7 +1554,6 @@ function readConfig() {
 					const legendExpand = new Expand({
 						view,
 						content: legend,
-						expandTooltip: "Legend",
 						expandIconClass: "esri-icon-legend"
 					});
 					view.ui.add(legendExpand, "top-right");
@@ -1841,26 +1567,15 @@ function readConfig() {
 					});
 					
 					view.ui.add(scalebar, {
-						position: "bottom-left"
+					position: "bottom-left"
 					});
-
 					// Home
 					const homeBtn = new Home({
-						view: view,
-						expandTooltip: "Full Extent",
+					view: view
 					});
+		
 					// Add the home button to the top left corner of the view
 					view.ui.add(homeBtn, "top-left");
-
-					// Add You Location
-					const locateBtn = new Locate({
-						view: view
-					});
-			
-					// Add the locate widget to the top left corner of the view
-						view.ui.add(locateBtn, {
-						position: "top-left"
-					});
 				});
 			});
 		}
@@ -2050,11 +1765,11 @@ function readConfig() {
 						alert('Missing tag: findplaceservice in ' + app + '/config.xml.\n\nTag should look like: &lt;findplaceservice url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer"/&gt;\n\nWill use that url for now.', 'Data Error');
 						myFindService = "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer";
 					}
-					/*try {
-						findPlaceInit();
+					try {
+//todo						findPlaceInit();
 					} catch (e) {
 						alert("Error in javascript/FindPlace.js " + e.message, "Code Error", e);
-					}*/
+					}
 					// Set initial/full map extent
 					try {
 						ext = xmlDoc.getElementsByTagName("map")[0].getAttribute("initialextent").split(" ");
@@ -2076,9 +1791,6 @@ function readConfig() {
 						
 						addMap();
 						addOverviewMap();
-						addFindPlace();
-						addPrint();
-						//createMyBasemapGallery();
 						hideLoading();
 					
 					

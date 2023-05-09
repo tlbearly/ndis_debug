@@ -47,8 +47,7 @@ function addBookmark() {
 	try {
 		require(["dojo/dom","dijit/registry"], function(dom,registry){
 			// Google Analytics count how many times Add Bookmark is clicked on
-			if (typeof ga === "function") ga('send', 'event', "bookmark", "click", "Bookmark", "1");	
-			if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Bookmark'});
+			if (typeof ga === "function")ga('send', 'event', "bookmark", "click", "Bookmark", "1");
 			var bmNames = getCookie("bm_" + app.toLowerCase());
 			var name = dom.byId("bookmarkName").value;
 			// clean from XSS attacks

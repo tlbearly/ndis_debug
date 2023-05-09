@@ -3,8 +3,9 @@ function setMapLink() {
 	// Called when user clicks on Map Link
 	//
 	// Google Analytics count how many times Buy License is clicked on
-	if (typeof ga === "function")ga('send', 'event', "map_link", "click", "Map Link", "1");
-	if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Map Link'});
+	if (typeof ga === "function"){
+		ga('send', 'event', "map_link", "click", "Map Link", "1");
+	}
 	
 	var len;
 	var urlStr = window.location.href;
@@ -134,7 +135,7 @@ function setMapLink() {
 }
 
 function mlGetExtent() {
-	return "&extent="+parseInt(view.extent.xmin)+","+parseInt(view.extent.ymin)+","+parseInt(view.extent.xmax)+","+parseInt(view.extent.ymax);
+	return "&extent="+parseInt(map.extent.xmin)+","+parseInt(map.extent.ymin)+","+parseInt(map.extent.xmax)+","+parseInt(map.extent.ymax);
 }
 
 function mlGetText() {
@@ -307,9 +308,9 @@ function mlGetLayers() {
 	// &layer= basemap| id | opacity | visible layers, repeat...
 	// &layer= streets|layer2|.8|3-5-12,layer3|.65|2-6-10-12
 	var str = "&layer=" +mapBasemap+ "|";
-	var layer = map.layers.items;//map.getLayersVisibleAtScale();
+	var layer = map.getLayersVisibleAtScale();
 	for (var i=0; i<layer.length; i++) {
-		//if (layer[i].declaredClass == "esri.layers.ArcGISDynamicMapServiceLayer") {
+		if (layer[i].declaredClass == "esri.layers.ArcGISDynamicMapServiceLayer") {
 		//if ((layer[i].declaredClass != "esri.layers.GraphicsLayer") &&
 		//	(layer[i].declaredClass != "esri.layers.ArcGISTiledMapServiceLayer")) {
 			if (!layer[i].visible) continue;
@@ -319,7 +320,6 @@ function mlGetLayers() {
 			var op = layer[i].opacity.toString();
 			str += layer[i].id + "|" + op.substring(0,4) + "|";
 			//  Add parent layers to all visible items
-			// TODO 4.24 does not have layerInfos!!!! use .sublayers.items[].visible?????
 			for (var k=0; k<layer[i].layerInfos.length; k++) {
 				if (layer[i].visibleLayers.indexOf(k) != -1) {
 					var id = k;
@@ -342,7 +342,7 @@ function mlGetLayers() {
 			// Add layer visible = 1 or 0
 			//if (layer[i].visible) str += "|1";
 			//else str += "|0";
-		//}
+		}
 	}
 	return str;
 }
@@ -380,4 +380,62 @@ function mlCheckbox(ckb,value) {
 	document.getElementById("mapLinkTxt").value = url;
 	document.getElementById("mapLinkLen").value = url.length;
 	document.getElementById("mapLinkTxt").focus();
+}
+
+function showMapExtent(){
+// For "Display Extent" button beside the Print button
+// Displays current extent in the projection set in Settings
+	require(["esri/geometry/Point", "esri/geometry/webMercatorUtils"], function(Point,webMercatorUtils){
+		function projectExtent(outSR, label) {
+			// Display current extent for in UTM projection as set in Settings
+			require(["esri/tasks/ProjectParameters","esri/geometry/Extent","esri/SpatialReference"], function(ProjectParameters,Extent,SpatialReference) {
+				var params = new ProjectParameters();
+				params.geometries = [new Extent(map.extent.xmin, map.extent.ymin, map.extent.xmax, map.extent.ymax, new SpatialReference({wkid:wkid}))];
+				params.outSR = new SpatialReference(Number(outSR));
+				geometryService.project(params, function (feature) {
+					alert(feature[0].xmin.toFixed(0)+", "+feature[0].ymin.toFixed(0)+", "+feature[0].xmax.toFixed(0)+", "+feature[0].ymax.toFixed(0)+" <br/>in "+label+"<p>Note: Coordinate format can be changed in Settings.</p>","Current Map Extent");
+					params = null;
+				}, function (err) {
+					alert("Problem projecting points. Can't display extent. Error message: "+err.message,"Warning");
+					params = null;
+				});
+			});
+		}
+		var minPt, maxPt;
+		switch(settings.XYProjection) {
+			case "dd":
+				minPt = webMercatorUtils.webMercatorToGeographic(new Point(map.extent.xmin, map.extent.ymin, wkid));
+				maxPt = webMercatorUtils.webMercatorToGeographic(new Point(map.extent.xmax, map.extent.ymax, wkid));
+				alert(minPt.x.toFixed(5)+", "+minPt.y.toFixed(5)+", "+maxPt.x.toFixed(5)+", "+maxPt.y.toFixed(5)+" <br/>in decimal degrees<p>Note: Coordinate format can be changed in Settings.</p>","Current Map Extent");
+				break;
+			case "dms":
+				minPt = mappoint_to_dms(new Point(map.extent.xmin, map.extent.ymin, wkid),false); // found in utilFunc.js. false means do add a zero in front of min
+				maxPt = mappoint_to_dms(new Point(map.extent.xmax, map.extent.ymax, wkid),false);
+				alert(minPt[0]+", "+minPt[1]+", "+maxPt[0]+", "+maxPt[1]+" <br/>in degrees, minutes, seconds<p>Note: Coordinate format can be changed in Settings.</p>","Current Map Extent");
+				break;
+			case "dm":
+				minPt = mappoint_to_dm(new Point(map.extent.xmin, map.extent.ymin, wkid),false); // found in utilFunc.js. false means do add a zero in front of min
+				maxPt = mappoint_to_dm(new Point(map.extent.xmax, map.extent.ymax, wkid),false);
+				alert(minPt[0]+", "+minPt[1]+", "+maxPt[0]+", "+maxPt[1]+" <br/>in degrees, decimal minutes<p>Note: Coordinate format can be changed in Settings.</p>","Current Map Extent");
+				break;
+			case "32612":
+				projectExtent(32612,"WGS84 UTM Zone 12N");
+				break;
+			case "32613":
+				projectExtent(32613,"WGS84 UTM Zone 13N");
+				break;
+			case "26912":
+				projectExtent(26912,"NAD83 UTM Zone 12N");
+				break;
+			case "26913":
+				projectExtent(26913,"NAD83 UTM Zone 13N");
+				break;
+			case "26712":
+				projectExtent(26712,"NAD27 UTM Zone 12N");
+				break;
+			case "26713":
+				projectExtent(26713,"NAD27 UTM Zone 13N");
+				break;
+		}
+	});
 }

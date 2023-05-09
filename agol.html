@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>AGOL Maps Test</title>
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.26/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.26/"></script>
+    <script>
+      require(["esri/Map", "esri/config", "esri/views/MapView", "esri/widgets/Expand", "esri/widgets/Legend", "esri/layers/Layer", "esri/layers/FeatureLayer",
+       "esri/layers/GroupLayer","esri/layers/SubtypeGroupLayer","esri/widgets/LayerList",
+        "esri/widgets/Slider"], 
+      (Map, esriConfig, MapView,Expand,Legend, Layer,FeatureLayer,GroupLayer,SubtypeGroupLayer,LayerList,Slider) => {
+        function addGroupLayer(groupName, vis, open, featureservice, ids, layerVis, idNames){
+          // Creates a group and addes to TOC
+          // groupName: string, name of this group
+          // vis: boolean, is this group visible?
+          // open: boolean, is this gourp open? // this is not available yet!!!!!!!!!
+          // featureservice: string, url
+          // ids: array of integers, or string "10-15,17", id of each layer
+          // layerVis: array of true, false for visibility of each layer
+          // idName: array of strings, names of each layer
+          if(typeof ids === "string"){
+            var items = ids.split(",");
+            var arr = [];
+            for(i=0;i<items.length;i++){
+              if (items[i].indexOf("-")>-1){
+                let firstLast = items[i].split("-"); // "3-5" -> [3],[5]
+                for(j=parseInt(firstLast[0]);j<parseInt(firstLast[1])+1;j++){
+                  arr.push(j);// push all the numbers 3,4,5
+                }
+              }
+              else arr.push(items[i]);
+            }
+            ids = arr.reverse();
+          }
+          const groupLayer = new GroupLayer({
+            title: groupName,
+            visible: vis
+            //visibilityMode: "exclusive", // radio buttons
+          });
+          // add in reverse order
+          for(i=ids.length-1;i>-1;i--){
+            if (layerVis[i] == null) alert("missing layer visiblility in config.xml");
+            if (idNames[i] == null) alert("missing layer name in config.xml");
+            let subGroupLayer = new FeatureLayer({
+              url: featureservice+ids[i],
+              visible: layerVis[i],
+              title: idNames[i]
+            });
+           
+            groupLayer.add(subGroupLayer);
+          }
+          return groupLayer;
+        }
+
+
+        const map = new Map({
+          basemap: "streets-vector"
+        });
+        const view = new MapView({
+          container: "viewDiv", // Reference to the view div created in step 5
+          map: map, // Reference to the map object created before the view
+          zoom: 7, // Sets zoom level based on level of detail (LOD)
+          center: [-105.6, 39] // Sets center point of view using longitude,latitude
+        });
+
+        let gameSpeciesGroupLayer = new GroupLayer({
+            title: "Game Species",
+            visible: true,
+            visibilityMode: "exclusive", // radio buttons
+            opacity: 0.75
+            // open exand expanded expandIconClass:false     does not work to open the drop down list!!!!!!!
+        });
+
+        // Create a layer from a specified portal item and add to the map
+        // lXJFlE_sZTISvjwjxtrd2RcNLrGRYjg31j3HOhtGET8
+        // winter range https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/43
+        //id: "50322b83e815436aadf588757822e72f" CPW All Species
+        //esriConfig.portalUrl = "https://services5.arcgis.com";
+        const elk = new GroupLayer({
+          portalItem: {  // autocasts new PortalItem()
+              id: "1073fc11057c4ba3bc93c7898b3f18bc" // Bob's Test Elk
+          },
+          title: "Elk",
+          visible:true
+        });
+        
+        elk.on("layerview-create",function(event){
+          console.log("elk layer created.")
+          // set layer visibility
+          const visArr=[1,7,8,9,11];
+          for (var i=0;i<elk.layers.items.length;i++){
+            if (visArr.includes(elk.layers.items[i].layerId))
+              elk.layers.items[i].visible = true;
+            else
+              elk.layers.items[i].visible = false;
+          }
+        });
+        elk.on("layerview-create-error", function(event) {
+          alert("LayerView failed to create for layer with the id: ", elk.id, " in this view: ", event.view);
+        });
+        gameSpeciesGroupLayer.add(elk);
+
+
+        /*const elk2 = Layer.fromPortalItem({
+          portalItem: {  // autocasts new PortalItem()
+              id: "1073fc11057c4ba3bc93c7898b3f18bc" // Bob's Test Elk
+          },
+          visible:false
+        }).then(function(layer){
+          // add the layer to the map
+          layer.title = "elk 2";
+          gameSpeciesGroupLayer.add(layer);
+        });*/
+
+       
+       /*
+        // This snippet shows how to add a feature layer from an ArcGIS Server URL
+        // Get an ArcGIS Server URL from a custom function
+       let ewr = new FeatureLayer({
+            url: "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/43",
+            title: "Elk Winter Range"
+        });
+        elkGroupLayer.add(ewr);
+        
+        let ewca = new FeatureLayer({
+            url: "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/42",
+            title: "Elk Winter Concentration Area"
+        });
+        elkGroupLayer.add(ewca);
+        gameSpeciesGroupLayer.add(elkGroupLayer);
+
+        let mooseGroupLayer = new GroupLayer({
+            title: "Moose",
+            visible: false
+        });
+        let mwr = new FeatureLayer({
+            url: "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/84",
+            title: "Moose Winter Range"
+        });
+        mooseGroupLayer.add(mwr);
+        gameSpeciesGroupLayer.add(mooseGroupLayer);
+        
+        map.add(gameSpeciesGroupLayer);
+ 
+        // read layers from config.xml
+        // <topgroup name="Game Species" opacity="7.5" open="false" visible="false" radio_buttons="true"/>
+        let obj=[{
+          id:96,
+          vis:false,
+          name:"Migration Patterns"
+        },{
+          id:102,
+          vis:true,
+          name:"Migration Corridors"
+        }];
+        */
+       // add GroupLayer (groupName, visible, open, url,[layer ids],[layer visibility],[layer names])
+       let bh = addGroupLayer("Bighorn Sheep",false,false,
+          "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/",
+          [8,9,15-17,10,11,18],[false,true,true,true,true,false,true,false],
+          ["Migration Patterns","Migration Corridors","Severe Winter Range","Winter Concentration Area","Winter Range","Summer Concentration Area","Summer Range", "Overall Range"]);
+        gameSpeciesGroupLayer.add(bh);
+        let muleDeer = addGroupLayer("Mule Deer",false,false,
+          "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/",
+          [96,102,104,105,99,106],[false,true,true,true,true,false],
+          ["Migration Patterns","Migration Corridors","Winter Concentration Area","Winter Range","Summer Range", "Overall Range"]);
+        gameSpeciesGroupLayer.add(muleDeer,2);
+
+        /* Not working
+        const stgl = new SubtypeGroupLayer({
+          //url: "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/",
+          portalItem: {
+            id: "50322b83e815436aadf588757822e72f"
+          },
+          title: "CPW Species",
+          id: "species",
+          opacity: 0.75,
+          visible:true,
+          sublayers: [{
+            subtypeCode: 96,
+            visible: false,
+            title: "Migration Patterns"
+          }, {
+            subtypeCode: 102,
+            visible: true,
+            title: "Migration Corridors"
+          }, {
+            subtypeCode: 104,
+            visible: true,
+            title: "Winter Concentration Area"
+          }]
+        });
+        gameSpeciesGroupLayer.add(stgl);*/
+        map.add(gameSpeciesGroupLayer);
+
+
+        // --------------------
+        //   Layer List
+        //---------------------
+         // Creates actions in the LayerList.
+         async function defineActions(event) {
+          // The event object contains an item property.
+          // is a ListItem referencing the associated layer
+          // and other properties. You can control the visibility of the
+          // item, its title, and actions using this object.
+
+          const item = event.item;
+
+          await item.layer.when();
+
+          // Add info icon & open drop down
+          if (item.title === "Game Species") {
+            // open this group layer on startup
+            item.open = true;
+            
+            // An array of objects defining actions to place in the LayerList.
+            // By making this array two-dimensional, you can separate similar
+            // actions into separate groups with a breaking line.
+            // Add info button to open game species descriptions
+            item.actionsSections = [
+              [
+                {
+                  title: "Layer information",
+                  className: "esri-icon-description",
+                  id: "information"
+                }
+              ]
+            ];
+          }
+          if (item.title === "Elk") item.open = true;
+
+          // Adds a slider for updating a group layer's opacity
+          //if(item.children.length > 1 && item.parent){
+          if((item.children.length == 0 && item.parent) || item.parent === null ){
+            const slider = new Slider({
+              min: 0,
+              max: 1,
+              precision: 2,
+              values: [ item.layer.opacity ],
+              visibleElements: {
+                labels: true,
+                rangeLabels: true
+              }
+            });
+
+            item.panel = {
+              content: slider,
+              className: "esri-icon-sliders-horizontal",
+              title: "Change layer opacity"
+            }
+
+            slider.on("thumb-drag", (event) => {
+              const { value } = event;
+              item.layer.opacity = value;
+            })
+          }
+        }
+
+        // Add widgets
+        view.when(() => {
+          // Add Legend
+					let legend = new Legend({
+						view: view
+					});
+					const legendExpand = new Expand({
+						view,
+						content: legend,
+						expandIconClass: "esri-icon-legend"
+					});
+					view.ui.add(legendExpand, "top-right");
+
+          // Add LayerList
+          const layerList = new LayerList({
+            view: view,
+            // executes for each ListItem in the LayerList
+            listItemCreatedFunction: defineActions
+          });
+          const layerlistExpand = new Expand({
+						view,
+						content: layerList,
+						expandIconClass: "esri-icon-layer-list"
+					});
+					view.ui.add(layerlistExpand, "top-right");
+          // Event listener that fires each time an action is triggered
+          layerList.on("trigger-action", (event) => {
+            // The layer visible in the view at the time of the trigger.
+            const visibleLayer = event.item.layer;
+
+            // Capture the action id.
+            const id = event.action.id;
+
+            if (id === "information") {
+              // if the information action is triggered, then
+              // open the item details page of the service layer
+              if (event.item.title === "Game Species")
+                window.open("/HuntingAtlas/definitions.html");
+            } 
+          });
+        });
+      
+      });
+    </script>
+  </head>
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+</html>

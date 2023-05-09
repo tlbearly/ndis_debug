@@ -36,8 +36,6 @@
 	}
 	function setMapScale(list) {
 		view.scale = list[list.selectedIndex].value;
-		if (typeof ga === 'function')ga('send', 'event', "mapscale", "click", "Map Scale", "1");
-		if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Map Scale'});
 	}
 
 
@@ -47,7 +45,7 @@
 	function showCoordinates(evt) {
 		require(["dojo/dom","esri/geometry/support/webMercatorUtils"],function(dom,webMercatorUtils){
 			//get mapPoint from event
-			var mp, xy;
+			var mp,xy;
 			const pt = view.toMap({x: evt.x, y: evt.y});
 			//The map is in web mercator - modify the map point to display the results in geographic
 			if (dom.byId("xycoords_combo")[dom.byId("xycoords_combo").selectedIndex].value == "geo"){
@@ -65,7 +63,6 @@
 				xy = null;
 			}
 			else{
-				mp = evt.mapPoint;
 				dom.byId("xycoords").children[0].innerHTML = pt.x.toFixed(0) + ", " + pt.y.toFixed(0); // + " Web Mercator";
 			}
 		 });
@@ -144,7 +141,6 @@
 		// array[2] is label in deg, min, sec as: 40° 30' 20.44" N, 104° 20' 5" W 
 		// or in degrees, decimal minutes as: 40° 30.1' N, 104° 20.01' W
 		var pos,pos2,pointX,pointY;
-		
 		pointY = str.substring(0,str.indexOf(","));
 		pointX = str.substring(str.indexOf(",")+1,str.length);
 		pos = pointX.indexOf(":");
@@ -223,7 +219,7 @@
 		document.getElementById("loadingImg").style.display = "block"; 
 	}
 	function hideLoading() {
-		document.getElementById("loadingImg").style.display = "none";          
+		document.getElementById("loadingImg").style.display = "none";   
 	}
 	// end show loading image functions
 
@@ -236,7 +232,7 @@
 			var menu = dom.byId('leftPane');
 			var menuBtn = dom.byId("menuBtn");
 			var mapWin = dom.byId('mapDiv');
-			var resizeTimer;
+			var resizeTimer, ovResizeTimer;;
 			// Show Menu
 			if (menu.style.display == 'none')
 			{
@@ -247,12 +243,11 @@
 				menuBtn.title = "Close Menu";
 				registry.byId('mainWindow').resize();
 				//clear any existing resize timer
-				
+				resizeTimer;
 				clearTimeout(resizeTimer);
 				//create new resize timer with delay of 500 milliseconds
 				resizeTimer = setTimeout(function () {
 					registry.byId("ovMap").resize();
-					var ovResizeTimer;
 					clearTimeout(ovResizeTimer);
 					ovResizeTimer = setTimeout(function(){
 						registry.byId("ovMap").hide();
@@ -285,14 +280,6 @@
 		});
 	  }*/
 	  
-	// Return the map layer for given id
-	function getLayer(layerID){
-		let id = layerID;
-		let myLayer = map.layers.find(function(layer){
-			if(layer.id === id) return layer;
-		});
-		return myLayer;
-	}
 	// Find a Place clear graphics
 	function removeSearchItem(){
 		// called from index.html
@@ -300,12 +287,9 @@
 		//map.getLayer(searchGraphicsCount.pop()).clear();
 		//Fade graphic out
 		var gl = searchGraphicsCount.pop();
-		let layer = getLayer(gl);
-		layer.opacity=0.3;
-		//map.getLayer(gl).setOpacity(0.3);
+		map.getLayer(gl).setOpacity(0.3);
 		var t = window.setTimeout(function(){
-			map.layers.remove(layer);
-			//map.getLayer(gl).clear();
+			map.getLayer(gl).clear();
 			window.clearTimeout(t);
 			gl=null;
 		},2000);
@@ -411,35 +395,11 @@
 		  // graphicsName is the name for this graphics layer. For example: searchgraphics or drawgraphics
 		  // graphicsCounter is the searchGraphicsCounter or drawGraphicsCounter so it can erase the last added layer
 		  // graphicsArr is an array of graphics names
-		  require(["esri/Graphic", "esri/symbols/Font", "esri/symbols/TextSymbol",
+		  require(["esri/graphic", "esri/symbols/Font", "esri/symbols/TextSymbol",
 				"dojo/_base/Color"], function (
 				Graphic, Font, TextSymbol, Color) {
 			label = label.replace("/n"," "); // replace carriage returns with space for flex bookmarks
-			
-			const labelClass = {
-				// autocasts as new LabelClass()
-				symbol: {
-				  type: "text", // autocasts as new TextSymbol()
-				  color: "black",
-				  haloColor: [255,255,153,1.0],
-  				  haloSize: "2px",
-				  yoffset: -23,
-				  font: {
-					//autocast as new Font()
-					family: "Arial Bold",
-					size: fontsize
-				  }
-				},
-				labelPlacement: "always-horizontal", //below-center for points
-				text: label,
-				labelExpressionInfo: {
-					expression: "$feature.NAME" //"$feature.Team + TextFormatting.NewLine + $feature.Division"
-				}
-			};
-			// TODO needs to be featureservice to add labels!!!!
-			graphicsLayer.labelingInfo=[labelClass];
-
-			/*var yellow = new Color([255,255,153,1.0]);
+			var yellow = new Color([255,255,153,1.0]);
 			var font = new Font(
 				fontsize,
 				Font.STYLE_NORMAL, 
@@ -469,63 +429,30 @@
 			graphicsLayer.add(new Graphic(point.geometry, highlight4));
 			graphicsLayer.add(new Graphic(point.geometry, highlight5));
 			graphicsLayer.add(new Graphic(point.geometry, highlight6));
-			graphicsLayer.add(new Graphic(point.geometry, text));*/
-			//map.add(graphicsLayer);
-			//graphicsLayer.refresh();
+			graphicsLayer.add(new Graphic(point.geometry, text));
+			map.addLayer(graphicsLayer);
+			graphicsLayer.refresh();
 		});
 	}
 	
 	//************************
 	//     Array Functions
 	//************************
-	var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-	var mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Nov","Dec"];
 	function sortArrayOfObj(item) {
-	// Sort an array of objects by field, ascending
+	// Sort an array of objects by field
 	// Example: 
 	// arr = [{city: 'Fort Collins', county: 'Larimer'},
 	//        {city: 'Boulder', county: 'Boulder'}]
 	// To sort by city use: arr.sort(sortArrOfOj('city'));
 		return function (a,b) {
-			// if GMU### sort numerically 1-9-23 add toString, failed when was a number
-			if (a[item] && a[item].toString().substr(0,4) == "GMU ")
+			// if GMU### sort numerically
+			if (a[item] && a[item].substr(0,4) == "GMU ")
 				return parseInt(a[item].substring(4)) - parseInt(b[item].substring(4));
-			else if (!isNaN(a[item]))
-				return a[item] - b[item];
-			// Sort by full month name
-			else if (months.indexOf(a[item])>-1 && months.indexOf(b[item]>-1))
-				return (months.indexOf(a[item]) < months.indexOf(b[item])) ? -1 : (months.indexOf(a[item]) > months.indexOf(b[item])) ? 1: 0;
-			// Sort by abbreviated month name
-			else if (mo.indexOf(a[item])>-1 && mo.indexOf(b[item]>-1))
-				return (mo.indexOf(a[item]) < mo.indexOf(b[item])) ? -1 : (mo.indexOf(a[item]) > mo.indexOf(b[item])) ? 1: 0;
-			else
-				return (a[item] < b[item]) ? -1 : (a[item] > b[item]) ? 1: 0;
-		};
-	}
-	function descendingSortArrayOfObj(item) {
-		// Sort an array of objects by field, descending
-		// Example: 
-		// arr = [{city: 'Fort Collins', county: 'Larimer'},
-		//        {city: 'Boulder', county: 'Boulder'}]
-		// To sort by city use: arr.sort(sortArrOfOj('city'));
-		return function (a,b) {
-			// if GMU### sort numerically 1-9-23 add toString, failed when was a number
-			if (isNaN(a[item]) && a[item].toString().substr(0,4) == "GMU ")
-				return parseInt(b[item].substring(4)) - parseInt(a[item].substring(4));
-			else if (!isNaN(a[item]))
-				return b[item] - a[item];
-			// Sort by full month name
-			else if (months.indexOf(a[item])>-1 && months.indexOf(b[item]>-1))
-				return (months.indexOf(a[item]) > months.indexOf(b[item])) ? -1 : (months.indexOf(a[item]) < months.indexOf(b[item])) ? 1: 0;
-			// Sort by abbreviated month name
-			else if (mo.indexOf(a[item])>-1 && mo.indexOf(b[item]>-1))
-				return (mo.indexOf(a[item]) > mo.indexOf(b[item])) ? -1 : (mo.indexOf(a[item]) < mo.indexOf(b[item])) ? 1: 0;
-			else
-				return (a[item] > b[item]) ? -1 : (a[item] < b[item]) ? 1: 0;
+			return (a[item] < b[item]) ? -1 : (a[item] > b[item]) ? 1: 0;
 		};
 	}
 	function sortMultipleArryOfObj() {
-	// Ascending sort of an array of objects by multiple fields
+	// Sort an array of objects by multiple fields
 	// Example:
 	// // arr = [{city: 'Fort Collins', county: 'Larimer'},
 	//        {city: 'Boulder', county: 'Boulder'}]
@@ -544,31 +471,6 @@
 			 */
 			while(result === 0 && i < numberOfProperties) {
 				result = sortArrayOfObj(props[i])(obj1, obj2);
-				i++;
-			}
-			return result;
-		};
-	}
-	function descendingSortMultipleArryOfObj() {
-		// Descending sort of an array of objects by multiple fields
-		// Example:
-		// // arr = [{city: 'Fort Collins', county: 'Larimer'},
-		//        {city: 'Boulder', county: 'Boulder'}]
-		// arr.sort(descendingSortMultipleArryOfObj("county","city",...));
-		/*
-		 * save the arguments object as it will be overwritten
-		 * note that arguments object is an array-like object
-		 * consisting of the names of the properties to sort by
-		 */
-		var props = arguments;
-		if (arguments[0].constructor === Array) props = arguments[0];
-		return function (obj1, obj2) {
-			var i = 0, result = 0, numberOfProperties = props.length;
-			/* try getting a different result from 0 (equal)
-			 * as long as we have extra properties to compare
-			 */
-			while(result === 0 && i < numberOfProperties) {
-				result = descendingSortArrayOfObj(props[i])(obj1, obj2);
 				i++;
 			}
 			return result;
@@ -612,11 +514,11 @@
 	function detectmob() { 
 	//  || navigator.userAgent.match(/iPad/i)
 	 if( navigator.userAgent.match(/Android/i) ||
-	 	 navigator.userAgent.match(/webOS/i) ||
-		navigator.userAgent.match(/iPhone/i) ||
-		navigator.userAgent.match(/iPod/i) ||
-		navigator.userAgent.match(/BlackBerry/i) ||
-		navigator.userAgent.match(/Windows Phone/i)
+	 	navigator.userAgent.match(/webOS/i) ||
+	 	navigator.userAgent.match(/iPhone/i) ||
+	 	navigator.userAgent.match(/iPod/i) ||
+	 	navigator.userAgent.match(/BlackBerry/i) ||
+	 	navigator.userAgent.match(/Windows Phone/i)
 	 ){
 		return true;
 	  }
