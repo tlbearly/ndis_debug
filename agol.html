@@ -21,15 +21,25 @@
        "esri/layers/GroupLayer","esri/layers/SubtypeGroupLayer","esri/widgets/LayerList",
         "esri/widgets/Slider"], 
       (Map, esriConfig, MapView,Expand,Legend, Layer,FeatureLayer,GroupLayer,SubtypeGroupLayer,LayerList,Slider) => {
-        function addGroupLayer(groupName, vis, open, featureservice, ids, layerVis, idNames){
+        function addGroupLayer(groupName, vis, open, radio, featureservice, ids, layerVis, idNames){
           // Creates a group and addes to TOC
           // groupName: string, name of this group
           // vis: boolean, is this group visible?
-          // open: boolean, is this gourp open? // this is not available yet!!!!!!!!!
+          // open: boolean, is this gourp open? // Handled in layers list. Make an array of open groupLayers.
+          // radio: boolean, radio buttons?
           // featureservice: string, url
           // ids: array of integers, or string "10-15,17", id of each layer
           // layerVis: array of true, false for visibility of each layer
           // idName: array of strings, names of each layer
+          var visMode = "independent";
+          if(radio) visMode="exclusive";
+          const groupLayer = new GroupLayer({
+            title: groupName,
+            visible: vis,
+            visibilityMode: visMode // radio buttons?
+          });
+          if (!url) return groupLayer;
+          
           if(typeof ids === "string"){
             var items = ids.split(",");
             var arr = [];
@@ -44,15 +54,10 @@
             }
             ids = arr.reverse();
           }
-          const groupLayer = new GroupLayer({
-            title: groupName,
-            visible: vis
-            //visibilityMode: "exclusive", // radio buttons
-          });
           // add in reverse order
           for(i=ids.length-1;i>-1;i--){
-            if (layerVis[i] == null) alert("missing layer visiblility in config.xml");
-            if (idNames[i] == null) alert("missing layer name in config.xml");
+            if (layerVis[i] == null) alert("missing layerIds visiblility in config.xml");
+            if (idNames[i] == null) alert("missing layerNames in config.xml");
             let subGroupLayer = new FeatureLayer({
               url: featureservice+ids[i],
               visible: layerVis[i],

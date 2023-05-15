@@ -55,15 +55,23 @@
 			<!-- Layer must be named "Hunter Reference".  It is used in widgets/Legend/toc/tocClasses/TocMapLayerItem.as -->
 			<layer label="Hunter Reference" open="true" type="dynamic" visible="true" alpha="0.8"
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer"/>
-            <!--group label="Game Species" portal="">
-                <group label="Elk">
-                    <layer label="Elk Migration Patterns" open="false" type="dynamic" visible="false" alpha="0.7"
-					id="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map/MapServer"/>
-                </group>
-            </group-->
+            <layer group="Game Species" open="false" visible="false" alpha="0.7" radio="true"/>
+            
+                <!--layerNames="Migration Patterns,Migration Corridors,Severe Winter Range,Winter Concentration Area,Winter Range,Summer Concentration Area,Summer Range,Overall Range"-->
+                <layer group="Bighorn Sheep" parentGroup="Game Species" open="false" visible="false"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
+                    layerIds="8,9,15-17,10,11,18"
+                    layerVis="false,true,true,true,true,false,true,false"/>
+
+                <!--layerNames="Migration Patterns,Migration Corridors,Winter Concentration Area,Winter Range,Summer Concentration Area,Summer Range,Resident Population Area,Overall Range"-->
+                <layer group="Elk" parentGroup="Game Species" open="true" visible="true"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
+                    layerIds="33,40,42,43,35,36,39,44"
+                    layerVis="false,true,true,true,false,true,true,false"/>
+
 			<!-- Layer must be named "Game Species".  It is used in widgets/Legend/toc/tocClasses/TocMapLayerItem.as -->
-			<layer label="Game Species" open="false" type="dynamic" visible="false" alpha="0.7"
-					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map/MapServer"/>					
+			<!--layer label="Game Species" open="false" type="dynamic" visible="false" alpha="0.7"
+					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map/MapServer"/-->					
 			<layer label="Motor Vehicle Use Map" open="true" type="dynamic" visible="false" alpha="1"
                     url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/>
             <layer label="BLM Roads and Trails" open="true" type="dynamic" visible="false" alpha="1"

@@ -155,11 +155,11 @@ function clearAddress() {
 //**********************
 function readConfig() {
 	// "agsjs/dijit/TOC", "esri/tasks/locator", "esri/rest/support/ProjectParameters", "esri/widget/Popup",
-	require(["dojo/dom", "dojo/io-query", "esri/core/promiseUtils", "esri/core/reactiveUtils", "esri/layers/MapImageLayer", "esri/layers/FeatureLayer", "esri/rest/geometryService",
+	require(["dojo/dom", "dojo/io-query", "esri/core/promiseUtils", "esri/core/reactiveUtils", "esri/layers/GroupLayer", "esri/layers/MapImageLayer", "esri/layers/FeatureLayer", "esri/rest/geometryService",
 	 "esri/geometry/SpatialReference", "esri/Graphic", "esri/Map", "esri/views/MapView","esri/widgets/Print","esri/geometry/Extent",
 	 "esri/widgets/Home", "esri/widgets/Expand", "esri/widgets/LayerList", "esri/widgets/Legend", "esri/widgets/Locate", "esri/widgets/Search", "esri/widgets/ScaleBar", "esri/widgets/Slider", "esri/rest/support/ProjectParameters",
 	 "esri/symbols/SimpleFillSymbol", "dijit/form/CheckBox", "dijit/layout/ContentPane", "dijit/TitlePane", "dijit/layout/TabContainer", "esri/symbols/SimpleLineSymbol", "dojo/sniff"], 
-	 function (dom, ioquery, promiseUtils, reactiveUtils, MapImageLayer, FeatureLayer, GeometryService, SpatialReference,
+	 function (dom, ioquery, promiseUtils, reactiveUtils, GroupLayer, MapImageLayer, FeatureLayer, GeometryService, SpatialReference,
 		Graphic, Map, MapView, Print, Extent, Home, Expand, LayerList, Legend, Locate, Search, ScaleBar, Slider, ProjectParameters, SimpleFillSymbol, CheckBox,
 		ContentPane, TitlePane, TabContainer, SimpleLineSymbol, has) {
 		var xmlDoc; // config.xml document json
@@ -504,10 +504,95 @@ function readConfig() {
 				}
 			}
 			
+			function addGroupLayer(groupName, vis, opacity, open, radio, featureservice, layerIds, layerVis, layerNames){
+				// Creates a group and addes to TOC
+				// groupName: string, name of this group
+				// vis: boolean, is this group visible?
+				// open: boolean, is this gourp open? // Handled in layers list. Make an array of open groupLayers.
+				// radio: boolean, radio buttons?
+				// featureservice: string, url
+				// layerIds: array of integers, or string "10-15,17", id of each layer
+				// layerVis: array of true, false for visibility of each layer
+				// layerNames: array of strings, names of each layer
+				var visMode = "independent";
+				if(radio) visMode="exclusive";
+				vis = vis.toLowerCase() === "true";
+				var groupLayer;
+				if (opacity){
+					groupLayer = new GroupLayer({
+						title: groupName,
+						id: groupName,
+						visible: vis,
+						opacity: parseFloat(opacity),
+						visibilityMode: visMode // radio buttons?
+					});
+				} else {
+					groupLayer = new GroupLayer({
+						title: groupName,
+						id: groupName,
+						visible: vis,
+						visibilityMode: visMode // radio buttons?
+					});
+				}
+				if (!featureservice) return groupLayer;
+
+				var i;
+				var ids = [];
+				if(typeof layerIds === "string"){
+				  var items = layerIds.split(",");  
+				  for(i=0;i<items.length;i++){
+					if (items[i].indexOf("-")>-1){
+					  let firstLast = items[i].split("-"); // "3-5" -> [3],[5]
+					  for(var j=parseInt(firstLast[0]);j<parseInt(firstLast[1])+1;j++){
+						ids.push(parseInt(j)); // push all the numbers 3,4,5
+					  }
+					}
+					else ids.push(parseInt(items[i]));
+				  }
+				}
+				else ids = layerIds.split(",");
+				// layers display in reverse order, so reverse our arrays here
+				ids = ids.reverse();
+				layerVis = layerVis.reverse();
+				//layerNames = layerNames.reverse();
+
+				// get the feature service name, and remove it from the layer name. e.g. CPWSpeciesData - Elk Winter Range
+				var pos = featureservice.indexOf("services/")+9;
+				var str = featureservice.substr(pos);
+				pos = str.indexOf("/");
+				fsName = str.substr(0,pos)+" - ";
+				for(i=0;i<ids.length;i++){
+				  if (layerVis[i] == null) alert("Missing layerVis item ("+i+") for "+groupName+" in config.xml. Should be true or false.","Data Error");
+				  //if (layerNames[i] == null) alert("Missing layerNames item ("+i+") for "+groupName+" in config.xml","Data Error");
+				  var fsUrl = featureservice + ids[i];
+				 
+				  vis = layerVis[i].toLowerCase() === "true";
+				  let subGroupLayer = new FeatureLayer({
+					url: fsUrl,
+					visible: vis
+				  });
+				  groupLayer.add(subGroupLayer);
+				  subGroupLayer.on("layerview-create", function(event){
+					var layer = event.layerView.layer;
+					var title = layer.title.substr(fsName.length);
+					layer.title = title;
+					layer.id = title;
+					console.log("loading layer: "+title+" url="+fsUrl);
+
+				  });
+				  subGroupLayer.on("layerview-create-failed", function(view,error){
+					alert("Layer failed to load. Error:"+error);
+				  });
+				  
+				}
+				return groupLayer;
+			  }
+	  
 			//-----------
 			// Variables
 			//-----------
 			loadedFromCfg = true; // the layer is loaded from config.xml. If false loaded from url &layers.
+			var i;
 
 			// Store layers from URL into layerObj
 			// 		&layer= basemap | id | opacity | visible layers , id | opacity | visible layers , repeat...
@@ -565,9 +650,66 @@ function readConfig() {
 //layer[0].setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map2/MapServer");
 //layer[1].setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map2/MapServer");
 //layer[2].setAttribute("url","https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_03/MapServer");
-			for (i = 0; i < layer.length; i++) {
-				tries[layer[i].getAttribute("label")] = 0;				
-				createLayer(layer[i]);			
+			var groupLayers = [];
+			var groupName;
+			var regexp = /([^a-zA-Z0-9 \-,\._\/:])/g;
+			console.log("layer length="+layer.length);
+			for (i = 0; i < layer.length; i++) {					
+				if (layer[i].getAttribute("group") && layer[i].getAttribute("group") != ""){
+					console.log("loading group "+layer[i].getAttribute("group")+" i="+i);
+					try{
+						var groupOpacity=1,groupVis="false",groupOpen="false",radio=false;
+						var url=null,layerIds=null,layerVis=null,layerNames=null,parentGroupName = null;
+						groupName = layer[i].getAttribute("group").replace(regexp,"");
+						if (layer[i].getAttribute("parentGroup"))
+							parentGroupName = layer[i].getAttribute("parentGroup").replace(regexp,"");
+						if (layer[i].getAttribute("visible"))
+							groupVis = layer[i].getAttribute("visible").replace(regexp,"");
+						if (layer[i].getAttribute("open"))
+							groupOpen = layer[i].getAttribute("open").replace(regexp,"");
+						if (layer[i].getAttribute("alpha"))
+							groupOpacity = layer[i].getAttribute("alpha").replace(regexp,"");
+						if (layer[i].getAttribute("radio"))
+							radio = layer[i].getAttribute("radio").replace(regexp,"");
+						
+						// Group with layers
+						if (layer[i].getAttribute("url")){
+							url = layer[i].getAttribute("url").replace(regexp,""); // feature service
+							if (layer[i].getAttribute("layerIds"))
+								layerIds = layer[i].getAttribute("layerIds").replace(regexp,""); // string of ids 2-7,14,20
+							else {
+								alert("Missing layerIds tag in layer group, "+groupName+", in "+app+"/config.xml file.", "Data Error");
+								continue;
+							}
+							if (layer[i].getAttribute("layerVis"))
+								layerVis = layer[i].getAttribute("layerVis").replace(regexp,"").split(","); // array of visibility
+							else {
+								alert("Missing layerVis tag in layer group, "+groupName+", in "+app+"/config.xml file.", "Data Error");
+								continue;
+							}
+							/*if(layer[i].getAttribute("layerNames"))
+								layerNames = layer[i].getAttribute("layerNames").replace(regexp,"").split(","); // are of layer names
+							else {
+								alert("Missing layerNames tag in layer group, "+groupName+", in "+app+"/config.xml file.", "Data Error");
+								continue;
+							}*/
+						}
+						
+						// returns a GroupLayer with feature layers added to to it. Use for group layer Elk and feature layers species data for elk.
+						groupLayers[groupName] = {"layer": addGroupLayer(groupName,groupVis,groupOpacity,groupOpen,radio,url,layerIds,layerVis,layerNames)};
+						
+						if (parentGroupName != null && parentGroupName != "")
+							groupLayers[parentGroupName].layer.add(groupLayers[groupName].layer);
+						else
+							map.add(groupLayers[groupName].layer);
+					} catch(e) {
+						alert("Warning: misconfigured operational group layer, "+groupName+", in config.xml file. " + e.message, "Data Error");
+					}
+				} else if (layer[i].getAttribute("label")) {
+					console.log("loading layer "+layer[i].getAttribute("label")+" i="+i);
+					tries[layer[i].getAttribute("label")] = 0;				
+					createLayer(layer[i]);
+				}		
 			}
 			addWidgets();
 		}
@@ -2078,7 +2220,6 @@ function readConfig() {
 						addOverviewMap();
 						addFindPlace();
 						addPrint();
-						//createMyBasemapGallery();
 						hideLoading();
 					
 					
