@@ -554,7 +554,8 @@ function readConfig() {
 				// layers display in reverse order, so reverse our arrays here
 				ids = ids.reverse();
 				layerVis = layerVis.reverse();
-				//layerNames = layerNames.reverse();
+				if (layerNames != null)
+					layerNames = layerNames.reverse();
 
 				// get the feature service name, and remove it from the layer name. e.g. CPWSpeciesData - Elk Winter Range
 				var pos = featureservice.indexOf("services/")+9;
@@ -563,26 +564,38 @@ function readConfig() {
 				fsName = str.substr(0,pos)+" - ";
 				for(i=0;i<ids.length;i++){
 				  if (layerVis[i] == null) alert("Missing layerVis item ("+i+") for "+groupName+" in config.xml. Should be true or false.","Data Error");
-				  //if (layerNames[i] == null) alert("Missing layerNames item ("+i+") for "+groupName+" in config.xml","Data Error");
 				  var fsUrl = featureservice + ids[i];
 				 
 				  vis = layerVis[i].toLowerCase() === "true";
-				  let subGroupLayer = new FeatureLayer({
-					url: fsUrl,
-					visible: vis
-				  });
-				  groupLayer.add(subGroupLayer);
-				  subGroupLayer.on("layerview-create", function(event){
-					var layer = event.layerView.layer;
-					var title = layer.title.substr(fsName.length);
-					layer.title = title;
-					layer.id = title;
-					console.log("loading layer: "+title+" url="+fsUrl);
+				  // use layer names from config.xml 
+				  if (layerNames != null){
+					let subGroupLayer = new FeatureLayer({
+						url: fsUrl,
+						visible: vis,
+						title: layerNames[i],
+						id: layerNames[i]
+					});
+					groupLayer.add(subGroupLayer);
+				  } 
+				  // Use feature service layer names 
+				  else {
+					let subGroupLayer = new FeatureLayer({
+						url: fsUrl,
+						visible: vis
+					});
+					groupLayer.add(subGroupLayer);
+					subGroupLayer.on("layerview-create", function(event){
+						var layer = event.layerView.layer;
+						var title = layer.title.substr(fsName.length);
+						layer.title = title;
+						layer.id = title;
+						console.log("loading layer: "+title+" url="+fsUrl);
 
-				  });
-				  subGroupLayer.on("layerview-create-failed", function(view,error){
-					alert("Layer failed to load. Error:"+error);
-				  });
+					});
+					subGroupLayer.on("layerview-create-failed", function(view,error){
+						alert("Layer failed to load. Error:"+error);
+					});
+				  }
 				  
 				}
 				return groupLayer;
@@ -654,12 +667,13 @@ function readConfig() {
 			var groupName;
 			var regexp = /([^a-zA-Z0-9 \-,\._\/:])/g;
 			console.log("layer length="+layer.length);
-			for (i = 0; i < layer.length; i++) {					
+			for (i = 0; i < layer.length; i++) {	
+				var url=null,layerIds=null,layerVis=null,parentGroupName = null,layerNames=null;				
+				// group layer with or without sub layers
 				if (layer[i].getAttribute("group") && layer[i].getAttribute("group") != ""){
 					console.log("loading group "+layer[i].getAttribute("group")+" i="+i);
 					try{
 						var groupOpacity=1,groupVis="false",groupOpen="false",radio=false;
-						var url=null,layerIds=null,layerVis=null,layerNames=null,parentGroupName = null;
 						groupName = layer[i].getAttribute("group").replace(regexp,"");
 						if (layer[i].getAttribute("parentGroup"))
 							parentGroupName = layer[i].getAttribute("parentGroup").replace(regexp,"");
@@ -687,17 +701,12 @@ function readConfig() {
 								alert("Missing layerVis tag in layer group, "+groupName+", in "+app+"/config.xml file.", "Data Error");
 								continue;
 							}
-							/*if(layer[i].getAttribute("layerNames"))
-								layerNames = layer[i].getAttribute("layerNames").replace(regexp,"").split(","); // are of layer names
-							else {
-								alert("Missing layerNames tag in layer group, "+groupName+", in "+app+"/config.xml file.", "Data Error");
-								continue;
-							}*/
+							if (layer[i].getAttribute("layerName"))
+								layerNames = layer[i].getAttribute("layerNames").replace(regexp,"");
 						}
 						
 						// returns a GroupLayer with feature layers added to to it. Use for group layer Elk and feature layers species data for elk.
 						groupLayers[groupName] = {"layer": addGroupLayer(groupName,groupVis,groupOpacity,groupOpen,radio,url,layerIds,layerVis,layerNames)};
-						
 						if (parentGroupName != null && parentGroupName != "")
 							groupLayers[parentGroupName].layer.add(groupLayers[groupName].layer);
 						else
@@ -705,7 +714,46 @@ function readConfig() {
 					} catch(e) {
 						alert("Warning: misconfigured operational group layer, "+groupName+", in config.xml file. " + e.message, "Data Error");
 					}
-				} else if (layer[i].getAttribute("label")) {
+				} 
+				// sub layer in parent group
+				else if (layer[i].getAttribute("label") && layer[i].getAttribute("parentGroup")) {
+					console.log("loading layer "+layer[i].getAttribute("label")+" into group "+layer[i].getAttribute("parentGroup")+" i="+i);
+					var label="";
+					if (layer[i].getAttribute("parentGroup") && layer[i].getAttribute("parentGroup") != "")
+						parentGroupName = layer[i].getAttribute("parentGroup").replace(regexp,"");
+					else {
+						alert("Missing parentGroup attribute in layer group, "+groupName+", in "+app+"/config.xml file.", "Data Error");
+						continue;
+					}
+					if (layer[i].getAttribute("label")){
+						label = layer[i].getAttribute("label").replace(regexp,"");
+					} else {
+						alert("Missing label attribute in layer, "+i+", in operationallayers tag in "+app+"/config.xml file.", "Data Error");
+						continue;
+					}
+					if (layer[i].getAttribute("url")){
+						url = layer[i].getAttribute("url").replace(regexp,""); // feature service
+					} else {
+						alert("Missing url attribute in layer, "+label+", in group, "+layer[i].getAttribute("parentGroup")+", in "+app+"/config.xml file.", "Data Error");
+						continue;
+					}
+					if (layer[i].getAttribute("visible"))
+						layerVis = layer[i].getAttribute("visible").replace(regexp,"").split(","); // array of visibility
+					else {
+						alert("Missing visible attribute in layer, "+groupName+", in "+app+"/config.xml file.", "Data Error");
+						continue;
+					}
+					
+					var fsLayer = new FeatureLayer({
+						visible: layerVis === "true",
+						url: url,
+						title: label,
+						id: label
+					});
+					groupLayers[parentGroupName].layer.add(fsLayer);
+				}
+				// root layer with not groups
+				else if (layer[i].getAttribute("label")) {
 					console.log("loading layer "+layer[i].getAttribute("label")+" i="+i);
 					tries[layer[i].getAttribute("label")] = 0;				
 					createLayer(layer[i]);
