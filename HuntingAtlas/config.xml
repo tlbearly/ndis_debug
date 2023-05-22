@@ -44,11 +44,41 @@
 
     <!-- wkid is required.  This is the spatial reference number.-->
     <map top="85" wkid="102100"
-    	 initialextent="-12350000 4250000 -11150000 5250000">
-         <!-- operationallayers:  Note: Displays in reverse order. -->
-         <!-- Set open=true if you want this mapservice layer expanded at the start. -->
-         <!-- Set opensublayer=comma delimited list of layer names under the mapservice checkbox to expand at the start. open must be true. -->
-         <!--     example: open="true" opensublayer="Places of Interest,Township Range Sections" --> 
+    	initialextent="-12350000 4250000 -11150000 5250000">
+        <!-- operationallayers:  Note: Displays in reverse order. -->
+        <!-- feature service or map service with groups and layers 
+            tag: layer
+            attributes:
+                label: service name
+                open: true or false, is this group open?
+                type: featureservice, mapservice
+                visible: true or false
+                alpha: opacity 0.8
+                url: MapServer or FeatureServer URL
+        -->
+        
+        <!-- group layer
+            tag: layer
+            attributes:
+                group: group name
+                open: true or false, is this group open?
+                visible: true or false
+                alpha: opacity 0.8
+                radio: true or false, use radio buttons for children (only one visible at a time). Default is false if not specified.
+        -->
+        <!-- sub group under the parent group with or without layers under it.
+            tag: layer
+            attributes:
+                group=label
+                parentGroup=parent group name
+                open=true or false, is this group open?
+                alpha=opacity for the group
+                visible=true or false, is this group visible?
+                url=a FeatureService to add layers to this group. If this is missing, it will just add the group and the rest of the attributes are ignored.
+                layerIds=FeatureService ids in display order, and can use 3-6,9,11 format.
+                layerVis=visibility of each layer in display order.
+                layerNames=optional display name. If missing, it will use names from FeatureService. Format="layer1 name,layer2 name,..." in display order.
+        -->
         <operationallayers>
 			<!--layer label="Motor Vehicle Use Map" open="false" type="dynamic" visible="false" alpha="0.85"
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/mvum/MapServer"/-->
@@ -66,25 +96,15 @@
 
             <layer label="Campgrounds and SWA Facilities" parentGroup="Hunter Reference" visible="true" alpha="0.8"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWAdminData/FeatureServer/0"/>
-            <layer label="GMU boundary (Hunting Units)" parentGroup="Hunter Reference" visible="true" alpha="0.8"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWAdminData/FeatureServer/6"/>
+            <layer group="GMU boundary (Hunting Units)" radio="true" parentGroup="Hunter Reference" visible="true" alpha="0.8" open="true"
+                url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer"
+                layerIds="6-8" layerVis="true,false,false"/>
+            <!--layer label="GMU boundary (Hunting Units)" parentGroup="Hunter Reference" visible="true" alpha="0.8"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWAdminData/FeatureServer/6"/-->
 
             <layer group="Game Species" open="false" visible="false" alpha="0.7" radio="true"/>
                 <!--Elk layerNames="Migration Patterns,Migration Corridors,Winter Concentration Area,Winter Range,Summer Concentration Area,Summer Range,Resident Population Area,Overall Range"-->
                 <!--Bighorn layerNames="Migration Patterns,Migration Corridors,Severe Winter Range,Winter Concentration Area,Winter Range,Summer Concentration Area,Summer Range,Overall Range"-->
-                
-                <!-- sub group under the parent group with or without layers under it.
-                    tag: layer
-                    attributes:
-                    group=label
-                    parentGroup=parent group, group name
-                    open=true or false, is this group open?
-                    visible=true or false, is this group visible?
-                    url=a FeatureService to add layers to this group. If this is missing, it will just add the group and the rest of the attributes are ignored.
-                    layerIds=FeatureService ids in display order, and can use 3-6,9,11 format.
-                    layerVis=visibility of each layer in display order.
-                    layerName=optional display name. If missing, it will use names from FeatureService. Format="layer1 name,layer2 name,..." in display order.
-                 -->
                  <layer group="Black Bear" parentGroup="Game Species" open="false" visible="false"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
                     layerIds="21,19,22"
@@ -125,7 +145,6 @@
 
                
 
-			<!-- Layer must be named "Game Species".  It is used in widgets/Legend/toc/tocClasses/TocMapLayerItem.as -->
 			<!--layer label="Game Species" open="false" type="dynamic" visible="false" alpha="0.7"
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map/MapServer"/-->	
             <layer label="CPW State Park Roads"	open="true" type="dynamic" visible="false" alpha="1"

@@ -30,11 +30,10 @@ class My_BasemapGallery {
             var layer;
 
             // World Streets Vector with Hillshade
-            var layer1 = new VectorTileLayer({url:"https://services.arcgisonline.com/arcgis/rest/services/World_Shaded_Relief/MapServer"});
-           //var layer1 = new VectorTileLayer({url:"https://tiledbasemaps.arcgis.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer"});//requires username and password
-           layer = new VectorTileLayer({url:"https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer"});
+            //var layer1 = new VectorTileLayer({url:"https://tiledbasemaps.arcgis.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer"});//requires username and password
+            layer = new VectorTileLayer({url:"https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer"});
             streets = new Basemap({
-                baseLayers:[layer,layer1],
+                baseLayers:[layer],
                 title:"Streets",
                 id:"streets",
                 thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
@@ -77,15 +76,6 @@ class My_BasemapGallery {
                 id:"aerial",
                 thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/f81bc478e12c4f1691d0d7ab6361f5a6/info/thumbnail/street_thumb_b2wm.jpg"
             });
-
-            // World Streets Vector
-           /* layer = new VectorTileLayer({url:"https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer"});
-            streets = new Basemap({
-                baseLayers:[layer],
-                title:"Streets",
-                id:"streets",
-                thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
-            });*/
 
             // Add USGS Digital Topo back in. ESRI removed it 6-30-19
             // try id: f33a34de3a294590ab48f246e99958c9 esri nat geo
