@@ -155,11 +155,12 @@ function clearAddress() {
 //**********************
 function readConfig() {
 	// "agsjs/dijit/TOC", "esri/tasks/locator", "esri/rest/support/ProjectParameters", "esri/widget/Popup",
-	require(["dojo/dom", "dojo/io-query", "esri/core/promiseUtils", "esri/core/reactiveUtils", "esri/layers/GroupLayer", "esri/layers/MapImageLayer", "esri/layers/FeatureLayer", "esri/rest/geometryService",
+	require(["dojo/dom", "dojo/io-query", "esri/core/promiseUtils", "esri/core/reactiveUtils", "esri/layers/GroupLayer", "esri/layers/SubtypeGroupLayer", "esri/layers/MapImageLayer",
+	 "esri/layers/FeatureLayer", "esri/layers/WMSLayer", "esri/rest/geometryService",
 	 "esri/geometry/SpatialReference", "esri/Graphic", "esri/Map", "esri/views/MapView","esri/widgets/Print","esri/geometry/Extent",
 	 "esri/widgets/Home", "esri/widgets/Expand", "esri/widgets/LayerList", "esri/widgets/Legend", "esri/widgets/Locate", "esri/widgets/Search", "esri/widgets/ScaleBar", "esri/widgets/Slider", "esri/rest/support/ProjectParameters",
 	 "esri/symbols/SimpleFillSymbol", "dijit/form/CheckBox", "dijit/layout/ContentPane", "dijit/TitlePane", "dijit/layout/TabContainer", "esri/symbols/SimpleLineSymbol", "dojo/sniff"], 
-	 function (dom, ioquery, promiseUtils, reactiveUtils, GroupLayer, MapImageLayer, FeatureLayer, GeometryService, SpatialReference,
+	 function (dom, ioquery, promiseUtils, reactiveUtils, GroupLayer, SubtypeGroupLayer, MapImageLayer, FeatureLayer, WMSLayer, GeometryService, SpatialReference,
 		Graphic, Map, MapView, Print, Extent, Home, Expand, LayerList, Legend, Locate, Search, ScaleBar, Slider, ProjectParameters, SimpleFillSymbol, CheckBox,
 		ContentPane, TitlePane, TabContainer, SimpleLineSymbol, has) {
 		var xmlDoc; // config.xml document json
@@ -244,9 +245,8 @@ function readConfig() {
 		//  ADD MAP LAYERS
 		//
 		//  addMapLayers calls creatLayer for each layer in the operationallayers tag in the config.xml file.
-		//  createLayer calls layerLoadedHandler or layerLoadFailedHandler
+		//  createLayer calls layerLoadFailedHandler
 		//  layerLoadFailedHandler waits then calls createLayer again, reports error after 5 tries and increases time between calls to 30 seconds.
-		//  layerLoadedHandler adds layer to legendLayers and the map.
 		//  map.on("layer-add-result") listens for layer to load to map. Updates the toc with new layers. Waits for all to have tried to load,
 		//  reorders legendLayers and map layers
 		//******************
@@ -309,40 +309,23 @@ function readConfig() {
 				} else {
 					// MapServer
 					if (layer.getAttribute("url").toLowerCase().indexOf("mapserver") > -1){
-						if (layer.getAttribute("visible") == "false")
 							myLayer = new MapImageLayer({
-								"url": layer.getAttribute("url"),
-								"opacity": Number(layer.getAttribute("alpha")),
-								"title": id,
-								"id":id,
-								"visible": false
-							});
-						else
-							myLayer = new MapImageLayer({
-								"url":layer.getAttribute("url"),
-								"opacity": Number(layer.getAttribute("alpha")),
-								"title": id,
-								"id":id,
-								"visible": true
+								url:layer.getAttribute("url"),
+								opacity: Number(layer.getAttribute("alpha")),
+								title: id,
+								id: id,
+								visible: layer.getAttribute("visible") == "true"
 							});
 					} 
 					// FeatureServer tlb 9/28/20
 					else if (layer.getAttribute("url").toLowerCase().indexOf("featureserver") > -1){
-						if (layer.getAttribute("visible") == "false")
 							myLayer = new FeatureLayer({
-								"url": layer.getAttribute("url"),
-								"opacity": Number(layer.getAttribute("alpha")),
-								"title": id,
-								"id":id,
-								"visible": false
-							});
-						else
-							myLayer = new FeatureLayer({
-								"url":layer.getAttribute("url"),
-								"opacity": Number(layer.getAttribute("alpha")),
-								"title": id,
-								"id":id,
-								"visible": true,
+								url: layer.getAttribute("url"),
+								opacity: Number(layer.getAttribute("alpha")),
+								title: id,
+								id: id,
+								visible: layer.getAttribute("visible") == "true",
+								legendEnabled: true
 							});
 					}
 					else {
@@ -353,115 +336,7 @@ function readConfig() {
 				// 3-21-22 check if loaded
 				map.add(myLayer);
 
-				myLayer.on("load", layerLoadedHandler);
-				myLayer.on("error", layerLoadFailedHandler);
-			}
-
-			// If layer loaded add to legend and map 3-21-22
-			function layerLoadedHandler(event){
-				try{
-					var collapsedFlg;
-					var openSubLayers = [];
-					var layer;
-					// search for layer in xmlDoc
-					for (var i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
-						if (event.layer.id === xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label")) {
-							layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i];
-						}
-					}
-					// layer from config.xml
-					if (loadedFromCfg) {
-						collapsedFlg = false;
-						
-						if (layer.getAttribute("open") == "false")
-							collapsedFlg = true;
-						var oslArr = layer.getAttribute("opensublayer");
-						if (oslArr)
-							openSubLayers = oslArr.split(",");
-						oslArr = null;
-					}
-					// layer from &map or &layer on url
-					else {
-						collapsedFlg = true;
-						if (event.layer.visible)
-							collapsedFlg = false;
-						var num = new Array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
-						var j;
-						var layerInfos = [];
-						// Set gmu = elk, bighorn, or goat based on what was on url	
-						if (layerObj[event.layer.id]) {
-							layerInfos = event.layer.layerInfos;
-							// See what gmu is turned on		   
-							if (event.layer.id == "Hunter Reference") {
-								for (j = 0; j < layerObj[event.layer.id].visLayers.length; j++) {
-									if (layerInfos[layerObj[event.layer.id].visLayers[j]].name.substr(layerInfos[layerObj[event.layer.id].visLayers[j]].name.length - 3, 3).indexOf("GMU") > -1) {
-										gmu = layerInfos[layerObj[event.layer.id].visLayers[j]].name;
-										break;
-									}
-								}
-							// if gmu was not visible but a game species was selected then set gmu
-							} else if (event.layer.id == "Game Species") {
-								for (j = 0; j < layerObj[event.layer.id].visLayers.length; j++) {
-									if (layerInfos[layerObj[event.layer.id].visLayers[j]].name === "Bighorn Sheep") {
-										gmu = "Bighorn GMU";
-										break;
-									} else if (layerInfos[layerObj[event.layer.id].visLayers[j]].name === "Mountain Goat") {
-										gmu = "Goat GMU";
-										break;
-									}
-								}
-							}
-							// Set default visibility
-							for (j = 0; j < layerInfos.length; j++) {
-								// If layer is found in the visLayers make it visible.
-								if (layerObj[event.layer.id].visLayers.indexOf(layerInfos[j].id) != -1)
-									layerInfos[j].defaultVisibility = true;
-								// Else if this is not the top layer and it has no sub-layers set default visibility
-								else if (layerInfos[j].parentLayerId != -1 && !layerInfos[j].subLayerIds) {
-									// if this is a gmu layer make sure it is the one that was turned on in visLayers
-									if (layerInfos[j].name.substr(layerInfos[j].name.length - 3, 3).indexOf("GMU") > -1) {
-										// handle this later below when all layers have loaded. Need to wait for Game Species to load. If GMU layer is not set was not working.
-									}
-									// use the default value for sub menu item layers that are under a menu item that is unchecked
-									else if ((layerInfos[j].defaultVisibility == true) && (layerObj[event.layer.id].visLayers.indexOf(layerInfos[j].parentLayerId) === -1)) {
-										layerObj[event.layer.id].visLayers.push(j);
-										// If by default it is visible see if the name of the parent is a number (varies with extent) and make it visible also
-										if (num.indexOf(parseInt(layerInfos[layerInfos[j].parentLayerId].name.substr(0, 1))) > -1) {
-											layerObj[event.layer.id].visLayers.push(layerInfos[j].parentLayerId);
-											layerInfos[layerInfos[j].parentLayerId].defaultVisibility = true;
-										}
-									}
-								// Else this is a top level toc menu item and not found in the visible list, make it not visible.
-								} else
-									layerInfos[j].defaultVisibility = false;
-							}
-							event.layer.setVisibleLayers(layerObj[event.layer.id].visLayers.sort(function (a, b) {
-								return a - b;
-							}));
-							event.layer.refresh();
-						}	
-					}
-
-					legendLayers.push({
-						layer: event.layer,
-						title: event.layer.id,
-						autoToggle: true, // If true, closes the group when unchecked and opens the group when checked. If false does nothing.
-						slider: true, // whether to display a transparency slider
-						slider_ticks: 3,
-						slider_labels: ["transparent", "50%", "opaque"],
-						hideGroupSublayers: hideGroupSublayers,
-						radioLayers: radioLayers,
-						noLegend: true,
-						openSubLayers: openSubLayers,
-						collapsed: collapsedFlg // whether this root layer should be collapsed initially, default false. 
-					});
-//console.log("add layer to map "+event.layer.id);
-					map.addLayer(event.layer);							
-					
-					openSubLayers = null;
-				} catch (e) {
-					alert("Error in readConfig.js/layerLoadedHandler " + e.message, "Code Error", e);
-				}
+				myLayer.on("layerview-create-failed", layerLoadFailedHandler);
 			}
 
 			function layerLoadFailedHandler(event){
@@ -520,6 +395,7 @@ function readConfig() {
 				var groupLayer;
 				if (opacity){
 					groupLayer = new GroupLayer({
+						url: featureservice,
 						title: groupName,
 						id: groupName,
 						visible: vis,
@@ -528,13 +404,14 @@ function readConfig() {
 					});
 				} else {
 					groupLayer = new GroupLayer({
+						url: featureservice,
 						title: groupName,
 						id: groupName,
 						visible: vis,
 						visibilityMode: visMode // radio buttons?
 					});
 				}
-				if (!featureservice) return groupLayer;
+				if (!layerIds) return groupLayer;
 
 				// add / to end of feature service
 				if (featureservice.substr(featureservice.length-1) != "/")
@@ -571,36 +448,45 @@ function readConfig() {
 				 
 				  vis = layerVis[i].toLowerCase() === "true";
 				  // use layer names from config.xml 
+				  var subGroupLayer;
 				  if (layerNames != null){
-					let subGroupLayer = new FeatureLayer({
-						url: fsUrl,
-						visible: vis,
-						title: layerNames[i],
-						id: layerNames[i]
-					});
-					groupLayer.add(subGroupLayer);
-				  } 
-				  // Use feature service layer names 
-				  else {
-					let subGroupLayer = new FeatureLayer({
-						url: fsUrl,
-						visible: vis
-					});
-					groupLayer.add(subGroupLayer);
-					subGroupLayer.on("layerview-create", function(event){
-						var layer = event.layerView.layer;
-						if (fsName.indexOf(" - ") > -1)
-							fsName += " - ";
-						var title = layer.title.substr(fsName.length);
-						layer.title = title;
-						layer.id = title;
-						console.log("loading layer: "+title+" url="+fsUrl);
-
-					});
-					subGroupLayer.on("layerview-create-failed", function(view,error){
-						alert("Layer failed to load. Error:"+error);
-					});
-				  }
+					//if (fsUrl.toLowerCase().indexOf("featureserver") > -1){
+						subGroupLayer = new FeatureLayer({
+							url: fsUrl,
+							visible: vis,
+							title: layerNames[i],
+							id: ids[i],
+							legendEnabled: true
+						});
+						groupLayer.add(subGroupLayer);
+					} 
+					// Use feature service layer names 
+					else {
+						subGroupLayer = new FeatureLayer({
+							url: fsUrl,
+							visible: vis,
+							id: ids[i]
+						});
+						groupLayer.add(subGroupLayer);
+						// wait for it to load then edit and remove "feature service name - "
+						subGroupLayer.on("layerview-create", function(event){
+							var layer = event.layerView.layer;
+							// remove the feature service name from the title (eg. CPWSpeciesData - )
+							if (fsName.indexOf(" - ") == -1)
+								fsName += " - ";
+							var title = layer.title.substr(fsName.length);
+							layer.title = title;
+							
+							//console.log("loading layer: "+title+" url="+fsUrl);
+						});
+					}
+				 //}else alert("Group layer, "+fsUrl+", is not a feature service. Edit readConfig.js and add code for this type of service.","Code Error");
+				  subGroupLayer.on("layerview-create-failed", function(view,error){
+					if (error.details)
+						alert("Layer failed to load. Error:"+error.message+" "+error.details,"Data Error");
+					else
+						alert("Layer failed to load. Error:"+error.message,"Data Error");
+				  });
 				  
 				}
 				return groupLayer;
@@ -671,12 +557,11 @@ function readConfig() {
 			var groupLayers = [];
 			var groupName;
 			var regexp = /([^a-zA-Z0-9 \-,\._\/:])/g;
-			console.log("layer length="+layer.length);
 			for (i = 0; i < layer.length; i++) {	
 				var url=null,layerIds=null,layerVis=null,parentGroupName = null,layerNames=null;				
 				// group layer with or without sub layers
 				if (layer[i].getAttribute("group") && layer[i].getAttribute("group") != ""){
-					console.log("loading group "+layer[i].getAttribute("group")+" i="+i);
+					//console.log("loading group "+layer[i].getAttribute("group")+" i="+i);
 					try{
 						var groupOpacity=1,groupVis="false",groupOpen="false",radio=false;
 						groupName = layer[i].getAttribute("group").replace(regexp,"");
@@ -692,16 +577,12 @@ function readConfig() {
 							groupOpacity = layer[i].getAttribute("alpha").replace(regexp,"");
 						if (layer[i].getAttribute("radio"))
 							radio = layer[i].getAttribute("radio").replace(regexp,"") === "true";
+						if (layer[i].getAttribute("url"))
+							url = layer[i].getAttribute("url").replace(regexp,""); // feature service
 						
 						// Group with layers
-						if (layer[i].getAttribute("url")){
-							url = layer[i].getAttribute("url").replace(regexp,""); // feature service
-							if (layer[i].getAttribute("layerIds"))
+						if (layer[i].getAttribute("layerIds")){
 								layerIds = layer[i].getAttribute("layerIds").replace(regexp,""); // string of ids 2-7,14,20
-							else {
-								alert("Missing layerIds tag in layer group, "+groupName+", in "+app+"/config.xml file.", "Data Error");
-								continue;
-							}
 							if (layer[i].getAttribute("layerVis"))
 								layerVis = layer[i].getAttribute("layerVis").replace(regexp,"").split(","); // array of visibility
 							else {
@@ -724,7 +605,7 @@ function readConfig() {
 				} 
 				// sub layer in parent group
 				else if (layer[i].getAttribute("label") && layer[i].getAttribute("parentGroup")) {
-					console.log("loading layer "+layer[i].getAttribute("label")+" into group "+layer[i].getAttribute("parentGroup")+" i="+i);
+					//console.log("loading layer "+layer[i].getAttribute("label")+" into group "+layer[i].getAttribute("parentGroup")+" i="+i);
 					var label="";
 					if (layer[i].getAttribute("parentGroup") && layer[i].getAttribute("parentGroup") != "")
 						parentGroupName = layer[i].getAttribute("parentGroup").replace(regexp,"");
@@ -744,24 +625,26 @@ function readConfig() {
 						alert("Missing url attribute in layer, "+label+", in group, "+layer[i].getAttribute("parentGroup")+", in "+app+"/config.xml file.", "Data Error");
 						continue;
 					}
+					if (layer[i].getAttribute("alpha"))
+						var opacity = layer[i].getAttribute("alpha").replace(regexp,"");
 					if (layer[i].getAttribute("visible"))
 						layerVis = layer[i].getAttribute("visible").replace(regexp,"").split(","); // array of visibility
 					else {
 						alert("Missing visible attribute in layer, "+groupName+", in "+app+"/config.xml file.", "Data Error");
 						continue;
 					}
-					
 					var fsLayer = new FeatureLayer({
 						visible: layerVis === "true",
 						url: url,
 						title: label,
+						opacity: Number(opacity),
 						id: label
 					});
 					groupLayers[parentGroupName].layer.add(fsLayer);
 				}
-				// root layer with not groups
+				// root layer
 				else if (layer[i].getAttribute("label")) {
-					console.log("loading layer "+layer[i].getAttribute("label")+" i="+i);
+					//console.log("loading layer "+layer[i].getAttribute("label")+" i="+i);
 					tries[layer[i].getAttribute("label")] = 0;				
 					createLayer(layer[i]);
 				}		
@@ -782,17 +665,16 @@ function readConfig() {
             const item = event.item;
 			await item.layer.when();
 
-			// For exclusive layers, open selected layer and toggle other layers closed.
+			// Watch for layer change to visible. For exclusive layers, open selected layer and toggle other layers closed.
 			// V Game Species (visibilityMode = exclusive)
 			//     > Bighorn
 			//     V Elk
 			//     > Moose
-			var itemView = event.item; // layer-view of selection
-			itemView.watch("visible", (event) => {
+			item.watch("visible", (event) => {
 				layerList.operationalItems.forEach((opLayer) => {
 					opLayer.children.forEach((layerView) => {
-						if ((itemView.parent && itemView.parent.title === layerView.parent.title) && (itemView.parent.visibilityMode === "exclusive")){
-							if (layerView.layer.id != itemView.layer.id) {
+						if ((item.parent && item.parent.title === layerView.parent.title) && (item.parent.visibilityMode === "exclusive")){
+							if (layerView.layer.id != item.layer.id) {
 								layerView.open = false;
 							}else{
 								layerView.open = true;
@@ -824,36 +706,39 @@ function readConfig() {
 					className: "esri-icon-sliders-horizontal",
 					title: "Change layer opacity"
 				};
-
+				
 				slider.on("thumb-drag", (event) => {
 					const { value } = event;
 					item.layer.opacity = value;
 				});
 			}
 			
-
-            // show legend  
-            /*if (item.layer.type != "group") {
-                // don't show legend twice
-                item.panel = {
-                content: "legend",
-                open: false
-                };
-            }*/
+			// show legend  
+			/*if (item.layer.type != "group") {
+				// don't show legend twice
+				item.panel = {
+				  content: "legend",
+				  open: true,
+				  title: "Legend"
+				};
+			}*/
 
             // An array of objects defining actions to place in the LayerList.
             // By making this array two-dimensional, you can separate similar
             // actions into separate groups with a breaking line.
 
-            item.actionsSections = [
-				[
-					{
-						title: "Layer information",
-						className: "esri-icon-description",
-						id: "information"
-					}
-				]
-            ];
+			// Add Information icon to top layers
+			if(item.parent === null ){
+				item.actionsSections = [
+					[
+						{
+							title: "Layer information",
+							className: "esri-icon-description",
+							id: "information"
+						}
+					]
+				];
+			}
         }
 
 		//*************
@@ -1106,10 +991,7 @@ function readConfig() {
 						dom.byId("settingsDiv").style.display = "block";
 						dom.byId("settingsDiv").style.visibility = "visible";
 					}
-					else if (label == "Print") {
-						//if (icon)
-						//	document.getElementById("printIcon").src = icon;
-					} else if (label == "Identify") {}
+					 else if (label == "Identify") {}
 					else if (label == "MapLink") {
 						if (icon)
 							document.getElementById("linkIcon").src = icon;
@@ -1117,8 +999,27 @@ function readConfig() {
 						alert("Error in " + app + "/config.xml widget. Label: " + label + " was not found.  \n\nAvailable options include:\n\tMap Layers & Legend\n\t" + "<something> Resource Report \n\tFeature Search\n\tAddress\n\tDraw, Label, & Measure\n\tBookmark\n\tFind a Place\n\tPrint\n\t" + "Settings\n\tIdentify\n Edit javascript/readConfig.js to change this.", "Data Error");
 					}
 				}
+				// add print widget
+				var printPane = new TitlePane({
+					title: "<img id='printIcon' role='presentation' src='assets/images/i_print.png'/> Print",
+					open: preload,
+					content: document.getElementById("printContent")
+				});
+				printPane.startup();
+				document.getElementById("printDiv").appendChild(printPane.domNode);
+				document.getElementById("printHelpBtn").addEventListener("click",function(){show("printHelpDialog");});
+				if (video == null)
+					alert("Warning: Missing help video in " + app + "/config.xml file for widget print.", "Data Error");
+				//dom.byId("printHelp").href = video;
+				//if (icon)
+				//	document.getElementById("printIcon").src = icon;
+				// TODO ***********setprints(); // in javascript/prints.js
+				dom.byId("printDiv").style.display = "block";
+				dom.byId("printDiv").style.visibility = "visible";
 				// read the PrintPdfWidget.xml file
-				//TODO ********* printInit();
+				printInit();
+
+
 				// Hide widgets
 				if (widgetStr.indexOf("Map Layers & Legend") == -1)
 					dom.byId("tocPane").style.display = "none";
@@ -2042,7 +1943,7 @@ function readConfig() {
 					addMapLayers();
 
 					// Add Legend
-					let legend = new Legend({
+					/*let legend = new Legend({
 						view: view
 					});
 
@@ -2053,6 +1954,7 @@ function readConfig() {
 						expandIconClass: "esri-icon-legend"
 					});
 					view.ui.add(legendExpand, "top-right");
+					*/
 
 					// Add Scalebar
 					let scalebar = new ScaleBar({

@@ -49,7 +49,7 @@
         <!-- feature service or map service with groups and layers 
             tag: layer
             attributes:
-                label: service name
+                label: service display name
                 open: true or false, is this group open?
                 type: featureservice, mapservice
                 visible: true or false
@@ -66,6 +66,16 @@
                 alpha: opacity 0.8
                 radio: true or false, use radio buttons for children (only one visible at a time). Default is false if not specified.
         -->
+
+        <!-- sub layer in parent group
+            tag: layer
+            attributes:
+                label: service display name
+                parentGroup: group name
+                visible: true or false
+                alpha: opacity 0.8 (optional)
+                url=a FeatureService 
+        -->
         <!-- sub group under the parent group with or without layers under it.
             tag: layer
             attributes:
@@ -74,8 +84,8 @@
                 open=true or false, is this group open?
                 alpha=opacity for the group
                 visible=true or false, is this group visible?
-                url=a FeatureService to add layers to this group. If this is missing, it will just add the group and the rest of the attributes are ignored.
-                layerIds=FeatureService ids in display order, and can use 3-6,9,11 format.
+                url=a FeatureService to add layers to this group. 
+                layerIds=FeatureService ids in display order, and can use 3-6,9,11 format. If this is missing, it will just add the group and the rest of the attributes are ignored.
                 layerVis=visibility of each layer in display order.
                 layerNames=optional display name. If missing, it will use names from FeatureService. Format="layer1 name,layer2 name,..." in display order.
         -->
@@ -83,10 +93,11 @@
 			<!--layer label="Motor Vehicle Use Map" open="false" type="dynamic" visible="false" alpha="0.85"
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/mvum/MapServer"/-->
 			<!-- Layer must be named "Hunter Reference".  It is used in widgets/Legend/toc/tocClasses/TocMapLayerItem.as -->
-			<layer label="Hunter Reference Old" open="true" type="dynamic" visible="true" alpha="0.8"
+			<layer label="Hunter Reference Old" open="true" type="dynamic" visible="false" alpha="0.8"
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer"/>
             <!-- Group layer -->
-            <layer group="Hunter Reference" open="true" visible="true" alpha="1" radio="false"/>
+            <layer group="Hunter Reference" open="false" visible="false" alpha="1" radio="false"
+                url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer"/>
             <!--layer label="Emergency Fire Closures" parentGroup="Hunter Reference" visible="false" alpha="0.8"
                 url=""/>
             <layer group="Places of Interest" parentGroup="Hunter Reference" open="false" visible="false"
@@ -94,6 +105,12 @@
                 layerIds=""
                 layerVis=""/-->
 
+            <!-- campground symbol 
+                const webStyleSymbol = new WebStyleSymbol({
+                    name: "campground",
+                    styleName: "Esri2DPointSymbolsStyle"
+                });
+            -->
             <layer label="Campgrounds and SWA Facilities" parentGroup="Hunter Reference" visible="true" alpha="0.8"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWAdminData/FeatureServer/0"/>
             <layer group="GMU boundary (Hunting Units)" radio="true" parentGroup="Hunter Reference" visible="true" alpha="0.8" open="true"
@@ -102,7 +119,11 @@
             <!--layer label="GMU boundary (Hunting Units)" parentGroup="Hunter Reference" visible="true" alpha="0.8"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWAdminData/FeatureServer/6"/-->
 
-            <layer group="Game Species" open="false" visible="false" alpha="0.7" radio="true"/>
+            <layer label="CPWSpeciesData" open="false" visible="true" alpha="0.8"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
+                    />
+            <layer group="Game Species" open="false" visible="false" alpha="0.7" radio="true"
+                url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"/>
                 <!--Elk layerNames="Migration Patterns,Migration Corridors,Winter Concentration Area,Winter Range,Summer Concentration Area,Summer Range,Resident Population Area,Overall Range"-->
                 <!--Bighorn layerNames="Migration Patterns,Migration Corridors,Severe Winter Range,Winter Concentration Area,Winter Range,Summer Concentration Area,Summer Range,Overall Range"-->
                  <layer group="Black Bear" parentGroup="Game Species" open="false" visible="false"

@@ -6,35 +6,29 @@
     <meta charset="utf-8" />
     <title>Test ArcGIS API for JavaScript 4.26</title>
 
-    <link rel="stylesheet" href="https://js.arcgis.com/4.24/esri/themes/light/main.css" async="true"/>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.26/esri/themes/light/main.css" async="true"/>
     <link rel="stylesheet" type="text/css" href="assets/css/claro/claro.css?v=1">
     
-    <script src="https://js.arcgis.com/4.24/"></script>
     <!-- dojo is not longer a part of 4.25 so load it here. Download it from https://dojotoolkit.org/download/ release package .zip 
         This gave an error so use https://download.dojotoolkit.org/release-1.17.3/dojo-release-1.17.3.zip. Put on Google drive  -->
-    <!--script src="//ajax.googleapis.com/ajax/libs/dojo/1.14.1/dojo/dojo.js"></script--> <!-- gets redefined error!!!-->
-    <!--script>
-      var dojoConfig = {
-        baseUrl: "/js/",
+    <script>
+      // load dojo from local copy
+      window.dojoConfig = {
         tlmSiblingOfDojo: false,
         packages: [
-            { name: "dojo", location: "lib/dojo" },
-            { name: "dijit", location: "lib/dijit" },
-            { name: "dojox", location: "lib/dojox" },
-            {
-              name: "dgrid1",
-              location: "../../3.42/dgrid1"
-            },
-            {
-              name: "dstore",
-              location: "../../3.42/dstore"
-            }
+            { name:"../esri", location: "https://js.arcgis.com/4.26/esri" },
+            { name: "dojo", location: location.pathname.replace(/\/[^/]+$/, '') +"/Dojo/dojo-release-1.17.3/dojo" },
+            { name: "dijit", location: location.pathname.replace(/\/[^/]+$/, '') +"/Dojo/dojo-release-1.17.3/dijit" },
+            { name: "dojox", location: location.pathname.replace(/\/[^/]+$/, '') +"/Dojo/dojo-release-1.17.3/dojox" },
+            //{ name: "dgrid1", location: "/../../3.42/dgrid1"},
+            //{ name: "dstore", location: "../../3.42/dstore"},
+            { name:"javascript", location: location.pathname.replace(/\/[^/]+$/, '') +"/javascript"}
           ]
-    };
-  </script-->
+      };
+    </script>
 
-
-
+    <script src="https://js.arcgis.com/4.26/"></script>
+    
     <link rel="shortcut icon" href="assets/images/favicon.png" />
     <link rel="icon" type="image/png" href="assets/images/favicon.png" />
     
@@ -58,7 +52,7 @@
     <!-- For Debugging -->
     <script>
       var jsVer = Date.now();
-      var jsVer = "ar";
+      var jsVer = "bf";
       var path = "javascript/src";
       document.write('<link rel="stylesheet" href="assets/css/layout.css?v=' + jsVer + '"><\/script>');
       //v4 document.write('<script type="text/javascript" src="' + path + '/errorBox.js?v=' + jsVer + '" async><\/script>');
@@ -70,7 +64,7 @@
       //v4        document.write('<script type="text/javascript" src="' + path + '/gmu.js?v=' + jsVer + '"><\/script>');
       //v4        document.write('<script type="text/javascript" src="' + path + '/identify.js?v=' + jsVer + '"><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/maplink.js?v=' + jsVer + '"><\/script>');
-      //v4        document.write('<script type="text/javascript" src="' + path + '/print.js?v=' + jsVer + '"><\/script>');
+      document.write('<script type="text/javascript" src="' + path + '/print.js?v=' + jsVer + '"><\/script>');
       //document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '"><\/script>');
         document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '" async><\/script>');
         //document.write('<script type="text/javascript" src="' + path + '/basemapGallery.js?v=' + jsVer + '"><\/script>');
@@ -167,9 +161,8 @@
         "dijit/TitlePane",
         "dijit/form/Button",
         "dijit/form/Select",
-        "dojox/layout/ResizeHandle",
         "dojo/domReady!"
-      ], (esriConfig, parser, CheckBox, RadioButton, Form, BorderContainer, ContentPane, TabContainer, Dialog, TitlePane, Button, Select, ResizeHandle) => {
+      ], (esriConfig, parser, CheckBox, RadioButton, Form, BorderContainer, ContentPane, TabContainer, Dialog, TitlePane, Button, Select) => {
         parser.parse;
         readConfig();
 
@@ -188,7 +181,7 @@
       if (window.innerWidth < 404) leftPaneWidth = window.innerWidth;
       function toggleMenu(){
         // open menu
-        if(document.getElementById("leftPane").offsetWidth == 2){
+        if(document.getElementById("leftPane").offsetWidth < 3){
           document.getElementById("menuBtn").style.display = "none";
           document.getElementById("leftPane").style.left = "0px";
           document.getElementById("leftPane").style.width = leftPaneWidth-4+"px";
@@ -306,7 +299,7 @@
             <span id="links"></span>
             <!-- setMapLink() are in javascript/mapLink.js -->
             <span id="mapLinkBtn" class="link" style="position:relative;float:right;display:block;"><a href="javascript:setMapLink();"><img id="linkIcon" alt="button to get the link to the current map" src="assets/images/i_link.png"/> Map Link</a></span>
-            <span id="printBtn" class="link" style="position:relative;float:right;display:block;"><a href="javascript:printShow();"><img id="printIcon" alt="button to print the current map" src="assets/images/i_print.png"/> Print</a></span>
+            <!--span id="printBtn" class="link" style="position:relative;float:right;display:block;"><a href="javascript:printShow();"><img id="printIcon" alt="button to print the current map" src="assets/images/i_print.png"/> Print</a></span-->
             <!-- Code for gmuCombo is in Identify.js and gmu.js -->
             <span id="gmuDiv" style="position:relative;float:right;display:none;"><label for="gmuCombo">Goto GMU: </label><span id="gmuCombo"></span></span>
           </div>
@@ -339,121 +332,6 @@
           </select>
         </div>
 
-        <!-- Print Troubleshooting -->
-        <div id="printTroubleshootingDiv" class="dialog" data-dojo-type="dijit/Dialog" data-dojo-id="printTroubleDialog" title="Print Help" style="width: 500px; display:none;">
-          <h3 class="dialogTitle">Print <button class="myBtn" style="float:right;" onclick="hide('printDiv')">X</button></h3>  
-          <div class="dialogContent">  
-            <span id="printVideo"></span>
-            <h2>Having Trouble Saving with Chrome?</h2>
-            If you are using Chrome for your browser it has a built in pdf reader which fails to save the file the first time you try to download. The second time it works. But if you have Adobe Reader or Foxit Reader installed it will work. You can make this the
-            default pdf reader by doing the following:
-            <ol>
-                <li>In the address bar, type <i>about:plugins</i></li>
-                <li>The Plug-ins Tab will open</li>
-                <li>Click disable Chrome PDF Viewer.</li>
-                <li>Click Enable Adobe Reader or Foxit Reader.</li>
-                <li>Check Always allowed</li>
-            </ol>
-            <h2>Disable Your Pop-up Blocker</h2>
-            Print will open PDF file(s) in a new tab. If you have pop-ups disabled you will not see your printout.
-            <h2>Requires a PDF Reader</h2>
-            Since the printout is a PDF file, you must have a PDF Reader installed in your browser. Download either <a href="https://get.adobe.com/reader/" target="_blank">Adobe Reader</a> or <a href="https://www.foxitsoftware.com/Secure_PDF_Reader/"
-                target="_blank">Foxit Reader</a>.
-          </div>              
-        </div>
-        <!-- Print Dialog -->
-        <div id="printDiv" class="dialog" title="Map shows what will print. Click scalebar to zoom. Click-drag to pan map." style="background:white;display:none;position:absolute;top:70px;overflow:auto;">
-          <h3 class="dialogTitle">Print <button class="myBtn" style="float:right;" onclick="hide('printDiv')">X</button></h3>  
-          <div class="dialogContent">
-            <span title="Print Help" onClick="printTroubleDialog.show();"><img alt='help button' class="help_icon" style="top:-33px;right:20px;width:15px;height:15px;" src="assets/images/i_help.png"></span>
-            <table>
-              <tr>
-                <td style="width:230px;vertical-align:top">
-                  <form>
-                    <label for="printTitle" style="width:30px">Title:</label> <input id="printTitle" value="Colorado Parks and Wildlife Custom Map" type="text" size="21" /><br/><br/>
-                    <label for="printSubTitle" style="width:30px">Subtitle:</label> <input id="printSubTitle" type="text" size="18" /><br/><br/>
-                    <label for="size">Paper size:</label>
-                      <select id="size" onChange="changePrintSize()">
-                        <option value="Letter ">8.5 x 11</option> 
-                        <!--option value="Legal ">8.5 x 14</option--> 
-                        <option value="Tabloid ">11 x 17</option>     
-                        <!--option value="ANSI C ">17 x 22</option-->
-                        <!--option value="ANSI D ">22 x 34</option-->
-                      </select><br/><br/>
-                      <label for="orient">Orientation:</label> <select id="orient" onChange="changePrintSize()">
-                        <option value="Landscape">Landscape</option> 
-                        <option value="Portrait">Portrait</option>     
-                      </select><br/><br/>
-                        <label for="format">Format:</label> <select id="format" onchange="grayOutLegend(this)">
-                        <option value="pdf">PDF</option> 
-                        <option value="geopdf">Geo PDF</option> 
-                        <!--option value="png24">PNG24</option> 
-                        <option value="PNG8">PNG8</option--> 
-                        <option value="jpg">JPG</option> 
-                        <option value="gif">GIF</option> 
-                        <option value="geotiff">GEOTIFF</option> 
-                        <!--option value="svg">SVG</option--> 
-                      </select><br/><br/>
-                      <!--label for="dpi">Dots per inch:</label> <select id="dpi">
-                        <option value="300 ">300</option> 
-                        <option value="96 ">96</option>     
-                      </select><br/><br/-->
-                      <!--label for="scalebar">Scalebar units:</label> <select id="scalebar">
-                        <option value="Miles">Miles</option> 
-                        <option value="Kilometers">Kilometers</option>     
-                        <option value="Feet">Feet</option>
-                        <option value="Meters">Meters</option>
-                      </select><br/><br/-->
-                      <div id="printLegendCB" style="display:inline-block">
-                          <label for="printLegend">Include legend:</label> <input id="printLegend" type="checkbox"/><br/><br/>
-                      </div>
-                      <div align="center">
-                          <button id="print_button" data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="printMap()">Print</button> <img id="printLoading" style="vertical-align:bottom; display:none" src="assets/images/loading.gif"
-                          /><br/>
-                          <span id="printInst">Disable pop-up blocker. Printout will open in a new tab.</span><br/>
-                          <span id="printMapLink" style="font-weight:bold;font-style:italic;"></span><br/>
-                          <span id="printLegendLink" style="font-weight:bold;font-style:italic;"></span><br/>
-                      </div>
-                      <!--div align="center" id="print_button"></div-->
-                      <br/><br/>
-                      <!-- Force selected format to pdf on startup. selected="selected" did not work in FireFox -->
-                      <script>
-                          document.getElementById("format").selectedIndex = 0
-                      </script>
-                      <p align="center">Requires a PDF reader. Get:<br/><a href="https://get.adobe.com/reader/" target="_blank">Adobe Reader</a>&nbsp;&nbsp;or&nbsp;&nbsp;<a href="https://www.foxitsoftware.com/Secure_PDF_Reader/" target="_blank">Foxit Reader</a></p>
-                  </form>
-                </td>
-                <td>
-                    <div id="printPreviewMap" class="map" data-dojo-type="dijit/layout/ContentPane" data-dojo-props='region:"center"' dir="ltr" style="margin-bottom:8px;border:1px solid black;position:relative;"></div>
-                </td>
-              </tr>
-            </table>
-          </div>
-        </div>
-
-        <!-- Map Link Dialog -->
-        <div id="mapLinkDialog" class="dialog" style="display:none;position:absolute;top:70px;width:450px;">
-          <h3 class="dialogTitle">Link to Current Map <button class="myBtn" style="float:right;" onclick="hide('mapLinkDialog')">X</button></h3>  
-          <div class="dialogContent">  
-            <span>Can be used to copy and paste into an email message.</span><br/>
-            <form>
-                <textarea id="mapLinkTxt" onFocus="this.select()" onClick="this.select()" style="width:430px;height:100px;"></textarea><br/>
-                <div>
-                    Map Link length: <input id="mapLinkLen" type="text" style="width:40px;border:0;" value="0" /><br/>
-                    <span id="mapLinkWarning" style="color: red">Warning: Map Link length exceeds the limit of 2048 characters. Some browsers may have trouble
-with it. To shorten it uncheck some boxes below:</span><br/>
-                    <input id="extMLckb" type="checkbox" onChange="mlCheckbox(this,'extent')" /> include extent, length: <input id="extMapLinkLen" type="text" style="width:30px;border:0;" value="0" />
-                    <span id="polyMLtxt" style="position:absolute;left:200px;"><input id="polyMLckb" type="checkbox" onChange="mlCheckbox(this,'poly')"/> include polygons, length: <input id="polyMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span><br/>
-                    <span id="ptMLtxt"><input id="ptMLckb" type="checkbox" onChange="mlCheckbox(this,'point')"/> include points, length: <input id="ptMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span>
-                    <span id="txtMLtxt" style="position:absolute;left:200px;"><input id="txtMLckb" type="checkbox" onChange="mlCheckbox(this,'text')"/> include text labels, length: <input id="txtMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span><br/>
-                    <span id="lineMLtxt"><input id="lineMLckb" type="checkbox" onChange="mlCheckbox(this,'line')"/> include lines, length: <input id="lineMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span>
-                    <span id="layMLtxt" style="position:absolute;left:200px;"><input id="layMLckb" type="checkbox" onChange="mlCheckbox(this,'layer')"/> include map layers, length: <input id="layMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span><br/>
-                    <span id="rectMLtxt"><input id="rectMLckb" type="checkbox" onChange="mlCheckbox(this,'rect')"/> include rectangles, length: <input id="rectMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span>
-                </div>
-            </form>
-          </div>
-        </div>
-    
         <!-- Error Message -->
         <div id="errorDialog" class="dialog" style="width:350px;max-height:400px;margin:10px;overflow:scroll;" title="Error Message" onCancel="require(['dojo/dom'],function(dom){dom.byId('errMsg').innerHTML='';});">
           <h3 class="dialogTitle">Error Message <button class="myBtn" style="float:right;" onclick="hide('errorDialog')">X</button></h3>  
@@ -549,6 +427,52 @@ with it. To shorten it uncheck some boxes below:</span><br/>
           </div>
         </div-->
 
+        <!-- Print Troubleshooting -->
+        <div id="printHelpDialog" class="dialog" title="Print Help" style="width:350px;">
+          <h3 class="dialogTitle">Print <button class="myBtn" style="float:right;" onclick="hide('printHelpDialog')">X</button></h3>  
+          <div class="dialogContent">  
+            <a id="printVideo" target="help">Click here to view help video.</a>
+            <h2>Having Trouble Saving with Chrome?</h2>
+            If you are using Chrome for your browser it has a built in pdf reader which fails to save the file the first time you try to download. The second time it works. But if you have Adobe Reader or Foxit Reader installed it will work. You can make this the
+            default pdf reader by doing the following:
+            <ol>
+                <li>In the address bar, type <i>about:plugins</i></li>
+                <li>The Plug-ins Tab will open</li>
+                <li>Click disable Chrome PDF Viewer.</li>
+                <li>Click Enable Adobe Reader or Foxit Reader.</li>
+                <li>Check Always allowed</li>
+            </ol>
+            <h2>Disable Your Pop-up Blocker</h2>
+            Print will open PDF file(s) in a new tab. If you have pop-ups disabled you will not see your printout.
+            <h2>Requires a PDF Reader</h2>
+            Since the printout is a PDF file, you must have a PDF Reader installed in your browser. Download either <a href="https://get.adobe.com/reader/" target="_blank">Adobe Reader</a> or <a href="https://www.foxitsoftware.com/Secure_PDF_Reader/"
+                target="_blank">Foxit Reader</a>.
+          </div>              
+        </div>
+        
+        <!-- Map Link Dialog -->
+        <div id="mapLinkDialog" class="dialog" style="display:none;position:absolute;top:70px;width:450px;">
+          <h3 class="dialogTitle">Link to Current Map <button class="myBtn" style="float:right;" onclick="hide('mapLinkDialog')">X</button></h3>  
+          <div class="dialogContent">  
+            <span>Can be used to copy and paste into an email message.</span><br/>
+            <form>
+                <textarea id="mapLinkTxt" onFocus="this.select()" onClick="this.select()" style="width:430px;height:100px;"></textarea><br/>
+                <div>
+                    Map Link length: <input id="mapLinkLen" type="text" style="width:40px;border:0;" value="0" /><br/>
+                    <span id="mapLinkWarning" style="color: red">Warning: Map Link length exceeds the limit of 2048 characters. Some browsers may have trouble
+with it. To shorten it uncheck some boxes below:</span><br/>
+                    <input id="extMLckb" type="checkbox" onChange="mlCheckbox(this,'extent')" /> include extent, length: <input id="extMapLinkLen"class="esri-input" type="text" style="width:30px;border:0;" value="0" />
+                    <span id="polyMLtxt" style="position:absolute;left:200px;"><input id="polyMLckb" type="checkbox" onChange="mlCheckbox(this,'poly')"/> include polygons, length: <input id="polyMapLinkLen"class="esri-input" type="text" style="width:30px;border:0;" value="0"/></span><br/>
+                    <span id="ptMLtxt"><input id="ptMLckb" type="checkbox" onChange="mlCheckbox(this,'point')"/> include points, length: <input id="ptMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span>
+                    <span id="txtMLtxt" style="position:absolute;left:200px;"><input id="txtMLckb" type="checkbox" onChange="mlCheckbox(this,'text')"/> include text labels, length: <input id="txtMapLinkLen"class="esri-input" type="text" style="width:30px;border:0;" value="0"/></span><br/>
+                    <span id="lineMLtxt"><input id="lineMLckb" type="checkbox" onChange="mlCheckbox(this,'line')"/> include lines, length: <input id="lineMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span>
+                    <span id="layMLtxt" style="position:absolute;left:200px;"><input id="layMLckb" type="checkbox" onChange="mlCheckbox(this,'layer')"/> include map layers, length: <input id="layMapLinkLen"class="esri-input" type="text" style="width:30px;border:0;" value="0"/></span><br/>
+                    <span id="rectMLtxt"><input id="rectMLckb" type="checkbox" onChange="mlCheckbox(this,'rect')"/> include rectangles, length: <input id="rectMapLinkLen" type="text" style="width:30px;border:0;" value="0"/></span>
+                </div>
+            </form>
+          </div>
+        </div>
+    
         <div id="drawHelpDialog" class="dialog" style="width:350px;" title="Draw, Label, &amp; Measure Help">
           <h3 class="dialogTitle">Draw, Label, &amp; Measure Help <button class="myBtn" style="float:right;" onclick="hide('drawHelpDialog')">X</button></h3>
           <div class="dialogContent">
@@ -607,7 +531,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
               <div id="tocPane" class="pane_container">
                 <div id="tocContent" style="width:100%;height:100%;;position:relative;">
                   <img id='tocHelpBtn' role='button' alt='map layers help' class='help_icon help_icon_dialog' src='assets/images/i_help.png'>
-                  <div id="tocTabs" data-dojo-type="dijit/layout/TabContainer" doLayout="false">
+                  <div id="tocTabs" data-dojo-type="dijit/layout/TabContainer" style="width:100%" doLayout="false">
                     <div id="layers_Pane" data-dojo-type="dijit/layout/ContentPane" title="Layers" data-dojo-props="selected:true">
                       <div id="layersContent"></div>
                     </div>
@@ -632,9 +556,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                       <p>Step 1: Select button below then click on location of interest.</p>
                       <p style="padding-left:35px;"><img id="reportLocBtn" alt="select buffer button" class="graphBtn" src="assets/images/i_draw_point.png" title="Select location button" /></p>
                       <p>Step 2: Adjust report area.</p>
-                      <p style="padding-left:35px;"><input id="reportDistCbo" /><span id="reportDistLabel"></span><br/>
-                          <!--label for="reportMarginsCbo">Margin size:</label> <input id="reportMarginsCbo"/><br/>
-      <label for="reportDPICbo">Map quality:</label> <input id="reportDPICbo"/--></p>
+                      <p style="padding-left:35px;"><input id="reportDistCbo"/><span id="reportDistLabel"></span><br/></p>
                       <p>Step 3: Show print preview.</p>
                       <p style="padding-left:35px;"><button id="reportPrintBtn" data-dojo-type="dijit/form/Button" role="presentation" type="button">Print Preview</button> <button id="reportCancelBtn" data-dojo-type="dijit/form/Button" role="presentation" type="button">Cancel</button></p>
                       <p align="center"><a href="https://get.adobe.com/reader/" target="pdf_reader">Get Adobe Reader</a> &nbsp;&nbsp;&nbsp;<a href="https://www.foxitsoftware.com/Secure_PDF_Reader/" target="pdf_reader">Get Foxit Reader</a></p>
@@ -680,7 +602,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                                 </div>
                                 <div id="graphic_Pane" data-dojo-type="dijit/layout/ContentPane" title="Graphical Search">
                                     <span>Graphically search for a feature type. Highlights the features found and displays a table with more info.</span><br/><br/>
-                                    <label for="featureTypeGraphic">Feature type: </label><input id="featureTypeGraphic" /><br/><br/>
+                                    <label for="featureTypeGraphic">Feature type: </label><input id="featureTypeGraphic"/><br/><br/>
                                     <p id="searchImageGroup" style="text-align: center;">Select a shape button, click/drag on map to select <span id="graphicfeatures"></span> found within.<br/><br/>
                                         <img id="searchpoint" alt="select features by point button" class="graphBtn" src="assets/images/i_draw_point.png" title="select features by point" />
                                         <img id="searchpolyline" alt="select features by polyline button" class="graphBtn" src="assets/images/i_draw_line.png" title="select features by line" />
@@ -702,6 +624,61 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                         </div>
                     </div>
                 </div>
+
+                <!-- Print Dialog -->
+                <div id="printDiv" class="pane_container" tooltip="Click to open/close Print panel" title="<img id='printIcon' alt='print icon' src='assets/images/i_print.png'/> Print" open="false">
+                
+                <div id="printContent" style="position: relative;">
+                  <img id="printHelpBtn" role="button" alt="Print Help" class="help_icon help_icon_dialog" src="assets/images/i_help.png">
+                  <form>
+                    <div style="display:flex;align-items:center;"><label for="printTitle" style="margin-right:5px;">Title:</label> <input id="printTitle" value="Colorado Parks and Wildlife Custom Map" type="text" style="flex-grow:1;" /></div><br/>
+                    <div style="display:flex;align-items:center;"><label for="printSubTitle" style="margin-right:5px;">Subtitle:</label> <input id="printSubTitle" type="text" style="flex-grow:1;"/></div><br/>
+                    <label for="size">Paper size:</label>
+                      <select id="size" onChange="changePrintSize()">
+                        <option value="Letter ">8.5 x 11</option> 
+                        <!--option value="Legal ">8.5 x 14</option--> 
+                        <option value="Tabloid ">11 x 17</option>     
+                        <!--option value="ANSI C ">17 x 22</option-->
+                        <!--option value="ANSI D ">22 x 34</option-->
+                      </select><br/><br/>
+                      <label for="orient">Orientation:</label> <select id="orient" onChange="changePrintSize()">
+                        <option value="Landscape">Landscape</option> 
+                        <option value="Portrait">Portrait</option>     
+                      </select><br/><br/>
+                        <label for="format">Format:</label> <select id="format" onchange="grayOutLegend(this)">
+                        <option value="pdf">PDF</option> 
+                        <option value="geopdf">Geo PDF</option> 
+                        <!--option value="png24">PNG24</option> 
+                        <option value="PNG8">PNG8</option--> 
+                        <option value="jpg">JPG</option> 
+                        <option value="gif">GIF</option> 
+                        <option value="geotiff">GEOTIFF</option> 
+                        <!--option value="svg">SVG</option--> 
+                      </select><br/><br/>
+                      <!--label for="dpi">Dots per inch:</label> <select id="dpi">
+                        <option value="300 ">300</option> 
+                        <option value="96 ">96</option>     
+                      </select><br/><br/-->
+                      <!--label for="scalebar">Scalebar units:</label> <select id="scalebar">
+                        <option value="Miles">Miles</option> 
+                        <option value="Kilometers">Kilometers</option>     
+                        <option value="Feet">Feet</option>
+                        <option value="Meters">Meters</option>
+                      </select><br/><br/-->
+                      <div id="printLegendCB" style="display:inline-block">
+                          <label for="printLegend">Include legend:</label> <input id="printLegend" type="checkbox"/><br/><br/>
+                      </div>
+                      <div>
+                        <button id="print_button" data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="printMap()">Print</button> <img id="printLoading" style="vertical-align:bottom; display:none;" src="assets/images/loading.gif"/><br/><br/>
+                        <p style="font-weight: bold;">Exported Files:</p>
+                        <span id="printMapLink">Exported files will appear here.</span><br/><br/>
+                        <span id="printLegendLink"></span><br/>
+                        
+                      </div>
+                  </form>
+                </div>
+              </div>
+
 
               <!-- ADDRESS WIDGET >
               <div id="addressDiv" class="pane_container" data-dojo-type="dijit/TitlePane" tooltip="Click to open/close Address panel" title="<img id='addressIcon' alt='address icon' src='assets/images/i_address.png'/> Address" open="false">
@@ -768,7 +745,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                                   </div><br/>
                                   <label for="pointStyleDiv">Way point style: </label>
                                   <div id="pointStyleDiv"></div><br/><br/>
-                                  <label for="ptMethod">Enter way point by: </label><input id="ptMethod" /><br/>
+                                  <label for="ptMethod">Enter way point by: </label><input id="ptMethod"/><br/>
                               </form><br/> XY units:
                               <div id="pointXYUnits"></div><br/><br/>
                               <div id="xyDiv" style="display:none;">
@@ -783,11 +760,11 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                                               </tr>
                                               <tr>
                                                   <td>Lat N: </td>
-                                                  <td><input id="pointYdd" type="text" /></td>
+                                                  <td><input id="pointYdd" type="text"/></td>
                                               </tr>
                                               <tr>
                                                   <td>Long W:</td>
-                                                  <td><input id="pointXdd" type="text" /></td>
+                                                  <td><input id="pointXdd" type="text"/></td>
                                                   <td rowspan="2"><button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="drawPoint()">Draw</button></td>
                                               </tr>
                                           </tbody>
@@ -806,15 +783,15 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                                               </tr>
                                               <tr>
                                                   <td>Lat N: </td>
-                                                  <td><input id="pointYdeg" size="3" type="text" /></td>
-                                                  <td><input id="pointYmin" size="3" type="text" /></td>
-                                                  <td><input id="pointYsec" size="5" type="text" /></td>
+                                                  <td><input id="pointYdeg" size="3" type="text"/></td>
+                                                  <td><input id="pointYmin" size="3" type="text"/></td>
+                                                  <td><input id="pointYsec" size="5" type="text"/></td>
                                               </tr>
                                               <tr>
                                                   <td>Long W:</td>
-                                                  <td><input id="pointXdeg" size="3" type="text" /></td>
-                                                  <td><input id="pointXmin" size="3" type="text" /></td>
-                                                  <td><input id="pointXsec" size="5" type="text" /></td>
+                                                  <td><input id="pointXdeg" size="3" type="text"/></td>
+                                                  <td><input id="pointXmin" size="3" type="text"/></td>
+                                                  <td><input id="pointXsec" size="5" type="text"/></td>
                                                   <td rowspan="2"><button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="drawPoint()">Draw</button></td>
                                               </tr>
                                           </tbody>
@@ -832,13 +809,13 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                                               </tr>
                                               <tr>
                                                   <td>Lat N: </td>
-                                                  <td><input id="pointYddm" size="3" type="text" /></td>
-                                                  <td><input id="pointYmindm" size="5" type="text" /></td>
+                                                  <td><input id="pointYddm" size="3" type="text"/></td>
+                                                  <td><input id="pointYmindm" size="5" type="text"/></td>
                                               </tr>
                                               <tr>
                                                   <td>Long W:</td>
-                                                  <td><input id="pointXddm" size="3" type="text" /></td>
-                                                  <td><input id="pointXmindm" size="5" type="text" /></td>
+                                                  <td><input id="pointXddm" size="3" type="text"/></td>
+                                                  <td><input id="pointXmindm" size="5" type="text"/></td>
                                                   <td rowspan="2"><button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="drawPoint()">Draw</button></td>
                                               </tr>
                                           </tbody>
@@ -855,11 +832,11 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                                               </tr>
                                               <tr>
                                                   <td>Easting: </td>
-                                                  <td><input id="pointX" type="text" /></td>
+                                                  <td><input id="pointX" type="text"/></td>
                                               </tr>
                                               <tr>
                                                   <td>Northing:</td>
-                                                  <td><input id="pointY" type="text" /></td>
+                                                  <td><input id="pointY" type="text"/></td>
                                                   <td rowspan="2"><button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="drawPoint()">Draw</button></td>
                                               </tr>
                                           </tbody>
@@ -928,7 +905,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                         <label for="textStyleDiv">Text style: </label>
                         <div id="textStyleDiv"></div><br/><br/>
                         <form>
-                            <label for="drawlabel">Label: </label><input id="drawlabel" type="text" />
+                            <label for="drawlabel">Label: </label><input id="drawlabel" type="text"/>
                             <button data-dojo-type="dijit/form/Button" role="presentation" type="reset" title="clear label form">Clear</button>
                         </form>
                     </div>
