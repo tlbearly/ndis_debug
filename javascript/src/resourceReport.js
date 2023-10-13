@@ -619,6 +619,43 @@ function reportInit(){
 			registry.byId("reportPreviewDialog").hide();
 		}
 		
+		function addDownloadButtons(){
+			// creates temp CSV files for each download_buttons/button in the xml file
+			if (!download_buttons) return;
+			
+			var query=[], queryTask=[], promises;
+			var queries = [];
+			var downloadDiv = document.getElementById("downloadButtons");
+			downloadDiv.style.display = "block";
+			for (var q=0; q<download_buttons.length; q++){
+				queryTask[q] = new QueryTask(reports[i].url);
+				query[q] = new Query();
+				// use fast bounding box query. Will only go to the server if bounding box is outside of the visible map.
+				// then filter later. Have to set returnGeometry to true!!!
+				query[q].geometry = theArea;
+				query[q].returnGeometry = true;
+				query[q].spatialRelationship = Query.SPATIAL_REL_INTERSECTS;
+				query[q].outFields = ["*"];
+				queries.push(queryTask[q].execute(query[q]));
+				
+				var fileContent = "My epic novel that I don't want to lose.";
+				var bb = new Blob([fileContent ], { type: 'text/plain' });
+				var a = document.createElement('a');
+				a.download = 'download.txt';
+				a.href = window.URL.createObjectURL(bb);
+				var btn = document.createElement("button");
+				btn.role="presentation";
+				btn.type="button";
+				btn.style.margin = "5px";
+				//btn.data-dojo-type="dijit/form/Button";
+				btn.innerText=download_buttons[q].label;
+				a.appendChild(btn);
+				//a.click();
+				downloadDiv.appendChild(a);
+				
+			}	
+		}
+
 		function createPDF_EventHandler(action){
 			return function createPDF(evt){
 				if (!centerPt) return;
@@ -1776,6 +1813,7 @@ function reportInit(){
 				gameBoundaries: null
 			};
 			var reports = [];
+			var download_buttons = [];
 			var numDatabaseCalls = 0;
 			var processedDatabaseCalls;
 			var basemapUrl;
@@ -1828,7 +1866,8 @@ function reportInit(){
 						basemapUrl = xmlDoc.getElementsByTagName("basemapurl")[0] ? xmlDoc.getElementsByTagName("basemapurl")[0].firstChild.nodeValue : showWarning("basemapurl tag");
 						reportTitle = xmlDoc.getElementsByTagName("reporttitle")[0] ? xmlDoc.getElementsByTagName("reporttitle")[0].firstChild.nodeValue : showWarning("reporttitle tag");
 						selectby = xmlDoc.getElementsByTagName("selectby")[0] ? xmlDoc.getElementsByTagName("selectby")[0].firstChild.nodeValue : "point";
-						
+						var download_buttonsTag = xmlDoc.getElementsByTagName("download_buttons")[0]  && xmlDoc.getElementsByTagName("download_buttons")[0].getElementsByTagName("button") ? xmlDoc.getElementsByTagName("download_buttons")[0].getElementsByTagName("button") : null; ;
+
 						if (selectby === "polygon"){
 							selectBtn = "reportPolyBtn";
 							document.getElementById("polyReport").style.display = "block";
@@ -1869,11 +1908,12 @@ function reportInit(){
 							};
 						}
 						
+						var obj;
 						// Custom Reports
 						if (reportsTag){
 							for (i=0; i<reportsTag.length; i++)
 							{
-								var obj = {
+								obj = {
 									url: reportsTag[i].getAttribute("url")?reportsTag[i].getAttribute("url"):showWarning("report tag, url attribute"),
 									id: reportsTag[i].getAttribute("id")?reportsTag[i].getAttribute("id"):showWarning("report tag, id attribute"),
 									type: reportsTag[i].getAttribute("type")?reportsTag[i].getAttribute("type"):showWarning("report tag, type attribute"),
@@ -1903,6 +1943,41 @@ function reportInit(){
 								}
 								obj = null;
 							}
+						}
+
+						if (download_buttonsTag){
+							for (i=0; i<download_buttonsTag.length; i++)
+							{
+								obj = {
+									url: download_buttonsTag[i].getAttribute("url")?download_buttonsTag[i].getAttribute("url"):showWarning("button tag, url attribute"),
+									ids: download_buttonsTag[i].getAttribute("ids")?download_buttonsTag[i].getAttribute("ids"):showWarning("button tag, ids attribute"),
+									label: download_buttonsTag[i].getAttribute("label")?download_buttonsTag[i].getAttribute("label"):showWarning("button tag, label attribute"),
+									displayfields: download_buttonsTag[i].getAttribute("displayfields")?download_buttonsTag[i].getAttribute("displayfields").split(","):showWarning("report tag, displayfields attribute"),
+									fields: download_buttonsTag[i].getAttribute("fields")?download_buttonsTag[i].getAttribute("fields").split(","):showWarning("report tag, fields attribute"),
+									where_field: download_buttonsTag[i].getAttribute("where_field")?download_buttonsTag[i].getAttribute("where_field"):"",
+									where_inequality: download_buttonsTag[i].getAttribute("where_inequality")?download_buttonsTag[i].getAttribute("where_inequality"):"",
+									where_value: download_buttonsTag[i].getAttribute("where_value")?download_buttonsTag[i].getAttribute("where_value"):"",
+									where_type: download_buttonsTag[i].getAttribute("where_type")?download_buttonsTag[i].getAttribute("where_type"):"",
+									sortfields: download_buttonsTag[i].getAttribute("sortfields")?download_buttonsTag[i].getAttribute("sortfields").split(","):download_buttonsTag[i].getAttribute("fields").split(","),
+									sortorder: download_buttonsTag[i].getAttribute("sortorder")?download_buttonsTag[i].getAttribute("sortorder"):"ascending",
+									keyField: download_buttonsTag[i].getAttribute("key")?download_buttonsTag[i].getAttribute("key"):null,
+									database: download_buttonsTag[i].getAttribute("database")?download_buttonsTag[i].getAttribute("database"):null,
+									filename: download_buttonsTag[i].getAttribute("filename")?download_buttonsTag[i].getAttribute("filename"):null,
+									one2one_fields: download_buttonsTag[i].getAttribute("one2one_fields")?download_buttonsTag[i].getAttribute("one2one_fields").split(","):null,
+									one2one_display: download_buttonsTag[i].getAttribute("one2one_display")? download_buttonsTag[i].getAttribute("one2one_display").split(","):download_buttonsTag[i].getAttribute("one2one_fields")?download_buttonsTag[i].getAttribute("one2one_fields").split(","):null,
+									one2many_fields: download_buttonsTag[i].getAttribute("one2many_fields")?download_buttonsTag[i].getAttribute("one2many_fields").split(","):null,
+									one2many_display: download_buttonsTag[i].getAttribute("one2many_display")?download_buttonsTag[i].getAttribute("one2many_display").split(","):download_buttonsTag[i].getAttribute("one2many_fields")?download_buttonsTag[i].getAttribute("one2many_fields").split(","):null
+								};
+								download_buttons.push(obj);
+								// lookup data in database if necessary
+								if (obj.database && obj.database != "")
+								{
+									numDatabaseCalls++;
+								}
+								obj = null;
+							}
+
+							addDownloadButtons();
 						}
 						
 						mapTitle = xmlDoc.getElementsByTagName("title")[0] ? xmlDoc.getElementsByTagName("title")[0].firstChild.nodeValue: showWarning("title tag");

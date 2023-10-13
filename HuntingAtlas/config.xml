@@ -58,15 +58,6 @@
 			<!-- Layer must be named "Game Species".  It is used in widgets/Legend/toc/tocClasses/TocMapLayerItem.as -->
 			<layer label="Game Species" open="false" type="dynamic" visible="false" alpha="0.7"
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map/MapServer"/>
-
-			<!-- TEST:  Game species layer names point to FeatureServer layers on AGOL -->
-			<layer label="Elk Winter Range" open="true" type="true" visible="true" alpha="0.7"
-					url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/43"/>	
-			<layer label="Elk Winter Concentration Area" open="true" type="dynamic" visible="true" alpha="0.7"
-					url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/42"/>
-				
-
-
 			<layer label="Motor Vehicle Use Map" open="true" type="dynamic" visible="false" alpha="1"
                     url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/>
 					<!--url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/--> <!-- old service -->
