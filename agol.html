@@ -19,8 +19,8 @@
     <script>
       require(["esri/Map", "esri/config", "esri/views/MapView", "esri/widgets/Expand", "esri/widgets/Legend", "esri/layers/Layer", "esri/layers/FeatureLayer",
        "esri/layers/GroupLayer","esri/layers/SubtypeGroupLayer","esri/widgets/LayerList",
-        "esri/widgets/Slider"], 
-      (Map, esriConfig, MapView,Expand,Legend, Layer,FeatureLayer,GroupLayer,SubtypeGroupLayer,LayerList,Slider) => {
+        "esri/widgets/Slider","esri/widgets/Print"], 
+      (Map, esriConfig, MapView,Expand,Legend, Layer,FeatureLayer,GroupLayer,SubtypeGroupLayer,LayerList,Slider,Print) => {
         function addGroupLayer(groupName, vis, open, radio, featureservice, ids, layerVis, idNames){
           // Creates a group and addes to TOC
           // groupName: string, name of this group
@@ -38,7 +38,7 @@
             visible: vis,
             visibilityMode: visMode // radio buttons?
           });
-          if (!url) return groupLayer;
+          if (!ids) return groupLayer;
           
           if(typeof ids === "string"){
             var items = ids.split(",");
@@ -118,7 +118,7 @@
         gameSpeciesGroupLayer.add(elk);
 
 
-        /*const elk2 = Layer.fromPortalItem({
+        const elk2 = Layer.fromPortalItem({
           portalItem: {  // autocasts new PortalItem()
               id: "1073fc11057c4ba3bc93c7898b3f18bc" // Bob's Test Elk
           },
@@ -127,7 +127,7 @@
           // add the layer to the map
           layer.title = "elk 2";
           gameSpeciesGroupLayer.add(layer);
-        });*/
+        });
 
        
        /*
@@ -172,12 +172,12 @@
         }];
         */
        // add GroupLayer (groupName, visible, open, url,[layer ids],[layer visibility],[layer names])
-       let bh = addGroupLayer("Bighorn Sheep",false,false,
+       let bh = addGroupLayer("Bighorn Sheep",false,false,false,
           "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/",
           [8,9,15-17,10,11,18],[false,true,true,true,true,false,true,false],
           ["Migration Patterns","Migration Corridors","Severe Winter Range","Winter Concentration Area","Winter Range","Summer Concentration Area","Summer Range", "Overall Range"]);
         gameSpeciesGroupLayer.add(bh);
-        let muleDeer = addGroupLayer("Mule Deer",false,false,
+        let muleDeer = addGroupLayer("Mule Deer",false,false,false,
           "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/",
           [96,102,104,105,99,106],[false,true,true,true,true,false],
           ["Migration Patterns","Migration Corridors","Winter Concentration Area","Winter Range","Summer Range", "Overall Range"]);
@@ -285,6 +285,17 @@
 						expandIconClass: "esri-icon-legend"
 					});
 					view.ui.add(legendExpand, "top-right");
+
+          // add print
+          let print = new Print({
+						view: view
+					});
+					const printExpand = new Expand({
+						view,
+						content: print,
+						expandIconClass: "esri-icon-print"
+					});
+					view.ui.add(printExpand, "top-right");
 
           // Add LayerList
           const layerList = new LayerList({

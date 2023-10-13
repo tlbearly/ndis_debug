@@ -52,10 +52,10 @@
     <!-- For Debugging -->
     <script>
       var jsVer = Date.now();
-      var jsVer = "bf";
+      var jsVer = "a";
       var path = "javascript/src";
       document.write('<link rel="stylesheet" href="assets/css/layout.css?v=' + jsVer + '"><\/script>');
-      //v4 document.write('<script type="text/javascript" src="' + path + '/errorBox.js?v=' + jsVer + '" async><\/script>');
+      document.write('<script type="text/javascript" src="' + path + '/errorBox.js?v=' + jsVer + '" async><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/xmlUtils.js?v=' + jsVer + '" async><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/utilFuncs.js?v=' + jsVer + '" async><\/script>');
       //v4        document.write('<script type="text/javascript" src="' + path + '/bookmark.js?v=' + jsVer + '"><\/script>');
@@ -333,11 +333,11 @@
         </div>
 
         <!-- Error Message -->
-        <div id="errorDialog" class="dialog" style="width:350px;max-height:400px;margin:10px;overflow:scroll;" title="Error Message" onCancel="require(['dojo/dom'],function(dom){dom.byId('errMsg').innerHTML='';});">
-          <h3 class="dialogTitle">Error Message <button class="myBtn" style="float:right;" onclick="hide('errorDialog')">X</button></h3>  
-          <div class="dialogContent">
+        <div id="errorDialog" class="dialog" style="width:350px;" title="Error Message" onCancel="require(['dojo/dom'],function(dom){dom.byId('errMsg').innerHTML='';});">
+          <h3 id="errorDialogTitle" class="dialogTitle">Error Message <button class="myBtn" style="float:right;" onclick="hide('errorDialog')">X</button></h3>  
+          <div class="dialogContent" style="max-height:80vh">
             <div id="errMsg" class="dijitDialogPaneContentArea"></div>
-            <div align="center"><button onClick="errorDialog.hide();dojo.byId('errMsg').innerHTML='';" data-dojo-type="dijit/form/Button" role="presentation" type="button">Close</button></div>
+            <div align="center"><button onClick="hide('errorDialog');document.getElementById('errMsg').innerHTML='';" data-dojo-type="dijit/form/Button" role="presentation" type="button">Close</button></div>
           </div>
         </div>
 
@@ -626,7 +626,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                 </div>
 
                 <!-- Print Dialog -->
-                <div id="printDiv" class="pane_container" tooltip="Click to open/close Print panel" title="<img id='printIcon' alt='print icon' src='assets/images/i_print.png'/> Print" open="false">
+                <div id="printDiv" class="pane_container" title="Click to open/close Print panel" title="<img id='printIcon' alt='print icon' src='assets/images/i_print.png'/> Print" open="false">
                 
                 <div id="printContent" style="position: relative;">
                   <img id="printHelpBtn" role="button" alt="Print Help" class="help_icon help_icon_dialog" src="assets/images/i_help.png">
@@ -670,6 +670,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                       </div>
                       <div>
                         <button id="print_button" data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="printMap()">Print</button> <img id="printLoading" style="vertical-align:bottom; display:none;" src="assets/images/loading.gif"/><br/><br/>
+                        <hr>
                         <p style="font-weight: bold;">Exported Files:</p>
                         <span id="printMapLink">Exported files will appear here.</span><br/><br/>
                         <span id="printLegendLink"></span><br/>

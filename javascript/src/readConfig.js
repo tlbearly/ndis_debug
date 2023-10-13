@@ -159,10 +159,11 @@ function readConfig() {
 	 "esri/layers/FeatureLayer", "esri/layers/WMSLayer", "esri/rest/geometryService",
 	 "esri/geometry/SpatialReference", "esri/Graphic", "esri/Map", "esri/views/MapView","esri/widgets/Print","esri/geometry/Extent",
 	 "esri/widgets/Home", "esri/widgets/Expand", "esri/widgets/LayerList", "esri/widgets/Legend", "esri/widgets/Locate", "esri/widgets/Search", "esri/widgets/ScaleBar", "esri/widgets/Slider", "esri/rest/support/ProjectParameters",
-	 "esri/symbols/SimpleFillSymbol", "dijit/form/CheckBox", "dijit/layout/ContentPane", "dijit/TitlePane", "dijit/layout/TabContainer", "esri/symbols/SimpleLineSymbol", "dojo/sniff"], 
+	 "esri/symbols/SimpleFillSymbol", "dijit/form/CheckBox", "dijit/layout/ContentPane", "dijit/TitlePane", "dijit/layout/TabContainer", "esri/symbols/SimpleLineSymbol",
+	 "esri/arcade", "esri/layers/support/arcadeUtils", "dojo/sniff"], 
 	 function (dom, ioquery, promiseUtils, reactiveUtils, GroupLayer, SubtypeGroupLayer, MapImageLayer, FeatureLayer, WMSLayer, GeometryService, SpatialReference,
 		Graphic, Map, MapView, Print, Extent, Home, Expand, LayerList, Legend, Locate, Search, ScaleBar, Slider, ProjectParameters, SimpleFillSymbol, CheckBox,
-		ContentPane, TitlePane, TabContainer, SimpleLineSymbol, has) {
+		ContentPane, TitlePane, TabContainer, SimpleLineSymbol, arcade, arcadeUtils, has) {
 		var xmlDoc; // config.xml document json
 		var ext;
 		openTOCgroups=[];
@@ -257,6 +258,13 @@ function readConfig() {
 			// Get layers from url of config.xml
 			function createLayer(layer){
 				var id = layer.getAttribute("label");
+				
+				// if already loaded return
+				for (var i=0;i<view.allLayerViews.items.length;i++){
+					if (id === view.allLayerViews.items[i].layer.id && view.allLayerViews.items[i].layer.loaded) 
+						return;
+				}
+
 				var myLayer;
 				tries[id]++;
 				// Set layer properties on startup if specified on url
@@ -270,7 +278,7 @@ function readConfig() {
 								"id":id,
 								"visible": layerObj[id].visible,
 								///TODO this does not exist in v4.24**********  "visibleLayers": layerObj[id].visLayers
-								"sublayers": layerObj[id].visLayers
+								"sublayers": layerObj[id].visLayers // remove this, it will delete data. Loop through and set these layers to visible other to not visible.
 							});
 						// not found on url, not visible
 						}else {
@@ -333,94 +341,179 @@ function readConfig() {
 						return;
 					}
 				}
-				// 3-21-22 check if loaded
 				map.add(myLayer);
-
-				myLayer.on("layerview-create-failed", layerLoadFailedHandler);
-			}
+	 		}
 
 			function layerLoadFailedHandler(event){
 				// Layer failed to load 3-21-22
 				// Wait 2 seconds, retry up to 5 times, then report the error and continue trying every 30 seconds
 				// 3-10-22 NOTE: MVUM is sometimes missing some of the sublayers. Contacted victoria.smith-campbell@usda.gov
 				// at USFS and they restarted one of their map services and it fixed the problem.
-//console.log(event.target.id+" failed to load!!!!!!!");
-//console.log("tries="+tries[event.target.id]);
+				
+				// Call subgroup layer load failed handler
+				if (event.layer.parent.type === "group") {
+					subGroupLayerLoadFailed(event);
+					return;
+				}
+
+				// if already loaded return
+				for (var i=0;i<view.allLayerViews.items.length;i++){
+					if (event.layer.id === view.allLayerViews.items[i].layer.id && view.allLayerViews.items[i].loaded) 
+						return;
+				}
+console.log(event.layer.id+" failed to load!!!!!!!");
+console.log("tries="+tries[event.layer.title]);
 				var layer;
-				for(var i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
-					if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label") === event.target.id){
+				for(i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+					if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label") === event.layer.id){
 						layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i];
 						break;
 					}
 				}
 				// Try every 2 seconds for up to 5 times 
-				if (tries[event.target.id] < 5){
+				if (tries[event.layer.title] < 4){
 					setTimeout(function(){createLayer(layer);},2000);
 				} 
 				// Greater than 5 tries, give warning
-				else if (tries[event.target.id] == 5){
-					if (event.target.id.indexOf("Motor Vehicle") > -1 || event.target.id.indexOf("Wildfire") > -1 || event.target.id.indexOf("BLM") > -1)
-						alert("The external map service that provides "+event.target.id+" is experiencing problems.  This issue is out of CPW control. We will continue to try to load it. We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
+				else if (tries[event.layer.title] == 4){
+					if (event.layer.id.indexOf("Motor Vehicle") > -1 || event.layer.id.indexOf("Wildfire") > -1 || event.layer.id.indexOf("BLM") > -1)
+						alert("The external map service that provides "+event.layer.id+" is experiencing problems.  This issue is out of CPW control. We will continue to try to load it. We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
 					else
-						alert(event.target.id+" service is busy or not responding. We will continue to try to load it.","Data Error");
+						alert(event.layer.id+" service is busy or not responding. We will continue to try to load it.","Data Error");
 					setTimeout(function(){createLayer(layer);},30000);
 				}
 				// Greater than 5 tries. Keep trying every 30 seconds
 				else {
 //DEBUG
-//console.log("Retrying to load: "+event.target.id);
-//if(event.target.id.indexOf("Hunter Reference")>-1)
-//layer.setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer");
-//if(event.target.id.indexOf("Game Species")>-1)
-//layer.setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map/MapServer");
-//if(event.target.id.indexOf("Motor Vehicle")>-1)
-//layer.setAttribute("url","https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer");
-//console.log("url="+layer.getAttribute("url"));
+console.log("Retrying to load: "+event.layer.id);
+if(layer.getAttribute("url").indexOf("oooo")>-1)
+layer.setAttribute("url", layer.getAttribute("url").substring(0,layer.getAttribute("url").length-4));
+console.log("url="+layer.getAttribute("url"));
 					setTimeout(function(){createLayer(layer);},30000);
 				}
 			}
-			
-			function addGroupLayer(groupName, vis, opacity, radio, featureservice, layerIds, layerVis, layerNames){
-				// Creates a group and addes to TOC
-				// groupName: string, name of this group
-				// vis: boolean, is this group visible?
-				// radio: boolean, radio buttons?
-				// featureservice: string, url
-				// layerIds: array of integers, or string "10-15,17", id of each layer
-				// layerVis: array of true, false for visibility of each layer
-				// layerNames: array of strings, names of each layer
-				var visMode = "independent";
-				if(radio) visMode="exclusive";
-				vis = vis.toLowerCase() === "true";
-				var groupLayer;
-				if (opacity){
-					groupLayer = new GroupLayer({
-						url: featureservice,
-						title: groupName,
-						id: groupName,
-						visible: vis,
-						opacity: parseFloat(opacity),
-						visibilityMode: visMode // radio buttons?
-					});
-				} else {
-					groupLayer = new GroupLayer({
-						url: featureservice,
-						title: groupName,
-						id: groupName,
-						visible: vis,
-						visibilityMode: visMode // radio buttons?
-					});
-				}
-				if (!layerIds) return groupLayer;
 
-				// add / to end of feature service
-				if (featureservice.substr(featureservice.length-1) != "/")
-					featureservice += "/";
-				var i;
+			async function layerLoadHandler(event){
+				//console.log(event.layer.id +" loaded.");
+				
+				// Set the arcade context for Wildfire Incidents to print at correct size
+				// the input feature's geometry is expected
+				// to be in the spatial reference of the view
+				//*************************TODO tried to fix printing wildfire symbols did not work */
+				/*if (event.layer.id === "Wildfire Incidents"){
+					const labelVariableExpressionInfo = arcadeUtils
+					.getExpressionsFromLayer(event.layer)
+					.filter(expressionInfo => expressionInfo.profileInfo.context === "label-class")[0];
+					const wildfireLabelArcadeScript = labelVariableExpressionInfo.expression;
+
+					const rendererVariableExpressionInfo = arcadeUtils
+					.getExpressionsFromLayer(event.layer)
+					.filter(expressionInfo => expressionInfo.profileInfo.context === "unique-value-renderer")[0];
+					const wildfireRendererArcadeScript = rendererVariableExpressionInfo.expression;
+
+					// Arcade expression used by size visual variable
+					const sizeVariableExpressionInfo = arcadeUtils
+					.getExpressionsFromLayer(event.layer)
+					.filter(expressionInfo => expressionInfo.profileInfo.context === "size-variable")[0];
+		
+					const wildfireSizeArcadeScript = sizeVariableExpressionInfo.expression;
+					const wildfireSizeArcadeTitle = sizeVariableExpressionInfo.title;
+			
+					//const color
+					// Define the visualization profile variables
+					// Spec documented here:
+					// https://developers.arcgis.com/arcade/profiles/visualization/
+					const visualizationProfile = arcade.createArcadeProfile("visualization");
+			
+					// Compile the color variable expression and create an executor
+					const wildfireLabelArcadeExecutor =
+						await arcade.createArcadeExecutor(wildfireLabelArcadeScript, visualizationProfile);
+					const wildfireRendererArcadeExecutor =
+						await arcade.createArcadeExecutor(wildfireRendererArcadeScript, visualizationProfile);
+					const wildfireSizeArcadeExecutor =
+						await arcade.createArcadeExecutor(wildfireSizeArcadeScript, visualizationProfile);
+				}*/
+				//*******************end wildfire *****************************/
+
+				// reorder layers (top layers and top groups) if it failed
+				if (tries[event.layer.id] && tries[event.layer.id] > 1){
+					var j;
+					
+					// load the correct layer order from config.xml file
+					// opLayerObj = top level layer of group
+					// opGroupLayerObj = a groupLayer with layerids, ignor sub groups with no sublayers
+					if (opLayerObj.length == 0){
+						for(var i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+							// add top level layer or group
+							if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("parentGroup")===null){
+								if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label")){
+									opLayerObj.push({
+										title: xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label"),
+										type: "layer",
+										parentId: null
+									});
+								}
+								else if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group")){
+									opLayerObj.push({
+										title: xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group"),
+										type: "group",
+										parentId: null
+									});
+								}
+							}
+						}
+					}
+
+					// reorder top level layers and groups
+					var found=false;
+					for(i=0;i<opLayerObj.length;i++){
+						//console.log(i+" "+opLayerObj[i].title);
+						if (opLayerObj[i].title === event.layer.id){
+							found = true;
+							break;
+						}
+					}
+					// this is a top level layer
+					if (found){
+						// i=index of layer just added to map in opLayerObj
+						// if last in array add it to end
+						if (i+1 == opLayerObj.length)
+							map.reorder(event.layer,i+1);
+						else{
+							// loop through all layers above this layer in case not all layers have been added
+							var reordered = false;
+							for (j=i+1;j<opLayerObj.length;j++){
+								if (reordered)break;
+								// loop through all layers added to the map to find index to insert it at
+								// look for each item that is after it
+								for (var k=0; k<view.layerViews.items.length;k++){
+									if(opLayerObj[j].title === view.layerViews.items[k].layer.title){
+										map.reorder(event.layer,k+1);
+										reordered=true;
+										//console.log(event.layer.id+" reordered to "+k);
+										//debug  for (var m=0; m<view.layerViews.items.length;m++){
+										//	console.log("map view: "+m+" "+view.layerViews.items[m].layer.title);
+										//}
+										break;
+									}
+								}
+							}
+							if (!reordered)map.reorder(event.layer,view.layerViews.items.length);
+						}
+					}
+					
+					alert("Was able to sucessfully load: "+event.layer.id);
+					event.layer.refresh;
+				}
+			}
+			
+			function getLayerIds(layerIds){
+				// Return array of integers
+				//  layerIds: array of integers, or string "10-15,17", id of each layer
 				var ids = [];
 				if(typeof layerIds === "string"){
 				  var items = layerIds.split(",");  
-				  for(i=0;i<items.length;i++){
+				  for(var i=0;i<items.length;i++){
 					if (items[i].indexOf("-")>-1){
 					  let firstLast = items[i].split("-"); // "3-5" -> [3],[5]
 					  for(var j=parseInt(firstLast[0]);j<parseInt(firstLast[1])+1;j++){
@@ -433,70 +526,208 @@ function readConfig() {
 				else ids = layerIds.split(",");
 				// layers display in reverse order, so reverse our arrays here
 				ids = ids.reverse();
-				layerVis = layerVis.reverse();
-				if (layerNames != null)
-					layerNames = layerNames.reverse();
-
-				// get the feature service name, and remove it from the layer name. e.g. CPWSpeciesData - Elk Winter Range
-				var pos = featureservice.indexOf("/services/")+10;
-				var str = featureservice.substr(pos);
-				pos = str.indexOf("/");
-				fsName = str.substr(0,pos);
-				for(i=0;i<ids.length;i++){
-				  if (layerVis[i] == null) alert("Missing layerVis item ("+i+") for "+groupName+" in config.xml. Should be true or false.","Data Error");
-				  var fsUrl = featureservice + ids[i];
-				 
-				  vis = layerVis[i].toLowerCase() === "true";
-				  // use layer names from config.xml 
-				  var subGroupLayer;
-				  if (layerNames != null){
-					//if (fsUrl.toLowerCase().indexOf("featureserver") > -1){
-						subGroupLayer = new FeatureLayer({
-							url: fsUrl,
+				return ids;
+			}
+			function addGroupLayer(groupName, vis, opacity, radio, featureservice, portal, layerIds, layerVis, layerNames){
+				// Creates a group and adds feature service layers in layerVis. Returns the GroupLayer
+				// groupName: string, name of this group
+				// vis: boolean, is this group visible?
+				// radio: boolean, radio buttons?
+				// featureservice: string, url
+				// layerIds: array of integers, or string "10-15,17", id of each layer
+				// layerVis: array of true, false for visibility of each layer
+				// layerNames: array of strings, names of each layer
+				var visMode = "independent";
+				if(radio) visMode="exclusive";
+				vis = vis.toLowerCase() === "true";
+				var groupLayer;
+				// Portal
+				if (portal){
+					groupLayer = new GroupLayer({
+						portalItem: {  // autocasts new PortalItem()
+							id:portal //"1073fc11057c4ba3bc93c7898b3f18bc" // Bob's Test Elk
+						},
+						title: groupName,
+						id: groupName,
+						opacity: Number(opacity),
+						visible: vis
+					});
+				}else{
+					if (opacity){
+						groupLayer = new GroupLayer({
+							title: groupName,
+							id: groupName,
 							visible: vis,
-							title: layerNames[i],
-							id: ids[i],
-							legendEnabled: true
+							opacity: parseFloat(opacity),
+							visibilityMode: visMode // radio buttons?
 						});
-						groupLayer.add(subGroupLayer);
+					} else {
+						groupLayer = new GroupLayer({
+							title: groupName,
+							id: groupName,
+							visible: vis,
+							visibilityMode: visMode // radio buttons?
+						});
+					}
+				}
+				if (!featureservice) return groupLayer;
+
+				// add / to end of feature service
+				if (featureservice.substr(featureservice.length-1) != "/")
+					featureservice += "/";
+				var ids = getLayerIds(layerIds); // convert strings like "3-5" to integer array 3,4,5
+				layerVis = layerVis.reverse();
+				if (layerVis.length != ids.length){
+					alert("Error in "+app+"/config.xml operationallayers. In layer group "+groupName+", list of layerIds and layerVis must have the same number of elements.");
+					return groupLayer;
+				}
+				if (layerNames != null){
+					layerNames = layerNames.reverse();
+					if (layerVis.length != layerNames.length){
+						alert("Error in "+app+"/config.xml operationallayers. In layer group "+groupName+", list of layerIds, layerVis, and layerNames must have the same number of elements.");
+						return groupLayer;
+					}
+				}
+
+				// Add each featureservice layer to this group
+				for(var i=0;i<ids.length;i++){
+					if (layerVis[i] == null) alert("Missing layerVis item ("+i+") for "+groupName+" in config.xml. Should be true or false.","Data Error");
+					vis = layerVis[i].toLowerCase() === "true";
+					tries[groupLayer.title+ids[i]]=0;
+					// use layer names from config.xml 
+					if (layerNames != null){
+						createSubGroupLayer(groupLayer,featureservice,vis,ids[i],layerNames[i]);
 					} 
 					// Use feature service layer names 
 					else {
-						subGroupLayer = new FeatureLayer({
-							url: fsUrl,
-							visible: vis,
-							id: ids[i]
-						});
-						groupLayer.add(subGroupLayer);
-						// wait for it to load then edit and remove "feature service name - "
-						subGroupLayer.on("layerview-create", function(event){
-							var layer = event.layerView.layer;
-							// remove the feature service name from the title (eg. CPWSpeciesData - )
-							if (fsName.indexOf(" - ") == -1)
-								fsName += " - ";
-							var title = layer.title.substr(fsName.length);
-							layer.title = title;
-							
-							//console.log("loading layer: "+title+" url="+fsUrl);
-						});
+						createSubGroupLayer(groupLayer,featureservice,vis,ids[i],null);
 					}
-				 //}else alert("Group layer, "+fsUrl+", is not a feature service. Edit readConfig.js and add code for this type of service.","Code Error");
-				  subGroupLayer.on("layerview-create-failed", function(view,error){
-					if (error.details)
-						alert("Layer failed to load. Error:"+error.message+" "+error.details,"Data Error");
-					else
-						alert("Layer failed to load. Error:"+error.message,"Data Error");
-				  });
-				  
 				}
 				return groupLayer;
-			  }
+			}
+			
+			function subGroupLayerLoadFailed(event){
+				// called from layerLoadFailedHandler from view.on("create-layer-error")
+				// tries to reload it every 30 seconds
+				var layer = event.layer;
+				tries[layer.parent.title+layer.id]++;
+				setTimeout(function(){
+//debug
+console.log("trying to load layer again: "+layer.parent.title+" "+layer.id);
+/*if (layer.id == 1900) {
+	tries[layer.parent.title+"19"]=1;
+	createSubGroupLayer(layer.parent,layer.url,layer.visible,19,layer.title);
+}
+else*/
+					createSubGroupLayer(layer.parent,layer.url,layer.visible,layer.id,layer.title);
+					layer.parent.remove(layer);
+				},30000);
+				
+			}
+			function createSubGroupLayer(groupLayer,url,visible,id,title){		
+				var fsUrl;
+				if (url[url.length-1]==="/")
+					fsUrl = url + id;
+				else	
+					fsUrl = url +"/"+ id;
+				var subGroupLayer;
+				var pos = url.indexOf("/services/")+10;
+				var str = url.substr(pos);
+				pos = str.indexOf("/");
+				var fsName = str.substr(0,pos); // trim out feature service name ie. CPWSpeciesData
+				if (title !== null && title !== fsName){
+					subGroupLayer = new FeatureLayer({
+						url: fsUrl,
+						visible: visible,
+						title: title,
+						//id: id, // do not use id, let it create this on it's own
+						legendEnabled: true
+					});
+				}
+				else{
+					subGroupLayer = new FeatureLayer({
+						url: fsUrl,
+						visible: visible,
+						//id: id, // do not use id, let it create this on it's own
+						legendEnabled: true
+					});
+					// Wait until layer loads then the title will be assigned. Then remove feature service name from the title (eg. "CPWSpeciesData -")
+					subGroupLayer.on("layerview-create", function(event){
+						var layer = event.layerView.layer;
+						// get the feature service name (CPWSpeciesData), and remove it from the layer name. e.g. CPWSpeciesData - Elk Winter Range
+						// featureservice = .../ArcGIS/rest/services/CPWSpeciesData/FeatureServer/
+						// remove the feature service name from the title (eg. CPWSpeciesData - )
+						if (fsName.indexOf(" - ") == -1)
+							fsName += " - ";
+						var title = layer.title.substr(fsName.length);
+						layer.title = title;
+						console.log("sub group layer loaded: "+layer.parent.title+" "+title+" url="+fsUrl);
+					});
+				}
+				if (groupLayer.title && tries[groupLayer.title+id]>0){
+					subGroupLayer.on("layerview-create", function(event){
+						var layer = event.layerView.layer;
+						// load the correct layer order from config.xml file for all group layers
+						// opGroupLayerObj = a groupLayer with layerids, ignor sub groups with no sublayers
+						if (opGroupLayerObj.length == 0){
+							for(var i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+								// add group layer with sublayers
+								if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("layerIds")){
+									var ids = getLayerIds(xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("layerIds"));
+									for(j=0;j<ids.length;j++){
+//if (ids[j] == 1900)ids[j]=19;
+										opGroupLayerObj.push({
+											title: ids[j],
+											type: "layer",
+											parentId: xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group"),
+											grandparentId: xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("parentGroup")
+										});
+									}
+								}
+
+							}
+						}
+						// Get an array of the ids in this group, in the correct order
+						var correctOrder = [];
+						var index=0;
+						for (var i=0; i<opGroupLayerObj.length; i++){
+							if (opGroupLayerObj[i].parentId === layer.parent.title){
+								correctOrder.push(opGroupLayerObj[i].title.toString());
+								if (opGroupLayerObj[i].title.toString() === layer.id) index= correctOrder.length-1;
+							}
+						}
+						index++; // Set it to the id that should be after it.
+						if (index == correctOrder.length) layer.parent.reorder(layer,layer.parent.layers.items.length); // insert at end
+						else{
+							var reordered=false;
+							do{
+								for (i=0; i<layer.parent.layers.items.length; i++){
+									if (correctOrder[index] === layer.parent.layers.items[i].id){
+										layer.parent.reorder(layer,i);
+										reordered=true;
+										break;
+									}
+								}
+								index++;
+							} while (!reordered && index < correctOrder.length);
+						}
+						console.log("reorder group layer "+layer.title);
+					});
+				}
+				groupLayer.add(subGroupLayer);
+			}
 	  
 			//-----------
 			// Variables
 			//-----------
 			loadedFromCfg = true; // the layer is loaded from config.xml. If false loaded from url &layers.
 			var i;
+			var opLayerObj = []; // array of top level layers/groups in the config.xml file, so we can reorder correctly if a layer fails to load
+			var opGroupLayerObj = []; // array of group layers with sublayers in the config.xml file, so we can reorder correctly if a layer fails to load
+			
+			// layer create error
+			view.on("layerview-create-error", layerLoadFailedHandler);		
+			view.on("layerview-create", layerLoadHandler);
 
 			// Store layers from URL into layerObj
 			// 		&layer= basemap | id | opacity | visible layers , id | opacity | visible layers , repeat...
@@ -550,6 +781,7 @@ function readConfig() {
 			//  Load each Layer from config.xml operationallayers
 			// ---------------------------------------------------
 			var layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer");
+			
 // DEBUG: make if fail
 //layer[0].setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map2/MapServer");
 //layer[1].setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map2/MapServer");
@@ -558,15 +790,20 @@ function readConfig() {
 			var groupName;
 			var regexp = /([^a-zA-Z0-9 \-,\._\/:])/g;
 			for (i = 0; i < layer.length; i++) {	
-				var url=null,layerIds=null,layerVis=null,parentGroupName = null,layerNames=null;				
+				var url=null,layerIds=null,layerVis=null,parentGroupName = null,layerNames=null,portal=null;				
 				// group layer with or without sub layers
 				if (layer[i].getAttribute("group") && layer[i].getAttribute("group") != ""){
 					//console.log("loading group "+layer[i].getAttribute("group")+" i="+i);
 					try{
 						var groupOpacity=1,groupVis="false",groupOpen="false",radio=false;
 						groupName = layer[i].getAttribute("group").replace(regexp,"");
-						if (layer[i].getAttribute("parentGroup"))
+						if (layer[i].getAttribute("parentGroup")){
 							parentGroupName = layer[i].getAttribute("parentGroup").replace(regexp,"");
+							if (groupLayers[parentGroupName] == undefined) {
+								alert("Invalid parentGroup ("+parentGroupName+") in layer group="+layer[i].getAttribute("group")+" in "+app+"/config.xml file.","Data Error");
+								continue;
+							}
+						}
 						if (layer[i].getAttribute("visible"))
 							groupVis = layer[i].getAttribute("visible").replace(regexp,"");
 						if (layer[i].getAttribute("open")){
@@ -577,12 +814,20 @@ function readConfig() {
 							groupOpacity = layer[i].getAttribute("alpha").replace(regexp,"");
 						if (layer[i].getAttribute("radio"))
 							radio = layer[i].getAttribute("radio").replace(regexp,"") === "true";
-						if (layer[i].getAttribute("url"))
-							url = layer[i].getAttribute("url").replace(regexp,""); // feature service
 						
+						// portal
+						if (layer[i].getAttribute("portal")){
+							portal = layer[i].getAttribute("portal").replace(regexp,"");
+						}
 						// Group with layers
-						if (layer[i].getAttribute("layerIds")){
+						if (layer[i].getAttribute("url")) {
+							url = layer[i].getAttribute("url").replace(regexp,""); // feature service
+							if (layer[i].getAttribute("layerIds"))
 								layerIds = layer[i].getAttribute("layerIds").replace(regexp,""); // string of ids 2-7,14,20
+							else {
+								alert("Missing layerIds tag in layer group, "+groupName+", in "+app+"/config.xml file.", "Data Error");
+								continue;
+							}
 							if (layer[i].getAttribute("layerVis"))
 								layerVis = layer[i].getAttribute("layerVis").replace(regexp,"").split(","); // array of visibility
 							else {
@@ -594,7 +839,7 @@ function readConfig() {
 						}
 						
 						// returns a GroupLayer with feature layers added to to it. Use for group layer Elk and feature layers species data for elk.
-						groupLayers[groupName] = {"layer": addGroupLayer(groupName,groupVis,groupOpacity,radio,url,layerIds,layerVis,layerNames)};
+						groupLayers[groupName] = {"layer": addGroupLayer(groupName,groupVis,groupOpacity,radio,url,portal,layerIds,layerVis,layerNames)};
 						if (parentGroupName != null && parentGroupName != "")
 							groupLayers[parentGroupName].layer.add(groupLayers[groupName].layer);
 						else
@@ -602,7 +847,7 @@ function readConfig() {
 					} catch(e) {
 						alert("Warning: misconfigured operational group layer, "+groupName+", in config.xml file. " + e.message, "Data Error");
 					}
-				} 
+				}
 				// sub layer in parent group
 				else if (layer[i].getAttribute("label") && layer[i].getAttribute("parentGroup")) {
 					//console.log("loading layer "+layer[i].getAttribute("label")+" into group "+layer[i].getAttribute("parentGroup")+" i="+i);
@@ -638,17 +883,24 @@ function readConfig() {
 						url: url,
 						title: label,
 						opacity: Number(opacity),
+						layerId: label,
 						id: label
 					});
-					groupLayers[parentGroupName].layer.add(fsLayer);
+					if (groupLayers[parentGroupName])
+						groupLayers[parentGroupName].layer.add(fsLayer);
+					else alert("Error in "+app+"/config.xml file. parentGroup name of "+parentGroupName+" does not exist. Must have a layer with group="+parentGroupName);
 				}
 				// root layer
 				else if (layer[i].getAttribute("label")) {
-					//console.log("loading layer "+layer[i].getAttribute("label")+" i="+i);
-					tries[layer[i].getAttribute("label")] = 0;				
+					
+					tries[layer[i].getAttribute("label")] = 0;
+					// DEBUG make it fail
+					//layer[i].setAttribute("url",layer[i].getAttribute("url")+"oooo");
+					console.log("loading layer "+layer[i].getAttribute("label")+" i="+i);				
 					createLayer(layer[i]);
 				}		
 			}
+
 			addWidgets();
 		}
 
@@ -1103,7 +1355,7 @@ function readConfig() {
 			const print = new Print({
 				view: view,
 				// specify your own print service
-				printServiceUrl: printServiceUrl,
+				//printServiceUrl: printServiceUrl, // our print service does not print wildfire icons correctly (visual variables)
 				allowedFormats: ["pdf","jpg"],
 				allowedLayouts: ["Letter ANSI A landscape", "Letter ANSI A portrait", "Tabloid ANSI B landscape", "Tabloid ANSI B portrait"],
 				templateOptions: {
@@ -1820,68 +2072,7 @@ function readConfig() {
 							legendLayers.reverse();
 						}
 						
-						try {
-							// If TOC already created just refresh it and update legend if showing
-							if(toc){
-								// display legend
-								if(legendChkBox.checked){
-									for (var t = 0; t < toc.layerInfos.length; t++) {
-										toc.layerInfos[t].noLegend = false;
-									}
-								}
-								toc.refresh();
-								toc._adjustToState();
-								return;
-							}
-							
-							// Load TOC
-							toc = new TOC({
-									map: map,
-									layerInfos: legendLayers
-								}, 'tocDiv');
-							toc.startup();
-							
-							// load Show Legend checkbox click event after toc has loaded
-							legendChkBox = new CheckBox({
-									name: "showLegendChkBox",
-									onChange: function () {
-										// called from Map Layers & Legend Show Legend checkbox click event
-										require(["dijit/registry"], function (registry) {
-											try {
-												var tocWait = document.getElementById("tocLoading");
-												tocWait.style.display = "block";
-												tocWait.style.visibility = "visible";
-												var noLegend = true;
-												var toc2 = registry.byId("tocDiv");
-												if (legendChkBox.checked) {
-													noLegend = false;
-													setCookie("legend", "1");
-												} else
-													setCookie("legend", "0");
-												for (var t = 0; t < toc2._rootLayerTOCs.length; t++) {
-													toc2._rootLayerTOCs[t].config.noLegend = noLegend;
-												}
-												toc2.refresh();
-												toc2._adjustToState();
-												// Wait 1 second then remove wait
-												setTimeout(function () {
-													tocWait.style.display = "none";
-													tocWait.style.visibility = "hidden";
-												}, 1000);
-											} catch (e) {
-												alert("Error in readConfig.js. Loading click event for Show Legend checkbox. " + e.message, "Code Error", e);
-												hideLoading();
-											}
-										});
-									}
-								}, "showLegendChkBox");
-							legendChkBox.startup();
-							if (getCookie("legend") == 1) {
-								legendChkBox.set("checked", true);
-							}
-						} catch (e) {
-							alert("Error loading TOC Map Layers & Legend: " + e.message + " in javascript/readConfig.js or toc/src/agsjs/dijit/TOC.js", "Code Error", e);
-						}
+						
 					
 						if (!calledFlag) {
 							calledFlag = true;
@@ -1906,11 +2097,6 @@ function readConfig() {
 				
 				// Load listener function for when the first or base layer has been successfully added
 				view.when(() => {
-					// layer create error
-					view.on("layerview-create-error", function(event) {
-						const err = new Error({name:"Warning",message:"Layer failed to load: "+event.layer.id});
-						console.error("test LayerView failed to create for layer with the id: ", event.layer.id);
-					});
 					// Update mouse coordinates
 					view.on('pointer-move', (event)=>{
 						showCoordinates(event);  

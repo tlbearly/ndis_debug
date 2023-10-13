@@ -81,8 +81,8 @@ function alert(){
 	else
 		document.getElementById("errMsg").innerHTML += msg+"<br/><br/>";
 	if ((msg.toLowerCase().indexOf("error") > -1) || (title.toLowerCase().indexOf("error") > -1)){
-		var ref = document.referrer ? encodeURIComponent(document.referrer.substr(7)) : "none";
-		var loc = document.location.href ? encodeURIComponent(document.location.href.substr(7)) : "unknown";
+		var ref = document.referrer ? encodeURIComponent(document.referrer.substring(7)) : "none";
+		var loc = document.location.href ? encodeURIComponent(document.location.href.substring(7)) : "unknown";
 		loc = loc.replace(/%2520/g,"%20"); // A space that has been encoded twice
 		ref = ref.replace(/%2520/g,"%20");
 		msg = msg.replace(/'/g, ""); // single quotes causing email to ndisadmin to be cut off
@@ -92,6 +92,6 @@ function alert(){
 		
 	}
 	if (title == "Code Error") title="Error Message";
-	errorDialog.set("title", title);
-	errorDialog.show();
+	document.getElementById("errorDialogTitle").innerHTML= title;//errorDialog.set("title", title);
+	show("errorDialog");//errorDialog.show();
 }

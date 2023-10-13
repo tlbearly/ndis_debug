@@ -1,6 +1,7 @@
 var prtDisclaimer="";
 var startTim;
-var inchesWidth, inchesHeight, dpi=96; // tlb 7-20-19
+//var inchesWidth, inchesHeight
+var dpi=300;
 function printInit() {
 	// Read the PrintPdfWidget.xml file
 	var xmlhttp = createXMLhttpRequest();
@@ -306,9 +307,12 @@ function printMap(){
 			if (!printLegendFlag) done=true; // turn off wait icon after printing map; don't wait for legend to print
 			registry.byId("print_button").set("label", "Creating...");
 			document.getElementById("printLoading").style.display="inline-block";
-			document.getElementById("printMapLink").innerHTML = "";
+			document.getElementById("printMapLink").innerHTML = "<span class='esri-icon-loading-indicator esri-rotating'></span> map.pdf";
 			document.getElementById("printLegendLink").innerHTML = "";
 			
+			// scroll to bottom of print div
+			document.getElementById("printDiv").scrollIntoView({ behavior: "smooth", block: "end" });
+
 			// get legend layers
 			var layer = map.layers.items;//previewMap.getLayersVisibleAtScale();
 			var legendArr = [];
@@ -335,20 +339,21 @@ function printMap(){
 						}
 						continue;
 					}
+					
 					if (layer[i].sublayers || layer[i].layers) {
 						legend = new LegendLayer({
 							title: layer[i].title,
-							layerId: layer[i].title,
-							subLayerIds: []
+							layerId: layer[i].id,
+							subLayerIds:[]
 						});
+						if (layer[i].layerId) legend.layerId = layer[i].layerId;
 						var firstLevel = layer[i];
 						var secondLevel,thirdLevel,fourthLevel,fifthLevel;
-						if (firstLevel.sublayers)
+						if (firstLevel.sublayers !== undefined)
 							secondLevel = firstLevel.sublayers.items;
 						else
 							secondLevel = firstLevel.layers.items;
-						for(j=0; j<secondLevel.length;j++) {
-							
+						for(j=0; j<secondLevel.length;j++) {	
 							// traverse to the bottom of the visible sublayers. Add this id
 							if(secondLevel[j].visible){
 								if (secondLevel[j].sublayers || secondLevel[j].layers){
@@ -357,7 +362,6 @@ function printMap(){
 									else if (secondLevel[j].layers)
 										thirdLevel = secondLevel[j].layers.items;
 									for(k=0; k<thirdLevel.length;k++){
-										
 										if(thirdLevel[k].visible){
 											if (thirdLevel[k].sublayers || thirdLevel[k].layers){
 												if (thirdLevel[k].sublayers)
@@ -365,7 +369,6 @@ function printMap(){
 												else if (thirdLevel[k].layers)
 													fourthLevel = thirdLevel[k].layers.items;
 												for(m=0; m<fourthLevel.length;m++){
-													
 													if(fourthLevel[m].visible){
 														if (fourthLevel[m].sublayers || fourthLevel[m].layers){
 															if (fourthLevel[m].sublayers) fifthLevel = fourthLevel[m].sublayers.items;
@@ -373,7 +376,7 @@ function printMap(){
 															for(n=0; n<fifthLevel.length;n++){
 																if(fifthLevel[n].visible){
 																	if (fifthLevel[n].sublayers || fifthLevel[n].layers)alert("add one more group layer traversal in print.js to handle nested groups.");
-																	else if (fifthLevel[n].layerId){
+																	else if (fifthLevel[n].layerId !== undefined){
 																		legend.title = fifthLevel[n].title;
 																		legend.layerId = fifthLevel[n].layerId;
 																		legend.subLayerIds.push(fifthLevel[n].layerId);
@@ -381,72 +384,33 @@ function printMap(){
 																	else legend.subLayerIds.push(fifthLevel[n].id);
 																}
 															}
-														}else if(fourthLevel[m].layerId) legend.subLayerIds.push(fourthLevel[m].layerId);
+														}else if(fourthLevel[m].layerId !== undefined) {
+															legend=null;
+															legendArr.push(new LegendLayer({"layerId":fourthLevel[m].id,"title":fourthLevel[m].title}));//legend.layerId.push(fourthLevel[m].layerId);
+														}
 														else legend.subLayerIds.push(fourthLevel[m].id);
 													}
 												}
-											}else if (thirdLevel[k].layerId) legend.subLayerIds.push(thirdLevel[k].layerId);
+											}else if (thirdLevel[k].layerId !== undefined) {
+												legend=null;
+												legendArr.push(new LegendLayer({"layerId":thirdLevel[k].id,"title":thirdLevel[k].title}));//legend.subLayerIds.push(thirdLevel[k].layerId);
+											}
 											else legend.subLayerIds.push(thirdLevel[k].id);
-												
-										}
+										}	
 									}
-								}else if (secondLevel[j].layerId) legend.subLayerIds.push(secondLevel[j].layerId);
+								}else if (secondLevel[j].layerId !== undefined) {
+									legend=null;
+									legendArr.push(new LegendLayer({"layerId":secondLevel[j].id,"title":secondLevel[j].title}));//legend.subLayerIds.push(secondLevel[j].layerId);
+								}
 								else legend.subLayerIds.push(secondLevel[j].id);
 							}
 						}
-
-						legendArr.push(legend);
+						
+						if (legend)
+							legendArr.push(legend);
 						legend = null;
 						countLayers++;
 					}
-					/*else if (layer[i].type === "group"){
-						legend = new LegendLayer({
-							title: layer[i].title,
-							layerId: layer[i].id,
-							subLayerIds: []
-							
-						});
-						var group = layer[i].layers.items;
-						for(var l=0;l<group.length;l++){
-							if (group[l].visible){
-								if(group[l].type === "group"){
-									var group2 = group[l].layers.items;
-									for(var m=0;m<group2.length;m++){
-										if (group2[m].visible){
-											if (group2[m].type === "group"){
-												var group3 = group2[m].layers.items;
-
-												
-												if (group2[m].sublayers){
-													for(j=0; j<group2[m].sublayers.items.length;j++) {
-														if(group2[m].sublayers.items[j].visible)
-															legend.subLayerIds.push(group2[m].sublayers.items[j].id);
-													}
-												}
-											} else legend.subLayerIds.push([group2[m].layerId]);
-										}
-									}
-								}else{
-									legend = new LegendLayer({
-										title: group[l].title,
-										layerId: group[l].id,
-										subLayerIds: []
-									});
-									if (group[i].sublayers){
-										for(j=0; j<group[l].sublayers.items.length;j++) {
-											if(group[l].sublayers.items[j].visible)
-												legend.subLayerIds.push(group[l].sublayers.items[j].id.toString());
-										}
-									}
-									legendArr.push(legend);
-									legend = null;
-									countLayers++;									
-
-								}
-
-							}
-						}
-					}*/
 					else{
 						legend = new LegendLayer({
 							title: layer[i].title,
@@ -454,7 +418,7 @@ function printMap(){
 							subLayerIds: []
 						});
 						if (layer[i].layerId)
-						legend.layerId=layer[i].layerId;
+							legend.layerId=layer[i].layerId;
 						legendArr.push(legend);
 						legend = null;
 						countLayers++;
@@ -482,7 +446,7 @@ function printMap(){
 				template.format = format.options[format.selectedIndex].value;
 				if (template.format != "geopdf"){
 					legendTemplate="none";
-					template.exportOptions = { dpi: dpi, width: parseInt(inchesWidth*dpi), height: parseInt(inchesHeight*dpi) };
+					template.exportOptions = { dpi: dpi};//, width: parseInt(inchesWidth*dpi), height: parseInt(inchesHeight*dpi) };
 				}
 				else if (template.format=="geopdf" && !document.getElementById("printLegend").checked) {
 					legendTemplate="none";
@@ -568,6 +532,7 @@ function printMap(){
 			//************************
 			if (format.options[format.selectedIndex].value=="pdf" && printLegendFlag && document.getElementById("printLegend").checked) {
 				//var printTask2 = new PrintTask(printServiceUrl);
+				document.getElementById("printLegendLink").innerHTML = "<span class='esri-icon-loading-indicator esri-rotating'></span> legend.pdf";
 				var params2 = new PrintParameters();
 				var template2 = new PrintTemplate();
 				template2.exportOptions = { dpi: dpi };
