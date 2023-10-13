@@ -180,6 +180,7 @@
     </custom_reports>
     <!-- Add buttons at the bottom of the Resource Report Widget to download CSV, comma delimited text files,-->
     <download_buttons>
+        <!-- Only add data if the layer is visible -->
         <onlyIfVisible>true</onlyIfVisible>
         <button label="All Mammals"
             url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/"
