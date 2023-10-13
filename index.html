@@ -1044,10 +1044,10 @@
 
         <!-- Add Google Analytics 4 Stats for Test Site ndis-2020-dev -->
 		<!-- Google tag (gtag.js) -->
-		<script async src="https://www.googletagmanager.com/gtag/js?id=G-SPF3WKXMYJ"></script>
+		<script async src="https://www.googletagmanager.com/gtag/js?id=G-SPF3WKXMYJ&l=GTMdataLayer"></script>
         <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
+            window.GTMdataLayer = window.GTMdataLayer || [];
+            function gtag(){GTMdataLayer.push(arguments);}
             gtag('js', new Date());
             // Custom Dimension Values to pass. Set this up in Google Analytics 4 in Admin/Custom Definitions. https://analytics.google.com/analytics
             // live: G-KZGSCS9DMG, dev: G-SPF3WKXMYJ
@@ -1057,36 +1057,5 @@
             });
         </script>
         <!-- End Google Analytics 4 -->
-
-        <script>
-            /* Add Google Analytics Stats */
-            (function(i, s, o, g, r, a, m) {
-                i['GoogleAnalyticsObject'] = r;
-                i[r] = i[r] || function() {
-                    (i[r].q = i[r].q || []).push(arguments)
-                }, i[r].l = 1 * new Date();
-                a = s.createElement(o),
-                    m = s.getElementsByTagName(o)[0];
-                a.async = 1;
-                a.src = g;
-                m.parentNode.insertBefore(a, m)
-            })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
-            /* Create the ID for tracking and pass the app name for reporting */
-            ga('create', 'UA-102394177-2', {
-                cookieFlags: 'max-age=7200;secure;samesite=none'
-            });
-            /* Custom Dimension Value to pass app name. Set this up in Google Analytics in Admin/Property/Custom Definitions/Custom Dimension/New Custom Dimension/
-            	give it a variable name to use on the reports, save it, view it again and it will generate the javascript below. */
-            var theApp;
-            if (document.location.search == "") theApp = "huntingatlas";
-            else {
-                var end = document.location.search.indexOf('&');
-                if (end == -1) end = document.location.search.length;
-                theApp = document.location.search.substring(5, end).toLowerCase();
-            }
-            ga('set', 'dimension1', theApp);
-            ga('send', 'pageview');
-            /* End Google Analytics Stats */
-        </script>
-    </body>
+   </body>
 </html>

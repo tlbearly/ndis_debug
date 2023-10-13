@@ -1,0 +1,91 @@
+<html>
+<head>
+<!-- test adding graphs to the PDF.  Hold off on this. -->
+        <!-- pdf library from https://github.com/MrRio/jsPDF  also in js.arcgis.com 3.40, but missing saveAs function -->
+        <script type="text/javascript" src="jsPDF/dist/jspdf.debug.js" true></script>
+<script>
+function savePDF(){
+							// download pdf
+							// doc.save("filename") does not work with Foxit Reader (for Mac)
+							var data = doc.output();
+							var buffer = new ArrayBuffer(data.length);
+							var array = new Uint8Array(buffer);
+							for (var i = 0; i < data.length; i++) {
+								array[i] = data.charCodeAt(i);
+							}
+							var blob = new Blob(
+								[array],
+								{type: 'application/pdf', encoding: 'raw'}
+							);
+							saveAs(blob, "AtlasReport.pdf");
+							blob = null;
+							buffer=null;
+							array=null;
+							data=null;
+							// Enable Print/Save Report buttons
+							registry.byId("openReportBtn1").set('disabled',false);
+							registry.byId("saveReportBtn1").set('disabled',false);
+							registry.byId("openReportBtn2").set('disabled',false);
+							registry.byId("saveReportBtn2").set('disabled',false);
+						}
+						function openPDF(){
+							// Does not work in IE Cannot open base64 even in an iframe.
+							var string = doc.output('datauristring');
+							var iframe = "<iframe width='100%' height='100%' referrerPolicy='origin' src='" + string + "'></iframe>";
+							var win = window.open();
+							if (!win) {
+								alert("Failed to open PDF. Make sure popups are allowed.","Warning");
+								// Enable Print/Save Report buttons
+								registry.byId("openReportBtn1").set('disabled',false);
+								registry.byId("saveReportBtn1").set('disabled',false);
+								registry.byId("openReportBtn2").set('disabled',false);
+								registry.byId("saveReportBtn2").set('disabled',false);
+								document.getElementById("reportMsg1").innerHTML = "";
+								document.getElementById("reportMsg2").innerHTML = "";	
+								return;
+							}
+							win.document.open();
+							win.document.write(iframe);
+							win.document.title = "Atlas Report";
+							win.document.close();
+						}
+
+			var marginLeft = 18; // .25 inches
+			var marginTop = 18;
+			var dpi = 300;
+			var pageWidth = 792 - (2*marginLeft); // 11 inches * 72 - margins
+			var pageHeight = 612 - (marginTop); // height of page (8.5*72) - bottom margin
+			var mapWidthPxs;
+			var mapHeightPxs;
+			var doc = new jsPDF("landscape","pt","letter");						
+			doc.setDrawColor(0);
+			var yLabelWidth = 72; // distance to Y Axis from left margin
+			var xLabelWidth = 72; // distance between bar graphs or points on x Axis
+			var ptSpacing = 36; // .5" between points
+			var data = [[1,2],[4,5],[7,7]];
+			var xAxisHeight = 216;
+			var yAxisWidth = pageWidth;
+			var xAxisX1 = yLabelWidth+marginLeft;
+			var xAxisY1 = marginTop;
+			var xAxisX2 = yLabelWidth+marginLeft;
+			var xAxisY2 = xAxisHeight+marginTop;
+			var yAxisX1 = yLabelWidth+marginLeft;
+			var yAxisY1 = xAxisHeight+marginTop;
+			var yAxisX2 = xAxisHeight+marginLeft;
+			var yAxisY2 = xAxisHeight+marginTop;
+			
+doc.setFillColor(255, 0, 0);
+doc.rect(40, 50, 30, 12, 'FD'); //Fill and Border
+doc.setFontSize(8);
+doc.setFontType('normal');
+doc.text('hello', 42, 51);
+doc.line(xAxisX1,xAxisY1,xAxisX2,xAxisY2,"S");
+doc.line(yAxisX1,yAxisY1,yAxisX2,yAxisY2,"S");
+doc.lines
+openPDF();
+</script>
+</head>
+<body>
+Test creating a pdf with a graph
+</body>
+</html>
