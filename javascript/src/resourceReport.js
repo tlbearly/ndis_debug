@@ -1,6 +1,7 @@
 /* report.js
  * Does the hunter resource report or a custom report on a freehand polygon selected area or buffered circle.
  * Modified: 1/10/23 Tammy Bearly
+ * 10/17/23 Tammy Bearly - Add ability to download a CSV file
  */
 function reportInit(){
 	require(["dojo/dom","dijit/registry","dojo/sniff","dijit/form/Select", "esri/toolbars/draw","dojo/i18n!esri/nls/jsapi","esri/layers/GraphicsLayer","esri/geometry/Circle",
@@ -268,6 +269,8 @@ function reportInit(){
 			}
 			registry.byId("reportPrintBtn").set('disabled',false); // enable Open Report button
 			registry.byId("reportCancelBtn").set('disabled',false);
+			// Create comma delimited files to download
+			createDownloadCSVFiles(0);
 		}
 		function reportCancel(){
 			document.getElementById(selectBtn).className = "graphBtn";
@@ -282,12 +285,16 @@ function reportInit(){
 			registry.byId("saveReportBtn2").set('disabled',false);
 			registry.byId("reportPrintBtn").set('disabled',true);
 			registry.byId("reportCancelBtn").set('disabled',true);
+			// disable download CSV file buttons
+			disableDownloadBtns();
 		}
 		
 		function activateReportTool(){
 			// Draw point or polygon button was clicked.
 			registry.byId("reportPrintBtn").set('disabled',true);
 			registry.byId("reportCancelBtn").set('disabled',true);
+			// disable download CSV file buttons
+			disableDownloadBtns();
 			// Check if button was already depressed. If so reset to Identify
 			if (document.getElementById(selectBtn).className === "graphBtnSelected") {
 				reportCancel();
@@ -619,41 +626,147 @@ function reportInit(){
 			registry.byId("reportPreviewDialog").hide();
 		}
 		
+		function replaceSpecialChar(label, char){
+			// Download button label
+			// replace special characters in label with the character char
+			return label.replace(/([ :\-,\'\".;?\/()!@#$%^&*+=])/g,char);
+		}
+		function disableDownloadBtns(){
+			for (var i=0;i<download_buttons.length;i++){
+				var btn = registry.byId(replaceSpecialChar(download_buttons[i].label+"Btn","_"));
+				btn.set('disabled',true);
+			}
+		}
+		function enableDownloadBtns(i){
+			var btn =registry.byId(replaceSpecialChar(download_buttons[i].label+"Btn","_"));
+			btn.set('disabled', false);
+		}
 		function addDownloadButtons(){
-			// creates temp CSV files for each download_buttons/button in the xml file
+			// creates temp CSV files for each <download_buttons><button> in the ResourceReportWidget.xml file
+			// Create each button and disable it
+			// reportDrawEnd calls createDownloadCSVFiles(0) which calls queryCSVCompleteHandler which attaches the file to the button
+			// then it call createDownloadCSVFiles(next button id)
 			if (!download_buttons) return;
 			
-			var query=[], queryTask=[], promises;
+			require(["dijit/form/Button"],function(Button){
+				var downloadDiv = document.getElementById("downloadButtons");
+				downloadDiv.style.display = "block";
+				for (var q=0; q<download_buttons.length; q++){
+					var a = document.createElement('a');
+					var label = replaceSpecialChar(download_buttons[q].label,"_");//.replace(/([ :\-,\'\".;?\/()!@#$%^&*+=])/g,'_');
+					a.id = label;
+					var btnId = label+"Btn";
+					a.alt = "Download a CSV file of "+label;
+					btn = new Button({
+						label: download_buttons[q].label,
+						id: btnId
+					}).placeAt(a);
+					downloadDiv.appendChild(a);
+					btn.set('disabled',true);
+					 // disable them until reportDrawEnd creates the download files and then enables
+				}
+			});
+		}
+		var downloadIndex; // index that allows each download_buttons/button to be processed. The index is passed in when createDownloadCSVFiles is called.
+		function createDownloadCSVFiles(myIndex){
+			// Loop through each download button generate the query task which will attatch a csv file to the button.
+			// <a href="2022,elk,april\n2022,bear,may..." download="all_mammals.csv"><button/></a>
+			// myIndex: index of download_buttons button
+			// calls queryCSVCompleteHandler to create the file and attach it.
+			downloadIndex = myIndex;
+			var label = replaceSpecialChar(download_buttons[downloadIndex].label,"_");//.replace(/([ :\-,\'\".;?\/()!@#$%^&*+=])/g,'_');
+			document.getElementById(label+"Btn").innerText += "...";
 			var queries = [];
-			var downloadDiv = document.getElementById("downloadButtons");
-			downloadDiv.style.display = "block";
-			for (var q=0; q<download_buttons.length; q++){
-				queryTask[q] = new QueryTask(reports[i].url);
+			var ids = download_buttons[downloadIndex].ids.split(",");
+			var query = [];
+			var queryTask = [];
+			for (var q=0; q<ids.length; q++){
+				var url = download_buttons[downloadIndex].url+"/"+ids[q];
+				url = url.replace(/\/\/([^\/\/]*)$/,"\/$1"); // replace last // with /
+				queryTask[q] = new QueryTask(url);
 				query[q] = new Query();
-				// use fast bounding box query. Will only go to the server if bounding box is outside of the visible map.
-				// then filter later. Have to set returnGeometry to true!!!
 				query[q].geometry = theArea;
 				query[q].returnGeometry = true;
 				query[q].spatialRelationship = Query.SPATIAL_REL_INTERSECTS;
 				query[q].outFields = ["*"];
-				queries.push(queryTask[q].execute(query[q]));
-				
-				var fileContent = "My epic novel that I don't want to lose.";
-				var bb = new Blob([fileContent ], { type: 'text/plain' });
-				var a = document.createElement('a');
-				a.download = 'download.txt';
-				a.href = window.URL.createObjectURL(bb);
-				var btn = document.createElement("button");
-				btn.role="presentation";
-				btn.type="button";
-				btn.style.margin = "5px";
-				//btn.data-dojo-type="dijit/form/Button";
-				btn.innerText=download_buttons[q].label;
-				a.appendChild(btn);
-				//a.click();
-				downloadDiv.appendChild(a);
-				
-			}	
+				queries.push(queryTask[q].execute(query[q]));	
+			}
+			if (queries.length > 0) {
+				promises = all(queries);
+				promises.then(queryCSVCompleteHandler);
+				promises.otherwise(queryCSVFaultHandler);
+			}
+		};
+		function queryCSVCompleteHandler(results){
+			// Loop through each result create a csv file and attatch the button.
+			// <a href="2022,elk,april\n2022,bear,may..." download="all_mammals.csv"><button/></a>
+			// downloadIndex is set in createDownloadCSVFiles and is a global variable. When finished
+			// increment downloadIndex and call createDownloadCSVFiles again.
+			var j;
+			var downloadTable = [];
+			// create a comma delimited file in downloadTable (an array of objects) 
+			for (var r=0; r<results.length;r++){
+				for (var p = 0; p < results[r].features.length; p++) {
+					var feature = results[r].features[p];
+					var attr = feature.attributes;
+					//if point is in the selected area
+					if((feature.geometry.type == "point" && theArea.contains(feature.geometry)) ||
+						feature.geometry.type != "point"){
+						var obj={};
+						for (j=0; j<download_buttons[downloadIndex].displayfields.length; j++){
+							obj[download_buttons[downloadIndex].fields[j]] = attr[download_buttons[downloadIndex].fields[j]];
+						}
+						downloadTable.push(obj);
+						obj=null;
+					}
+				}
+			}
+			// sort the table
+			if (download_buttons[downloadIndex].sortorder === "descending")
+				downloadTable.sort(descendingSortMultipleArryOfObj(download_buttons[downloadIndex].sortfields));
+			else
+				downloadTable.sort(sortMultipleArryOfObj(download_buttons[downloadIndex].sortfields));
+
+			// create file
+			var fileContent = "";
+			// Add header
+			for (j=0; j<download_buttons[downloadIndex].displayfields.length;j++){
+				if (j == download_buttons[downloadIndex].displayfields.length-1){
+					fileContent += download_buttons[downloadIndex].displayfields[j]+"\n";
+				}else {
+					fileContent += download_buttons[downloadIndex].displayfields[j]+",";
+				}
+			}
+			for (var i=0; i<downloadTable.length;i++){
+				for (var j=0; j<download_buttons[0].fields.length;j++){
+					if (j == download_buttons[downloadIndex].fields.length-1){
+						fileContent += downloadTable[i][download_buttons[downloadIndex].fields[j]]+"\n";
+					}else {
+						fileContent += downloadTable[i][download_buttons[downloadIndex].fields[j]]+",";
+					}
+				}
+			}
+			
+			// download the table
+			//var fileContent = "Elk,May,2023\nDeer,June,2023";
+			var bb = new Blob([fileContent ], { type: 'text/plain' });
+			var label = replaceSpecialChar(download_buttons[downloadIndex].label,"_");
+			var downloadBtn = document.getElementById(label+"Btn");
+			var downloadA = document.getElementById(label);
+			downloadA.download = label+".csv";
+			downloadA.href = window.URL.createObjectURL(bb);
+			enableDownloadBtns(downloadIndex);
+			downloadBtn.innerText = downloadBtn.innerText.replace("...","");
+
+			// Did we create all of the CSV files?
+			downloadIndex++;
+			if (downloadIndex != download_buttons.length){
+				createDownloadCSVFiles(downloadIndex);
+			}
+		}
+		function queryCSVFaultHandler(error){
+			// can't download CSV file
+			alert("Error creating file to download. Message: "+error.message+" in ResourceReportWidget.xml at resourceReport.js, queryCSVFaultHandler");
 		}
 
 		function createPDF_EventHandler(action){
@@ -738,7 +851,7 @@ function reportInit(){
 				
 					query[q] = new Query();
 					queryTask[q] = new QueryTask(hunterResourceReport.contactBoundaries.url);
-					query[q].geometry = theArea;
+					//query[q].geometry = theArea;
 					query[q].returnGeometry = true;
 					query[q].spatialRelationship = Query.SPATIAL_REL_INTERSECTS;
 					query[q].outFields = ["*"]; 
@@ -750,7 +863,7 @@ function reportInit(){
 				if (hunterResourceReport.gameBoundaries) {
 					query[q] = new Query();
 					queryTask[q] = new QueryTask(hunterResourceReport.gameBoundaries.url);
-					query[q].geometry = theArea;
+					//query[q].geometry = theArea;
 					query[q].returnGeometry = true;
 					query[q].spatialRelationship = Query.SPATIAL_REL_INTERSECTS;
 					query[q].outFields = ["*"]; 

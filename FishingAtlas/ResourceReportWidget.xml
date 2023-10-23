@@ -76,6 +76,36 @@
 //      <report id="Large Mammal" url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/5" type="table" title="" subtitle="Large Mammals" displayfields="Year,Month,Species,Sex,Age" fields="rkYear,strMonth,Species,Sex,Age" sortfields="rkYear,Species,strMonth,Sex" sortorder="ascending"/>
 //  </custom_reports>
 //
+// NEW on 10/23/23
+// Download CSV files (comma delimited text files). Add a button to download at the bottom of the Resource Report Widget and use label
+//    for button title.
+// <download_buttons>
+//    <button
+//      label=button label
+//      url=mapservice url without the id
+//      ids=comma delimited list url ids to use that all have the same data fields
+//      displayfields=comma delimited display names. Do not put a space after the comma. Should be displaynames="item1,item2"
+//		fields=comma delimited field names.
+//		sortfields=Comma delimited list of the field names to sort the table on.  Must use names from fields tag above.
+//      sortorder="ascending" or "descending" The default is ascending.
+// Example download buttons
+//    <download_buttons>
+//        <button label="Download Roadkill"
+//            ids=4,5
+//            url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer"
+//            displayfields="Year,Month,Species,Sex,Age"
+//            fields="rkYear,strMonth,Species,Sex,Age"
+//            sortfields="rkYear,Species,strMonth,Sex"
+//            sortorder="ascending"/>
+//        <button label="Download Amphibian/Reptile"
+//            ids=3
+//            url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer"
+//            displayfields="Year,Month,Species,Sex,Age"
+//            fields="rkYear,strMonth,Species,Sex,Age"
+//            sortfields="rkYear,Species,strMonth,Sex"
+//            sortorder="ascending"/>
+//    </download_buttons>
+//
 // Map Title, Subtitle, and Disclaimer
 // <title>map title here</title>
 // <subtitle>map subtitle here</subtitle>

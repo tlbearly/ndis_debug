@@ -113,7 +113,7 @@
             document.write('<script type="text/javascript" src="' + path + '/maplink.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/print.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/resourceReport.js?v=f"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/resourceReport.js?v=a"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/search.js?v=' + jsVer + '"><\/script>');
             try {
                 function settingsXYProj(){
@@ -619,8 +619,9 @@
                         </div>
                         <p style="padding-left:35px;"><button id="reportPrintBtn" data-dojo-type="dijit/form/Button" role="presentation" type="button">Print Preview</button> <button id="reportCancelBtn" data-dojo-type="dijit/form/Button" role="presentation" type="button">Cancel</button></p>
                         <p align="center"><a href="https://get.adobe.com/reader/" target="pdf_reader">Get Adobe Reader</a> &nbsp;&nbsp;&nbsp;<a href="https://www.foxitsoftware.com/Secure_PDF_Reader/" target="pdf_reader">Get Foxit Reader</a></p>
-                        <h4>Download a Comma Delimited File</h4>
-                        <div id="downloadButtons" align="center" style="display:none;"></div>
+                        <div id="downloadButtons" style="display:none;padding-left:35px;">
+                            <p>Download a Comma Delimited File</p>
+                        </div>
                     </div>
                 </div>
 

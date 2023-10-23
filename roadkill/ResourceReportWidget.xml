@@ -53,7 +53,7 @@
 //           Use "_distance_" to insert the buffer distance from the map click. If using type="list" it will append 
 //           "(at polygon center)" or "(at map click)" to the end of this title.
 //		subtitle=the underlined title for this section. 
-//		displayfields=comma delimited display names. Include display names for database fields. Do not put a space after the comma. If will be displayed: eg. " GMU". Should be displaynames="item1,item2"
+//		displayfields=comma delimited display names. Include display names for database fields. Do not put a space after the comma. It will be displayed: eg. " GMU". Should be displaynames="item1,item2"
 //		fields=comma delimited field names.  Include fields from a database.
 //		where_field=the field name to use to make a where clause
 //		where_inequality="equal", "not_equal", "less_than", or "greater_than"
@@ -78,25 +78,18 @@
 //      <report id="Large Mammal" url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/5" type="table" title="" subtitle="Large Mammals" displayfields="Year,Month,Species,Sex,Age" fields="rkYear,strMonth,Species,Sex,Age" sortfields="rkYear,Species,strMonth,Sex" sortorder="ascending"/>
 //  </custom_reports>
 //
+// NEW on 10/23/23
 // Download CSV files (comma delimited text files). Add a button to download at the bottom of the Resource Report Widget and use label
 //    for button title.
 // <download_buttons>
 //    <button
 //      label=button label
 //      url=mapservice url without the id
-//      id=comma delimited list url ids to use that all have the same data fields
-//		where_field=the field name to use to make a where clause
-//		where_inequality="equal", "not_equal", "less_than", or "greater_than"
-//		where_value=a value
-//		where_type="string" or "number"
+//      ids=comma delimited list url ids to use that all have the same data fields
+//      displayfields=comma delimited display names. Do not put a space after the comma. Should be displaynames="item1,item2"
+//		fields=comma delimited field names.
 //		sortfields=Comma delimited list of the field names to sort the table on.  Must use names from fields tag above.
-//      sortorder="ascending" or "descending" The default is ascending. ** NEW ** 1-12-23
-//		key=the field name in the mapservice that links to the database
-//		database=the url to the asp.net file that queries the database
-//		filename=the table in the database to query
-//		one2onefields=comma delimited list of field names containing one value for each key
-//		one2manyfields=comma delimited list of field names where each key has many values
-
+//      sortorder="ascending" or "descending" The default is ascending.
 // Example download buttons
 //    <download_buttons>
 //        <button label="Download Roadkill"
@@ -178,13 +171,25 @@
             sortfields="rkYear,Species,strMonth,Sex"
             sortorder="ascending"/>
     </custom_reports>
-    <!-- Add buttons at the bottom of the Resource Report Widget to download CSV, comma delimited text files,-->
+    
+    <!-- Add buttons at the bottom of the Resource Report Widget to download CSV, comma delimited text files-->
+    <!--
+//  <download_buttons>
+//    <button
+//      label=button label
+//      url=mapservice url without the id
+//      ids=comma delimited list url ids to use that all have the same data fields
+//      displayfields=comma delimited display names. Do not put a space after the comma. Should be displaynames="item1,item2"
+//		fields=comma delimited field names.
+//		sortfields=Comma delimited list of the field names to sort the table on.  Must use names from fields tag above.
+//      sortorder="ascending" or "descending" The default is ascending.
+    -->
     <download_buttons>
         <!-- Only add data if the layer is visible -->
-        <onlyIfVisible>true</onlyIfVisible>
-        <button label="All Mammals"
+        <!--onlyIfVisible>true</onlyIfVisible-->
+        <button label="All Species"
             url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/"
-            ids="4,5"
+            ids="1,2,3,4,5"
             displayfields="Year,Month,Species,Sex,Age"
             fields="rkYear,strMonth,Species,Sex,Age"
             sortfields="rkYear,Species,strMonth,Sex"
