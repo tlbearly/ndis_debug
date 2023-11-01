@@ -162,9 +162,8 @@
 //		sortfields=Comma delimited list of the field names to sort the table on.  Must use names from fields tag above.
 //      sortorder="ascending" or "descending" The default is ascending.
     -->
-    <!--download_buttons>
-        <!-- Only add data if the layer is visible -->
-        <onlyIfVisible>true</onlyIfVisible>
+	<!--
+    <download_buttons>
         <button label="GMUs"
             url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/"
             ids="2"
@@ -172,7 +171,8 @@
             fields="GMUID"
             sortfields=""
             sortorder="ascending"/>
-    </download_buttons-->
+    </download_buttons>
+	-->
 
 
 	<title>Colorado Hunting Atlas</title>

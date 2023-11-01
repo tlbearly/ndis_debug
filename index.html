@@ -113,7 +113,7 @@
             document.write('<script type="text/javascript" src="' + path + '/maplink.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/print.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/resourceReport.js?v=a"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/resourceReport.js?v=m"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/search.js?v=' + jsVer + '"><\/script>');
             try {
                 function settingsXYProj(){
@@ -620,7 +620,8 @@
                         <p style="padding-left:35px;"><button id="reportPrintBtn" data-dojo-type="dijit/form/Button" role="presentation" type="button">Print Preview</button> <button id="reportCancelBtn" data-dojo-type="dijit/form/Button" role="presentation" type="button">Cancel</button></p>
                         <p align="center"><a href="https://get.adobe.com/reader/" target="pdf_reader">Get Adobe Reader</a> &nbsp;&nbsp;&nbsp;<a href="https://www.foxitsoftware.com/Secure_PDF_Reader/" target="pdf_reader">Get Foxit Reader</a></p>
                         <div id="downloadButtons" style="display:none;padding-left:35px;">
-                            <p>Download a Comma Delimited File</p>
+                            <p>Download a Comma Delimited File<br/>Make sure downloads are enabled.</p>
+                            <p><input id="downloadVisibleOnly" type="checkbox" data-dojo-type="dijit/form/CheckBox" name="downloadVisibleOnly"/> Download only visible data?</p>
                         </div>
                     </div>
                 </div>

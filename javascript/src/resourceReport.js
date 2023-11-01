@@ -649,6 +649,9 @@ function reportInit(){
 			if (!download_buttons) return;
 			
 			require(["dijit/form/Button"],function(Button){
+				var visOnlyCheckbox = dom.byId("downloadVisibleOnly");
+				on(visOnlyCheckbox,"click", disableDownloadBtns);
+				
 				var downloadDiv = document.getElementById("downloadButtons");
 				downloadDiv.style.display = "block";
 				for (var q=0; q<download_buttons.length; q++){
@@ -680,9 +683,32 @@ function reportInit(){
 			var ids = download_buttons[downloadIndex].ids.split(",");
 			var query = [];
 			var queryTask = [];
+			var visibleOnly = document.getElementById("downloadVisibleOnly").checked;
+			var j;
+			var url = download_buttons[downloadIndex].url;
+			// get layer Id name if visibleOnly check
+			var layerName = "";
+			if (visibleOnly){
+				for (j=0; j<map.layerIds.length; j++){
+					if (url[url.length-1] != "/") url += "/";
+					if (url === map.getLayer(map.layerIds[j]).url){
+						layerName = map.layerIds[j]
+						break;
+					}
+				}
+			}
 			for (var q=0; q<ids.length; q++){
-				var url = download_buttons[downloadIndex].url+"/"+ids[q];
+				url =  download_buttons[downloadIndex].url+"/"+ids[q];
 				url = url.replace(/\/\/([^\/\/]*)$/,"\/$1"); // replace last // with /
+				// check if visible only is set to true and layer is visible
+				if (visibleOnly == true){
+					var layerIsVisible = false;
+					if (map.getLayer(layerName).visibleLayers.includes(parseInt(ids[q]))){
+						 layerIsVisible = true;
+					}
+					// don't include data if not visible
+					if (!layerIsVisible) continue;
+				}
 				queryTask[q] = new QueryTask(url);
 				query[q] = new Query();
 				query[q].geometry = theArea;
@@ -695,6 +721,15 @@ function reportInit(){
 				promises = all(queries);
 				promises.then(queryCSVCompleteHandler);
 				promises.otherwise(queryCSVFaultHandler);
+			} else {
+				// no visable data found. See if there is another download button
+				alert("Download file for "+label+" was not created since it's map layers are not currently visible", "Notice");
+				document.getElementById(label+"Btn").innerText = document.getElementById(label+"Btn").innerText.replace("...","");
+				// Did we create all of the CSV files?
+				downloadIndex++;
+				if (downloadIndex != download_buttons.length){
+					createDownloadCSVFiles(downloadIndex);
+				}
 			}
 		};
 		function queryCSVCompleteHandler(results){
@@ -704,8 +739,10 @@ function reportInit(){
 			// increment downloadIndex and call createDownloadCSVFiles again.
 			var j;
 			var downloadTable = [];
+			var noData = true;
 			// create a comma delimited file in downloadTable (an array of objects) 
 			for (var r=0; r<results.length;r++){
+				if (results[r].features.length != 0) noData = false;
 				for (var p = 0; p < results[r].features.length; p++) {
 					var feature = results[r].features[p];
 					var attr = feature.attributes;
@@ -714,50 +751,66 @@ function reportInit(){
 						feature.geometry.type != "point"){
 						var obj={};
 						for (j=0; j<download_buttons[downloadIndex].displayfields.length; j++){
-							obj[download_buttons[downloadIndex].fields[j]] = attr[download_buttons[downloadIndex].fields[j]];
+							// handle UTTM xy
+							if (download_buttons[downloadIndex].fields[j].toLowerCase() === "wgs84x"){
+								obj[download_buttons[downloadIndex].fields[j]] = feature.geometry.x;
+							} else if (download_buttons[downloadIndex].fields[j].toLowerCase() === "wgs84y"){
+								obj[download_buttons[downloadIndex].fields[j]] = feature.geometry.y;
+							}
+							// handle other data
+							else {
+								obj[download_buttons[downloadIndex].fields[j]] = attr[download_buttons[downloadIndex].fields[j]];
+							}
 						}
 						downloadTable.push(obj);
 						obj=null;
 					}
 				}
 			}
-			// sort the table
-			if (download_buttons[downloadIndex].sortorder === "descending")
-				downloadTable.sort(descendingSortMultipleArryOfObj(download_buttons[downloadIndex].sortfields));
-			else
-				downloadTable.sort(sortMultipleArryOfObj(download_buttons[downloadIndex].sortfields));
 
-			// create file
-			var fileContent = "";
-			// Add header
-			for (j=0; j<download_buttons[downloadIndex].displayfields.length;j++){
-				if (j == download_buttons[downloadIndex].displayfields.length-1){
-					fileContent += download_buttons[downloadIndex].displayfields[j]+"\n";
-				}else {
-					fileContent += download_buttons[downloadIndex].displayfields[j]+",";
-				}
+			var label = replaceSpecialChar(download_buttons[downloadIndex].label,"_");
+			//  No data found, warn user, and leave download button disabled
+			if (noData){
+				alert("No data found for "+download_buttons[downloadIndex].label, "Notice");
 			}
-			for (var i=0; i<downloadTable.length;i++){
-				for (var j=0; j<download_buttons[0].fields.length;j++){
-					if (j == download_buttons[downloadIndex].fields.length-1){
-						fileContent += downloadTable[i][download_buttons[downloadIndex].fields[j]]+"\n";
+			else {
+				// sort the table
+				if (download_buttons[downloadIndex].sortorder === "descending")
+					downloadTable.sort(descendingSortMultipleArryOfObj(download_buttons[downloadIndex].sortfields));
+				else
+					downloadTable.sort(sortMultipleArryOfObj(download_buttons[downloadIndex].sortfields));
+
+				// create file
+				var fileContent = "";
+				// Add header
+				for (j=0; j<download_buttons[downloadIndex].displayfields.length;j++){
+					if (j == download_buttons[downloadIndex].displayfields.length-1){
+						fileContent += download_buttons[downloadIndex].displayfields[j]+"\n";
 					}else {
-						fileContent += downloadTable[i][download_buttons[downloadIndex].fields[j]]+",";
+						fileContent += download_buttons[downloadIndex].displayfields[j]+",";
 					}
 				}
+				for (var i=0; i<downloadTable.length;i++){
+					for (var j=0; j<download_buttons[downloadIndex].fields.length;j++){
+						if (j == download_buttons[downloadIndex].fields.length-1){
+							fileContent += downloadTable[i][download_buttons[downloadIndex].fields[j]]+"\n";
+						}else {
+							fileContent += downloadTable[i][download_buttons[downloadIndex].fields[j]]+",";
+						}
+					}
+				}
+				
+				// download the table and attach it to download when the button is clicked
+				//var fileContent = "Elk,May,2023\nDeer,June,2023";
+				var bb = new Blob([fileContent ], { type: 'text/plain' });
+				var downloadA = document.getElementById(label);
+				downloadA.download = label+".csv";
+				downloadA.target = label;
+				downloadA.href = window.URL.createObjectURL(bb);
+				enableDownloadBtns(downloadIndex);
 			}
-			
-			// download the table
-			//var fileContent = "Elk,May,2023\nDeer,June,2023";
-			var bb = new Blob([fileContent ], { type: 'text/plain' });
-			var label = replaceSpecialChar(download_buttons[downloadIndex].label,"_");
 			var downloadBtn = document.getElementById(label+"Btn");
-			var downloadA = document.getElementById(label);
-			downloadA.download = label+".csv";
-			downloadA.href = window.URL.createObjectURL(bb);
-			enableDownloadBtns(downloadIndex);
 			downloadBtn.innerText = downloadBtn.innerText.replace("...","");
-
 			// Did we create all of the CSV files?
 			downloadIndex++;
 			if (downloadIndex != download_buttons.length){

@@ -180,7 +180,7 @@
 //      url=mapservice url without the id
 //      ids=comma delimited list url ids to use that all have the same data fields
 //      displayfields=comma delimited display names. Do not put a space after the comma. Should be displaynames="item1,item2"
-//		fields=comma delimited field names.
+//		fields=comma delimited field names. To include UTM coordinates use field names: WGS84X, WGS94Y ...
 //		sortfields=Comma delimited list of the field names to sort the table on.  Must use names from fields tag above.
 //      sortorder="ascending" or "descending" The default is ascending.
     -->
@@ -190,8 +190,8 @@
         <button label="All Species"
             url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/"
             ids="1,2,3,4,5"
-            displayfields="Year,Month,Species,Sex,Age"
-            fields="rkYear,strMonth,Species,Sex,Age"
+            displayfields="Year,Month,Species,Sex,Age,UTM E, UTM N"
+            fields="rkYear,strMonth,Species,Sex,Age,WGS84X,WGS84Y"
             sortfields="rkYear,Species,strMonth,Sex"
             sortorder="ascending"/>
         <button label="Amphibians/Reptiles"
