@@ -269,8 +269,8 @@ function reportInit(){
 			}
 			registry.byId("reportPrintBtn").set('disabled',false); // enable Open Report button
 			registry.byId("reportCancelBtn").set('disabled',false);
-			// Create comma delimited files to download
-			createDownloadCSVFiles(0);
+			// enable download CSV file buttons
+			enableDownloadBtns();
 		}
 		function reportCancel(){
 			document.getElementById(selectBtn).className = "graphBtn";
@@ -638,8 +638,10 @@ function reportInit(){
 			}
 		}
 		function enableDownloadBtns(i){
-			var btn =registry.byId(replaceSpecialChar(download_buttons[i].label+"Btn","_"));
-			btn.set('disabled', false);
+			for (var i=0;i<download_buttons.length;i++){
+				var btn = registry.byId(replaceSpecialChar(download_buttons[i].label+"Btn","_"));
+				btn.set('disabled', false);
+			}
 		}
 		function addDownloadButtons(){
 			// creates temp CSV files for each <download_buttons><button> in the ResourceReportWidget.xml file
@@ -649,41 +651,46 @@ function reportInit(){
 			if (!download_buttons) return;
 			
 			require(["dijit/form/Button"],function(Button){
-				var visOnlyCheckbox = dom.byId("downloadVisibleOnly");
-				on(visOnlyCheckbox,"click", disableDownloadBtns);
-				
 				var downloadDiv = document.getElementById("downloadButtons");
 				downloadDiv.style.display = "block";
 				for (var q=0; q<download_buttons.length; q++){
-					var a = document.createElement('a');
 					var label = replaceSpecialChar(download_buttons[q].label,"_");//.replace(/([ :\-,\'\".;?\/()!@#$%^&*+=])/g,'_');
-					a.id = label;
 					var btnId = label+"Btn";
-					a.alt = "Download a CSV file of "+label;
-					btn = new Button({
+					var btn = new Button({
 						label: download_buttons[q].label,
-						id: btnId
-					}).placeAt(a);
-					downloadDiv.appendChild(a);
+						id: btnId,
+						onClick: function(event){
+							var label = event.target.parentNode.innerText.replace("\n",""); // replace newline, not sure why this is here
+							createDownloadCSVFiles(label)}
+					}).placeAt(downloadDiv);
+					
 					btn.set('disabled',true);
 					 // disable them until reportDrawEnd creates the download files and then enables
 				}
 			});
 		}
 		var downloadIndex; // index that allows each download_buttons/button to be processed. The index is passed in when createDownloadCSVFiles is called.
-		function createDownloadCSVFiles(myIndex){
-			// Loop through each download button generate the query task which will attatch a csv file to the button.
-			// <a href="2022,elk,april\n2022,bear,may..." download="all_mammals.csv"><button/></a>
+		function createDownloadCSVFiles(label){
+			// Generate the query task which will download a csv file
 			// myIndex: index of download_buttons button
-			// calls queryCSVCompleteHandler to create the file and attach it.
-			downloadIndex = myIndex;
+			// calls queryCSVCompleteHandler to create the file download it.
+			// find the index in download_buttons by the label
+			downloadIndex = -1;
+			for (var l=0; l<download_buttons.length; l++){
+				if (download_buttons[l].label === label)
+				downloadIndex = l;
+			}
+			if (downloadIndex == -1) {
+				alert("Download button "+label+ " not found!");
+				return;
+			}
 			var label = replaceSpecialChar(download_buttons[downloadIndex].label,"_");//.replace(/([ :\-,\'\".;?\/()!@#$%^&*+=])/g,'_');
 			document.getElementById(label+"Btn").innerText += "...";
 			var queries = [];
 			var ids = download_buttons[downloadIndex].ids.split(",");
 			var query = [];
 			var queryTask = [];
-			var visibleOnly = document.getElementById("downloadVisibleOnly").checked;
+			var visibleOnly = download_buttons[downloadIndex].visOnly;
 			var j;
 			var url = download_buttons[downloadIndex].url;
 			// get layer Id name if visibleOnly check
@@ -723,13 +730,8 @@ function reportInit(){
 				promises.otherwise(queryCSVFaultHandler);
 			} else {
 				// no visable data found. See if there is another download button
-				alert("Download file for "+label+" was not created since it's map layers are not currently visible", "Notice");
+				alert("Download file for "+label+" was not created since the data is not currently visible.", "Notice");
 				document.getElementById(label+"Btn").innerText = document.getElementById(label+"Btn").innerText.replace("...","");
-				// Did we create all of the CSV files?
-				downloadIndex++;
-				if (downloadIndex != download_buttons.length){
-					createDownloadCSVFiles(downloadIndex);
-				}
 			}
 		};
 		function queryCSVCompleteHandler(results){
@@ -802,20 +804,11 @@ function reportInit(){
 				
 				// download the table and attach it to download when the button is clicked
 				//var fileContent = "Elk,May,2023\nDeer,June,2023";
-				var bb = new Blob([fileContent ], { type: 'text/plain' });
-				var downloadA = document.getElementById(label);
-				downloadA.download = label+".csv";
-				downloadA.target = label;
-				downloadA.href = window.URL.createObjectURL(bb);
-				enableDownloadBtns(downloadIndex);
+				var blob = new Blob([fileContent ], { type: 'text/plain' });
+				saveAs(blob, label+".csv");
 			}
 			var downloadBtn = document.getElementById(label+"Btn");
 			downloadBtn.innerText = downloadBtn.innerText.replace("...","");
-			// Did we create all of the CSV files?
-			downloadIndex++;
-			if (downloadIndex != download_buttons.length){
-				createDownloadCSVFiles(downloadIndex);
-			}
 		}
 		function queryCSVFaultHandler(error){
 			// can't download CSV file
@@ -1923,6 +1916,9 @@ function reportInit(){
 							img.src = "assets/images/testmap.jpg";
 							alert("The image in the pdf is a placeholder. <a href='"+result.url+"' target='pdf_image'>Here is a link to the true image.</a>","Note for Test Site");
 						}
+						else if (window.location.hostname.toLowerCase().indexOf("gisweb")){
+							img.src = result.url.replace("https","http");
+						}
 						else if (printServiceUrl.indexOf(window.location.hostname) === -1)
 							alert("The fastmap url machine name or alias must match the printserviceurl in the ResourceReport.xml file.","Data Error");
 					}
@@ -2115,6 +2111,7 @@ function reportInit(){
 							for (i=0; i<download_buttonsTag.length; i++)
 							{
 								obj = {
+									visOnly: download_buttonsTag[i].getAttribute("onlyIfVisible")?download_buttonsTag[i].getAttribute("onlyIfVisible") === "true".toLowerCase():false,
 									url: download_buttonsTag[i].getAttribute("url")?download_buttonsTag[i].getAttribute("url"):showWarning("button tag, url attribute"),
 									ids: download_buttonsTag[i].getAttribute("ids")?download_buttonsTag[i].getAttribute("ids"):showWarning("button tag, ids attribute"),
 									label: download_buttonsTag[i].getAttribute("label")?download_buttonsTag[i].getAttribute("label"):showWarning("button tag, label attribute"),

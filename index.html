@@ -113,7 +113,7 @@
             document.write('<script type="text/javascript" src="' + path + '/maplink.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/print.js?v=' + jsVer + '"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '"><\/script>');
-            document.write('<script type="text/javascript" src="' + path + '/resourceReport.js?v=m"><\/script>');
+            document.write('<script type="text/javascript" src="' + path + '/resourceReport.js?v=w"><\/script>');
             document.write('<script type="text/javascript" src="' + path + '/search.js?v=' + jsVer + '"><\/script>');
             try {
                 function settingsXYProj(){
@@ -607,7 +607,7 @@
                             <span>Define an area of interest on the map and print a list of resources within it.</span>
                             <p>Step 1: Select button below then click and drag around area of interest.</p>
                             <p style="padding-left:35px;"><img id="reportPolyBtn" alt="define polygon button" class="graphBtn" src="assets/images/i_draw_freepoly.png" title="Select polygon button" /></p>
-                            <p>Step 2: Show print preview.</p>
+                            <p>Step 2: Create PDF Report</p>
                         </div>
                         <div id="pointReport" style="display:none;">
                             <span>Locate a point of interest on the map and print a list of resources within a distance of that point.</span>
@@ -615,13 +615,13 @@
                             <p style="padding-left:35px;"><img id="reportPtBtn" alt="select buffer button" class="graphBtn" src="assets/images/i_draw_point.png" title="Select location button" /></p>
                             <p>Step 2: Adjust report area.</p>
                             <p style="padding-left:35px;"><input id="reportDistCbo" /><span id="reportDistLabel"></span><br/></p>
-                            <p>Step 3: Show print preview.</p>
+                            <p>Step 3: Create PDF Report</p>
                         </div>
                         <p style="padding-left:35px;"><button id="reportPrintBtn" data-dojo-type="dijit/form/Button" role="presentation" type="button">Print Preview</button> <button id="reportCancelBtn" data-dojo-type="dijit/form/Button" role="presentation" type="button">Cancel</button></p>
                         <p align="center"><a href="https://get.adobe.com/reader/" target="pdf_reader">Get Adobe Reader</a> &nbsp;&nbsp;&nbsp;<a href="https://www.foxitsoftware.com/Secure_PDF_Reader/" target="pdf_reader">Get Foxit Reader</a></p>
                         <div id="downloadButtons" style="display:none;padding-left:35px;">
-                            <p>Download a Comma Delimited File<br/>Make sure downloads are enabled.</p>
-                            <p><input id="downloadVisibleOnly" type="checkbox" data-dojo-type="dijit/form/CheckBox" name="downloadVisibleOnly"/> Download only visible data?</p>
+                            <hr/>
+                            <p>Download a Comma Delimited File</p>
                         </div>
                     </div>
                 </div>
