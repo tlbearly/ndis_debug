@@ -687,12 +687,25 @@ function reportInit(){
 			var label = replaceSpecialChar(download_buttons[downloadIndex].label,"_");//.replace(/([ :\-,\'\".;?\/()!@#$%^&*+=])/g,'_');
 			document.getElementById(label+"Btn").innerText += "...";
 			var queries = [];
-			var ids = download_buttons[downloadIndex].ids.split(",");
+			var ids=[];
+			var j;
 			var query = [];
 			var queryTask = [];
 			var visibleOnly = download_buttons[downloadIndex].visOnly;
-			var j;
 			var url = download_buttons[downloadIndex].url;
+
+			// Generate array of numbers from a range and list of ids
+			var items =  download_buttons[downloadIndex].ids.split(",");
+			for(var i=0;i<items.length;i++){
+				if (items[i].indexOf("-")>-1){
+					let firstLast = items[i].split("-"); // "3-5" -> [3],[5]
+					for(j=parseInt(firstLast[0]);j<parseInt(firstLast[1])+1;j++){
+						ids.push(j);// push all the numbers 3,4,5
+					}
+				}
+				else ids.push(items[i]);
+			}
+
 			// get layer Id name if visibleOnly check
 			var layerName = "";
 			if (visibleOnly){
@@ -1916,7 +1929,8 @@ function reportInit(){
 							img.src = "assets/images/testmap.jpg";
 							alert("The image in the pdf is a placeholder. <a href='"+result.url+"' target='pdf_image'>Here is a link to the true image.</a>","Note for Test Site");
 						}
-						else if (window.location.hostname.toLowerCase().indexOf("gisweb")){
+						// *** TODO ***  remove this when Bob installs SSL at CPW
+						else if (window.location.hostname.toLowerCase().indexOf("gisweb") > -1){
 							img.src = result.url.replace("https","http");
 						}
 						else if (printServiceUrl.indexOf(window.location.hostname) === -1)
