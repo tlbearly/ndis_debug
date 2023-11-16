@@ -55,7 +55,7 @@
                     url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/> -->
 
             <layer label="Reference" open="true" type="dynamic" opensublayer="" visible="true" alpha="0.9"
-            		url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/"/>		
+            		url="https://ndismaps.nrel.colostate.edu/ArcGis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/"/>		
         </operationallayers>
 		
 		<hideGroupSublayers>none</hideGroupSublayers>
