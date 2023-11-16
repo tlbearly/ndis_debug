@@ -676,9 +676,21 @@ function reportInit(){
 			// calls queryCSVCompleteHandler to create the file download it.
 			// find the index in download_buttons by the label
 			downloadIndex = -1;
+			if (label.indexOf("...")>-1) label = label.replace("...","");
+			
 			for (var l=0; l<download_buttons.length; l++){
-				if (download_buttons[l].label === label)
-				downloadIndex = l;
+				var btnLabel = replaceSpecialChar(download_buttons[l].label,"_");
+				if (document.getElementById(btnLabel+"Btn").innerText.indexOf("...")>-1) {
+					document.getElementById(btnLabel+"Btn").innerText.replace("...","");
+					if (download_buttons[l].label === label){
+						downloadIndex = l;
+						break;
+					}
+				}
+				else if (download_buttons[l].label === label){
+					downloadIndex = l;
+					break;
+				}
 			}
 			if (downloadIndex == -1) {
 				alert("Download button "+label+ " not found!");
@@ -693,6 +705,7 @@ function reportInit(){
 			var queryTask = [];
 			var visibleOnly = download_buttons[downloadIndex].visOnly;
 			var url = download_buttons[downloadIndex].url;
+			if (url[url.length-1] != "/") url += "/";
 
 			// Generate array of numbers from a range and list of ids
 			var items =  download_buttons[downloadIndex].ids.split(",");
@@ -708,18 +721,34 @@ function reportInit(){
 
 			// get layer Id name if visibleOnly check
 			var layerName = "";
+			var mapUrl = "";
 			if (visibleOnly){
 				for (j=0; j<map.layerIds.length; j++){
-					if (url[url.length-1] != "/") url += "/";
-					if (url === map.getLayer(map.layerIds[j]).url){
+					mapUrl = map.getLayer(map.layerIds[j]).url;
+					// Add a / to the end, if it is missing, so we can compare
+					if (map.getLayer(map.layerIds[j]).url[map.getLayer(map.layerIds[j]).url.length-1] != "/")
+						mapUrl = mapUrl + "/";
+					
+					if (url.toLowerCase() === mapUrl.toLowerCase()){
 						layerName = map.layerIds[j]
 						break;
 					}
 				}
 			}
+			if (visibleOnly && layerName === ""){
+				var theMapLayers = "";
+				for(j=0; j<map.layerIds.length; j++){
+					theMapLayers += map.getLayer(map.layerIds[j]).url + "\n";
+				}
+				alert("Cannot find url: "+url+" In visible maps layers: "+theMapLayers,"ResourceReportWidget.xml File Warning");
+				document.getElementById(label+"Btn").innerText = document.getElementById(label+"Btn").innerText.replace("...","");
+				return;
+			}
 			for (var q=0; q<ids.length; q++){
-				url =  download_buttons[downloadIndex].url+"/"+ids[q];
-				url = url.replace(/\/\/([^\/\/]*)$/,"\/$1"); // replace last // with /
+				if (download_buttons[downloadIndex].url[download_buttons[downloadIndex].url.length-1] != "/")
+					url = download_buttons[downloadIndex].url+"/"+ids[q];
+				else
+					url = download_buttons[downloadIndex].url+ids[q];
 				// check if visible only is set to true and layer is visible
 				if (visibleOnly == true){
 					var layerIsVisible = false;

@@ -189,7 +189,7 @@
     -->
     <download_buttons>
         <button label="All Species"
-            url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/"
+            url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer"
             ids="1-6"
             fields="rkYear,strMonth,Species,Sex,Age,WGS84X,WGS84Y"
             displayfields="Year,Month,Species,Sex,Age,Web Mercator E, Web Mercator N"
@@ -197,10 +197,11 @@
             sortorder="ascending"/>
         <button label="Visible Species"
             onlyIfVisible="true"
-            url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/"
+            url="https://ndismaps.nrel.colostate.edu/ARCGIS/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer"
             ids="1-6"
-            displayfields="Year,Month,Species,Sex,Age,WGS84X,WGS84Y"
-            fields="rkYear,strMonth,Species,Sex,Age,Web Mercator E, Web Mercator N"
+            fields="rkYear,strMonth,Species,Sex,Age,WGS84X,WGS84Y"
+            displayfields="Year,Month,Species,Sex,Age,Web Mercator E, Web Mercator N"
+            
             sortfields="rkYear,Species,strMonth,Sex"
             sortorder="ascending"/>
     </download_buttons>
