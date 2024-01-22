@@ -987,7 +987,7 @@ define("agsjs/dijit/TOC",
     _processLegendError: function(err){
       // tlb 7-30-19 give it 5 tries to load, then display error, then try every 30 seconds
       var myLayer = this;
-console.log("Legend failed to load: "+this.rootLayer.id);      
+      console.log("Legend failed to load: "+this.rootLayer.id);      
       if (this.tries < 5){
         setTimeout(function(layer){
           layer._getLegendInfo();
@@ -1059,8 +1059,13 @@ console.log("Legend failed to load: "+this.rootLayer.id);
           if (layerInfo.subLayerIds) {
             var subLayerInfos = [];
             layerInfo.subLayerIds.forEach(function(id, i){
-                subLayerInfos[i] = layerLookup[id];
-                subLayerInfos[i]._parentLayerInfo = layerInfo;
+            if (layerLookup[id] === null){
+              alert("Warning: missing layer in "+layerInfo.name+" with sublayer id "+id);
+            }
+            else{
+              subLayerInfos[i] = layerLookup[id];
+              subLayerInfos[i]._parentLayerInfo = layerInfo;
+            }
            });
             layerInfo._subLayerInfos = subLayerInfos;
           }

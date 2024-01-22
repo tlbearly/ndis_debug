@@ -437,7 +437,8 @@ function reportInit(){
 			else if (tries[event.target.id] === 10){
 				if (event.target.id.indexOf("Motor Vehicle") > -1 || event.target.id.indexOf("Wildfire") > -1 || event.target.id.indexOf("BLM") > -1)
 					alert("While creating the report map, the external map service that provides "+event.target.id+" is experiencing problems.  This issue is out of CPW control. We will continue trying to load it. We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
-				else if (event.target.id.indexOf(layer)>-1)
+				// 1-22-24 added quotes to layer
+				else if (event.target.id.indexOf("layer")>-1)
 					alert("While creating the report map, the basemap service is busy or not responding. We will continue trying to load it.","Data Error");
 				else
 					alert("While creating the report map, the "+event.target.id+" service is busy or not responding. We will continue trying to load it.","Data Error");
