@@ -334,6 +334,7 @@ function reportInit(){
 					// add hidden group ids
 					for (j=0; j<layer.visibleLayers.length; j++) {
 						// 1-25-24 get index k in layerInfos where layerInfos.id == the next visible layer id
+						// was assuming the ids would be the same as the index!
 						for(var p=0; p<layerInfos.length; p++){
 							if (layer.visibleLayers[j] == layerInfos[p].id){
 								k = p;
